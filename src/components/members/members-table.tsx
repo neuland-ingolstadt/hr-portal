@@ -235,9 +235,8 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 								<p className="text-xs font-medium text-muted-foreground">
 									{t("members.filterGroups")}
 								</p>
-								<div
-									className="inline-flex border border-border bg-background p-0.5"
-									role="group"
+								<fieldset
+									className="m-0 inline-flex min-w-0 border border-border bg-background p-0.5"
 									aria-label={t("members.filterMatchHint")}
 								>
 									{(["any", "all"] as const).map((mode) => (
@@ -257,7 +256,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 												: t("members.filterMatchAll")}
 										</button>
 									))}
-								</div>
+								</fieldset>
 							</div>
 
 							{availableGroups.length > 8 ? (
@@ -303,6 +302,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 															fill="none"
 															aria-hidden
 														>
+															<title>Selected</title>
 															<path
 																d="M2.5 6.2 4.8 8.5 9.5 3.5"
 																stroke="currentColor"
