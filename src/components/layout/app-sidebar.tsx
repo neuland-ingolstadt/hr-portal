@@ -25,6 +25,8 @@ import { cn } from "#/lib/utils";
 type AppSidebarProps = {
 	collapsed?: boolean;
 	onCollapsedChange?: (collapsed: boolean) => void;
+	/** When false, skip width transition (initial hydrate from localStorage). */
+	animateWidth?: boolean;
 };
 
 function SidebarHoverLabel({
@@ -134,7 +136,10 @@ function NavSection({
 			{collapsed ? (
 				<span className="sr-only">{title}</span>
 			) : (
-				<p className="px-2 pb-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+				<p
+					data-sidebar-label
+					className="px-2 pb-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+				>
 					{title}
 				</p>
 			)}
@@ -175,11 +180,17 @@ function NavSection({
 							<Icon className="size-4 shrink-0" aria-hidden />
 							{collapsed ? null : (
 								<>
-									<span className="min-w-0 flex-1 truncate">
+									<span
+										data-sidebar-label
+										className="min-w-0 flex-1 truncate"
+									>
 										{label}
 									</span>
 									{item.soon ? (
-										<span className="shrink-0 font-mono text-[0.6rem] font-semibold tracking-wide text-muted-foreground uppercase">
+										<span
+											data-sidebar-label
+											className="shrink-0 font-mono text-[0.6rem] font-semibold tracking-wide text-muted-foreground uppercase"
+										>
 											{t("home.soon")}
 										</span>
 									) : null}
@@ -196,6 +207,7 @@ function NavSection({
 export function AppSidebar({
 	collapsed = false,
 	onCollapsedChange,
+	animateWidth = true,
 }: AppSidebarProps) {
 	const { t } = useI18n();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -204,7 +216,8 @@ export function AppSidebar({
 	return (
 		<aside
 			className={cn(
-				"app-sidebar flex h-full shrink-0 flex-col border-r border-border bg-card text-card-foreground transition-[width] duration-200 ease-out",
+				"app-sidebar flex h-full shrink-0 flex-col overflow-hidden border-r border-border bg-card text-card-foreground",
+				animateWidth && "transition-[width] duration-200 ease-out",
 				collapsed ? "w-[4.25rem]" : "w-[16.5rem]",
 			)}
 			data-collapsed={collapsed || undefined}
@@ -218,6 +231,7 @@ export function AppSidebar({
 				<SidebarHoverLabel label="Neuland HR" enabled={collapsed}>
 					<Link
 						to={ROUTES.HOME}
+						data-sidebar-brand
 						className={cn(
 							"flex min-w-0 flex-1 items-center no-underline",
 							collapsed ? "justify-center" : "gap-3 px-1",
@@ -226,7 +240,10 @@ export function AppSidebar({
 					>
 						<NeulandPalm className="h-7 w-auto shrink-0 text-foreground" />
 						{collapsed ? null : (
-							<div className="min-w-0 font-mono leading-tight">
+							<div
+								data-sidebar-label
+								className="min-w-0 font-mono leading-tight"
+							>
 								<span className="block truncate text-sm font-semibold tracking-wide">
 									Neuland
 								</span>
@@ -322,6 +339,7 @@ export function AppSidebar({
 					{collapsed ? null : (
 						<a
 							href={ROUTES.AUTH_LOGOUT}
+							data-sidebar-label
 							className="ml-auto inline-flex h-9 items-center gap-2 px-2.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground"
 						>
 							<LogOut className="size-4 shrink-0" aria-hidden />

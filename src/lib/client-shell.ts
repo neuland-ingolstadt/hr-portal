@@ -1,4 +1,5 @@
 import { LOCALE_STORAGE_KEY } from "#/lib/i18n/messages";
+import { SIDEBAR_COLLAPSED_KEY } from "#/lib/sidebar";
 import { THEME_STORAGE_KEY } from "#/lib/theme";
 
 export const clientShellScript = `
@@ -7,6 +8,12 @@ export const clientShellScript = `
     var locale = localStorage.getItem('${LOCALE_STORAGE_KEY}');
     if (locale === 'en' || locale === 'de') {
       document.documentElement.lang = locale;
+    }
+  } catch (e) {}
+
+  try {
+    if (localStorage.getItem('${SIDEBAR_COLLAPSED_KEY}') === '1') {
+      document.documentElement.setAttribute('data-sidebar-collapsed', '');
     }
   } catch (e) {}
 

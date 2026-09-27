@@ -5,9 +5,11 @@ import { LegalFooter } from "#/components/layout/legal-footer";
 import { MobileNavSheet } from "#/components/layout/mobile-nav-sheet";
 import { Button } from "#/components/ui/button";
 import { useI18n } from "#/lib/i18n/locale-context";
+import {
+	readSidebarCollapsed,
+	writeSidebarCollapsed,
+} from "#/lib/sidebar";
 import { cn } from "#/lib/utils";
-
-const SIDEBAR_COLLAPSED_KEY = "neuland-sidebar-collapsed";
 
 type AppShellProps = {
 	children: ReactNode;
@@ -17,23 +19,18 @@ type AppShellProps = {
 export function AppShell({ children, mainClassName }: AppShellProps) {
 	const { t } = useI18n();
 	const [mobileOpen, setMobileOpen] = useState(false);
+	// SSR defaults to expanded; client-shell + CSS apply the stored rail before paint.
 	const [collapsed, setCollapsed] = useState(false);
+	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
-		try {
-			setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
-		} catch {
-			/* ignore */
-		}
+		setCollapsed(readSidebarCollapsed());
+		setReady(true);
 	}, []);
 
 	function handleCollapsedChange(next: boolean) {
 		setCollapsed(next);
-		try {
-			localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
-		} catch {
-			/* ignore */
-		}
+		writeSidebarCollapsed(next);
 	}
 
 	return (
@@ -45,14 +42,17 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 
 			{/* Desktop sidebar */}
 			<div
+				data-app-sidebar-shell
 				className={cn(
-					"sticky top-0 hidden h-svh shrink-0 transition-[width] duration-200 ease-out md:block",
+					"sticky top-0 hidden h-svh shrink-0 md:block",
+					ready && "transition-[width] duration-200 ease-out",
 					collapsed ? "w-[4.25rem]" : "w-[16.5rem]",
 				)}
 			>
 				<AppSidebar
 					collapsed={collapsed}
 					onCollapsedChange={handleCollapsedChange}
+					animateWidth={ready}
 				/>
 			</div>
 

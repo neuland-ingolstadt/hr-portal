@@ -19,6 +19,10 @@ type AuthentikGroup = {
 	name?: string;
 	group_uuid?: string;
 	uuid?: string;
+	/** User PKs only (default list/detail payload). */
+	users?: unknown[];
+	/** Expanded users when `include_users=true`. */
+	users_obj?: AuthentikUser[];
 };
 
 type AuthentikUser = {
@@ -122,32 +126,68 @@ const MOCK_PROFILES: Record<
 	},
 };
 
-/** Short in-memory cache so members + offboarding share one Authentik dump. */
-const DIRECTORY_CACHE_TTL_MS = 45_000;
+/** In-memory cache TTL for Authentik directory snapshots. */
+const DIRECTORY_CACHE_TTL_MS = 5 * 60_000;
+
+type DirectorySnapshot = {
+	members: Member[];
+	source: MembersResult["source"];
+};
 
 type DirectoryCache = {
 	expiresAt: number;
-	value: {
-		members: Member[];
-		source: MembersResult["source"];
+	value: DirectorySnapshot;
+	inflight: Promise<DirectorySnapshot> | null;
+};
+
+function emptyCache(): DirectoryCache {
+	return {
+		expiresAt: 0,
+		value: { members: [], source: "mock" },
+		inflight: null,
 	};
-	inflight: Promise<{
-		members: Member[];
-		source: MembersResult["source"];
-	}> | null;
-};
+}
 
-const directoryCache: DirectoryCache = {
-	expiresAt: 0,
-	value: { members: [], source: "mock" },
-	inflight: null,
-};
+/** Full active-user dump — used by offboarding (needs non-Mitglieder too). */
+const directoryCache: DirectoryCache = emptyCache();
 
-/** Drop the in-memory directory dump after mutations (e.g. create user). */
+/** Mitglieder-only snapshot — fast group+users path for /members. */
+const mitgliederCache: DirectoryCache = emptyCache();
+
+function invalidateCache(cache: DirectoryCache): void {
+	cache.expiresAt = 0;
+	cache.value = { members: [], source: "mock" };
+	cache.inflight = null;
+}
+
+/** Drop in-memory directory snapshots after mutations (e.g. create user). */
 export function invalidateDirectoryCache(): void {
-	directoryCache.expiresAt = 0;
-	directoryCache.value = { members: [], source: "mock" };
-	directoryCache.inflight = null;
+	invalidateCache(directoryCache);
+	invalidateCache(mitgliederCache);
+}
+
+async function loadCachedSnapshot(
+	cache: DirectoryCache,
+	fetchSnapshot: () => Promise<DirectorySnapshot>,
+): Promise<DirectorySnapshot> {
+	const now = Date.now();
+	if (cache.expiresAt > now) {
+		return cache.value;
+	}
+	if (cache.inflight) {
+		return cache.inflight;
+	}
+
+	cache.inflight = (async () => {
+		const result = await fetchSnapshot();
+		cache.value = result;
+		cache.expiresAt = Date.now() + DIRECTORY_CACHE_TTL_MS;
+		return result;
+	})().finally(() => {
+		cache.inflight = null;
+	});
+
+	return cache.inflight;
 }
 
 function authHeaders(): HeadersInit {
@@ -160,6 +200,28 @@ function authHeaders(): HeadersInit {
 function isAuthentikApiConfigured(): boolean {
 	const { apiUrl, apiToken } = serverConfig.authentik;
 	return Boolean(apiUrl && apiToken);
+}
+
+async function fetchJson<T>(
+	path: string,
+	params?: Record<string, string>,
+): Promise<T> {
+	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+	const url = new URL(`${base}${path}`);
+	if (params) {
+		for (const [key, value] of Object.entries(params)) {
+			url.searchParams.set(key, value);
+		}
+	}
+
+	const res = await fetch(url, { headers: authHeaders() });
+	if (!res.ok) {
+		const detail = await res.text().catch(() => "");
+		console.error(`[authentik] ${path} → ${res.status}`, detail.slice(0, 200));
+		throw new Error(`Authentik request failed (${res.status}): ${path}`);
+	}
+
+	return (await res.json()) as T;
 }
 
 async function fetchAllPages<T>(path: string): Promise<T[]> {
@@ -282,34 +344,49 @@ function hasTechnicalUsersGroup(groups: string[]): boolean {
 	return hasConfiguredGroup(groups, serverConfig.groups.technicalUsers);
 }
 
-async function loadActiveDirectoryMembers(): Promise<{
-	members: Member[];
-	source: MembersResult["source"];
-}> {
-	const now = Date.now();
-	if (directoryCache.expiresAt > now) {
-		return directoryCache.value;
-	}
-	if (directoryCache.inflight) {
-		return directoryCache.inflight;
-	}
-
-	directoryCache.inflight = (async () => {
-		const result = await fetchActiveDirectoryMembers();
-		directoryCache.value = result;
-		directoryCache.expiresAt = Date.now() + DIRECTORY_CACHE_TTL_MS;
-		return result;
-	})().finally(() => {
-		directoryCache.inflight = null;
-	});
-
-	return directoryCache.inflight;
+function matchesMitgliederGroup(name: string | undefined): boolean {
+	const expected = serverConfig.groups.mitglieder.trim().toLowerCase();
+	if (!expected || !name) return false;
+	return name.trim().toLowerCase() === expected;
 }
 
-async function fetchActiveDirectoryMembers(): Promise<{
-	members: Member[];
-	source: MembersResult["source"];
-}> {
+function usersToMembers(
+	users: AuthentikUser[],
+	groupNamesById: Map<string, string>,
+): Member[] {
+	const members: Member[] = [];
+
+	for (const user of users) {
+		if (user.is_active === false) continue;
+		if (user.type === "service_account") continue;
+
+		const id =
+			user.uuid ?? (user.pk != null ? String(user.pk) : user.username) ?? null;
+		if (!id) continue;
+
+		members.push({
+			id,
+			name: displayName(user),
+			groups: resolveUserGroups(user, groupNamesById),
+		});
+	}
+
+	members.sort((a, b) => a.name.localeCompare(b.name, "de"));
+	return members;
+}
+
+async function loadActiveDirectoryMembers(): Promise<DirectorySnapshot> {
+	return loadCachedSnapshot(directoryCache, fetchActiveDirectoryMembers);
+}
+
+async function loadMitgliederDirectoryMembers(): Promise<DirectorySnapshot> {
+	return loadCachedSnapshot(mitgliederCache, fetchMitgliederDirectoryMembers);
+}
+
+/**
+ * Full active-user dump. Expensive (~seconds) — keep for offboarding only.
+ */
+async function fetchActiveDirectoryMembers(): Promise<DirectorySnapshot> {
 	if (!isAuthentikApiConfigured()) {
 		if (serverConfig.authMock) {
 			return { members: MOCK_MEMBERS, source: "mock" };
@@ -329,21 +406,80 @@ async function fetchActiveDirectoryMembers(): Promise<{
 		throw err;
 	}
 
-	const groupNamesById = buildGroupNameIndex(groups);
-	const members: Member[] = [];
+	return {
+		members: usersToMembers(users, buildGroupNameIndex(groups)),
+		source: "authentik",
+	};
+}
 
-	for (const user of users) {
+/**
+ * Mitglieder via groups+users inversion — avoids the slow paginated /users dump.
+ * ~1s vs ~8s. Member ids are Authentik user PKs (profile lookup accepts pk or uuid).
+ */
+async function fetchMitgliederDirectoryMembers(): Promise<DirectorySnapshot> {
+	if (!isAuthentikApiConfigured()) {
+		if (serverConfig.authMock) {
+			return {
+				members: MOCK_MEMBERS.filter((m) => hasMitgliederGroup(m.groups)),
+				source: "mock",
+			};
+		}
+		throw new Error("authentik_api_missing");
+	}
+
+	const mitgliederName = serverConfig.groups.mitglieder.trim();
+	if (!mitgliederName) {
+		throw new Error("mitglieder_group_missing");
+	}
+
+	let groups: AuthentikGroup[];
+	try {
+		// Single list call with expanded users (~1s) — cheaper than /users pages.
+		groups = await fetchAllPages<AuthentikGroup>(
+			"/api/v3/core/groups/?include_users=true",
+		);
+	} catch (err) {
+		console.error("[authentik] failed to list mitglieder", err);
+		throw err;
+	}
+
+	const groupsByUserPk = new Map<string, Set<string>>();
+	const mitgliederByPk = new Map<string, AuthentikUser>();
+
+	for (const group of groups) {
+		const name = group.name?.trim();
+		if (!name) continue;
+		const isMit = matchesMitgliederGroup(name);
+
+		for (const user of group.users_obj ?? []) {
+			if (user.pk == null) continue;
+			const pk = String(user.pk);
+			let set = groupsByUserPk.get(pk);
+			if (!set) {
+				set = new Set();
+				groupsByUserPk.set(pk, set);
+			}
+			set.add(name);
+			if (isMit) mitgliederByPk.set(pk, user);
+		}
+	}
+
+	if (mitgliederByPk.size === 0) {
+		console.warn(`[authentik] mitglieder group not found: ${mitgliederName}`);
+		return { members: [], source: "authentik" };
+	}
+
+	const members: Member[] = [];
+	for (const [pk, user] of mitgliederByPk) {
 		if (user.is_active === false) continue;
 		if (user.type === "service_account") continue;
 
-		const id =
-			user.uuid ?? (user.pk != null ? String(user.pk) : user.username) ?? null;
-		if (!id) continue;
-
 		members.push({
-			id,
+			id: pk,
 			name: displayName(user),
-			groups: resolveUserGroups(user, groupNamesById),
+			groups: [...(groupsByUserPk.get(pk) ?? [])].sort((a, b) =>
+				a.localeCompare(b, "de"),
+			),
 		});
 	}
 
@@ -357,17 +493,15 @@ async function fetchActiveDirectoryMembers(): Promise<{
  * (everyone on this page is already a Mitglied).
  */
 export async function listMembersFromAuthentik(): Promise<MembersResult> {
-	const { members, source } = await loadActiveDirectoryMembers();
+	const { members, source } = await loadMitgliederDirectoryMembers();
 	const mitgliederName = serverConfig.groups.mitglieder.trim().toLowerCase();
 
-	const mitglieder = members
-		.filter((member) => hasMitgliederGroup(member.groups))
-		.map((member) => ({
-			...member,
-			groups: member.groups.filter(
-				(group) => group.trim().toLowerCase() !== mitgliederName,
-			),
-		}));
+	const mitglieder = members.map((member) => ({
+		...member,
+		groups: member.groups.filter(
+			(group) => group.trim().toLowerCase() !== mitgliederName,
+		),
+	}));
 
 	return toMembersResult(mitglieder, source);
 }
@@ -418,40 +552,12 @@ export async function listNonMitgliederAccountsFromAuthentik(): Promise<Offboard
 	return toOffboardingCandidatesResult(candidates, source);
 }
 
-async function fetchJson<T>(
-	path: string,
-	params?: Record<string, string>,
-): Promise<T> {
-	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
-	const url = new URL(`${base}${path}`);
-	if (params) {
-		for (const [key, value] of Object.entries(params)) {
-			url.searchParams.set(key, value);
-		}
-	}
-
-	const res = await fetch(url, { headers: authHeaders() });
-	if (!res.ok) {
-		const detail = await res.text().catch(() => "");
-		console.error(`[authentik] ${path} → ${res.status}`, detail.slice(0, 200));
-		throw new Error(`Authentik request failed (${res.status}): ${path}`);
-	}
-
-	return (await res.json()) as T;
-}
-
 async function fetchPageCount(path: string): Promise<number> {
 	const body = await fetchJson<AuthentikPaginated<unknown>>(path, {
 		page: "1",
 		page_size: "1",
 	});
 	return body.pagination?.count ?? body.results?.length ?? 0;
-}
-
-function matchesMitgliederGroup(name: string | undefined): boolean {
-	const expected = serverConfig.groups.mitglieder.trim().toLowerCase();
-	if (!expected || !name) return false;
-	return name.trim().toLowerCase() === expected;
 }
 
 /**
@@ -541,19 +647,27 @@ function toMemberProfile(
 }
 
 /**
- * Prefer groups already resolved in the directory cache; otherwise map
+ * Prefer groups already resolved in a directory cache; otherwise map
  * Authentik group UUIDs via a fresh groups index.
  */
 async function resolveProfileGroups(
 	user: AuthentikUser,
-	uuid: string,
+	id: string,
 ): Promise<string[]> {
-	try {
-		const { members } = await loadActiveDirectoryMembers();
-		const hit = members.find((m) => m.id === uuid);
-		if (hit) return hit.groups;
-	} catch {
-		/* fall through to direct resolution */
+	const pk = user.pk != null ? String(user.pk) : null;
+	for (const loader of [
+		loadMitgliederDirectoryMembers,
+		loadActiveDirectoryMembers,
+	]) {
+		try {
+			const { members } = await loader();
+			const hit = members.find(
+				(m) => m.id === id || (pk != null && m.id === pk),
+			);
+			if (hit) return hit.groups;
+		} catch {
+			/* try next cache / fall through */
+		}
 	}
 
 	try {
@@ -565,15 +679,18 @@ async function resolveProfileGroups(
 	}
 }
 
+const UUID_RE =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
- * Fetch a single member profile by Authentik UUID.
+ * Fetch a single member profile by Authentik UUID or numeric user PK.
  * Email is included only when `includeEmail` is true (Vorstand/Admin).
  */
 export async function getMemberProfileByUuid(
-	uuid: string,
+	id: string,
 	options: { includeEmail: boolean },
 ): Promise<MemberProfileResult> {
-	const sub = uuid.trim();
+	const sub = id.trim();
 	if (!sub) {
 		return { status: "not_found", source: "authentik" };
 	}
@@ -595,19 +712,34 @@ export async function getMemberProfileByUuid(
 
 	try {
 		const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
-		const url = new URL(`${base}/api/v3/core/users/`);
-		url.searchParams.set("uuid", sub);
-		url.searchParams.set("page_size", "5");
+		let user: AuthentikUser | undefined;
 
-		const res = await fetch(url, { headers: authHeaders() });
-		if (!res.ok) {
-			console.error(`[authentik] profile lookup failed: ${res.status}`);
-			return { status: "error", error: "lookup_failed" };
+		if (UUID_RE.test(sub)) {
+			const url = new URL(`${base}/api/v3/core/users/`);
+			url.searchParams.set("uuid", sub);
+			url.searchParams.set("page_size", "5");
+			const res = await fetch(url, { headers: authHeaders() });
+			if (!res.ok) {
+				console.error(`[authentik] profile lookup failed: ${res.status}`);
+				return { status: "error", error: "lookup_failed" };
+			}
+			const body = (await res.json()) as AuthentikPaginated<AuthentikUser>;
+			user =
+				body.results?.find((entry) => entry.uuid === sub) ?? body.results?.[0];
+		} else {
+			// Members list uses Authentik numeric PK (users_obj has no uuid).
+			const res = await fetch(`${base}/api/v3/core/users/${encodeURIComponent(sub)}/`, {
+				headers: authHeaders(),
+			});
+			if (res.status === 404) {
+				return { status: "not_found", source: "authentik" };
+			}
+			if (!res.ok) {
+				console.error(`[authentik] profile lookup failed: ${res.status}`);
+				return { status: "error", error: "lookup_failed" };
+			}
+			user = (await res.json()) as AuthentikUser;
 		}
-
-		const body = (await res.json()) as AuthentikPaginated<AuthentikUser>;
-		const user =
-			body.results?.find((entry) => entry.uuid === sub) ?? body.results?.[0];
 
 		if (!user) {
 			return { status: "not_found", source: "authentik" };

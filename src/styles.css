@@ -262,6 +262,31 @@ html.theme-transition *::after {
 	}
 }
 
+/*
+  Before-paint collapsed rail (set by client-shell from localStorage).
+  Prevents open→close flash on refresh before React hydrates.
+*/
+html[data-sidebar-collapsed] [data-app-sidebar-shell],
+html[data-sidebar-collapsed] .app-sidebar {
+	width: 4.25rem;
+}
+
+html[data-sidebar-collapsed] .app-sidebar [data-sidebar-label] {
+	display: none !important;
+}
+
+html[data-sidebar-collapsed] .app-sidebar [data-sidebar-brand] {
+	justify-content: center;
+	gap: 0;
+	padding-inline: 0;
+}
+
+html[data-sidebar-collapsed] .app-sidebar nav a {
+	justify-content: center;
+	gap: 0;
+	padding-inline: 0;
+}
+
 .neuland-grid-bg {
 	background-color: var(--ambient-background);
 	background-image:

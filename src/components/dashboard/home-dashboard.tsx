@@ -6,7 +6,7 @@ import {
 	UserMinus,
 	Users,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import type { SessionUser } from "#/lib/auth";
 import { primaryRole, roleBadgeVariant } from "#/lib/auth";
@@ -25,6 +25,9 @@ type HomeDashboardProps = {
 	statsPromise: Promise<DashboardStats>;
 };
 
+const PANEL_STATIC = "[animation:none]";
+const COUNT_UP_MS = 550;
+
 function initials(name: string): string {
 	const parts = name.trim().split(/\s+/).filter(Boolean);
 	if (parts.length === 0) return "?";
@@ -37,17 +40,80 @@ function formatStat(value: number | null): string {
 	return new Intl.NumberFormat("de-DE").format(value);
 }
 
+function usePrefersReducedMotion(): boolean {
+	const [reduced, setReduced] = useState(false);
+	useEffect(() => {
+		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+		setReduced(mq.matches);
+		const onChange = () => setReduced(mq.matches);
+		mq.addEventListener("change", onChange);
+		return () => mq.removeEventListener("change", onChange);
+	}, []);
+	return reduced;
+}
+
+function CountUpValue({ value }: { value: number | null }) {
+	const reducedMotion = usePrefersReducedMotion();
+	const [display, setDisplay] = useState<number | null>(
+		reducedMotion ? value : value == null ? null : 0,
+	);
+
+	useEffect(() => {
+		if (value == null) {
+			setDisplay(null);
+			return;
+		}
+		if (reducedMotion || value === 0) {
+			setDisplay(value);
+			return;
+		}
+
+		setDisplay(0);
+		const start = performance.now();
+		let frame = 0;
+
+		const tick = (now: number) => {
+			const t = Math.min(1, (now - start) / COUNT_UP_MS);
+			const eased = 1 - (1 - t) ** 3;
+			setDisplay(Math.round(value * eased));
+			if (t < 1) frame = requestAnimationFrame(tick);
+		};
+
+		frame = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(frame);
+	}, [value, reducedMotion]);
+
+	const formattedFinal = formatStat(value);
+	const formattedDisplay = formatStat(display);
+
+	if (value == null || reducedMotion) {
+		return formattedFinal;
+	}
+
+	return (
+		<>
+			<span aria-hidden="true">{formattedDisplay}</span>
+			<span className="sr-only">{formattedFinal}</span>
+		</>
+	);
+}
+
 function StatCard({
 	label,
 	value,
 	hint,
 }: {
 	label: string;
-	value: string;
+	value: ReactNode;
 	hint?: string;
 }) {
 	return (
-		<div className="surface-panel surface-panel--interactive relative overflow-hidden p-5 [animation:none]">
+		<div
+			className={cn(
+				"surface-panel surface-panel--interactive relative overflow-hidden p-5",
+				PANEL_STATIC,
+			)}
+		>
 			<span
 				aria-hidden
 				className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary via-primary/40 to-transparent"
@@ -71,20 +137,20 @@ function ActionCard({
 	title,
 	description,
 	cta,
-	delay,
 }: {
 	to: string;
 	icon: ReactNode;
 	title: string;
 	description: string;
 	cta: string;
-	delay: string;
 }) {
 	return (
 		<Link
 			to={to}
-			className="surface-panel surface-panel--interactive group relative flex h-full flex-col gap-4 p-5 no-underline"
-			style={{ animationDelay: delay }}
+			className={cn(
+				"surface-panel surface-panel--interactive group relative flex h-full flex-col gap-4 p-5 no-underline",
+				PANEL_STATIC,
+			)}
 		>
 			<div className="flex items-start justify-between gap-3">
 				<span className="flex size-10 items-center justify-center border border-border bg-muted text-foreground transition-colors group-hover:border-primary/40 group-hover:bg-primary/10 group-hover:text-primary">
@@ -111,20 +177,20 @@ function PlaceholderCard({
 	icon,
 	title,
 	description,
-	delay,
 }: {
 	to: string;
 	icon: ReactNode;
 	title: string;
 	description: string;
-	delay: string;
 }) {
 	const { t } = useI18n();
 	return (
 		<Link
 			to={to}
-			className="surface-panel surface-panel--interactive relative flex h-full flex-col gap-4 p-5 no-underline opacity-[0.96]"
-			style={{ animationDelay: delay }}
+			className={cn(
+				"surface-panel surface-panel--interactive relative flex h-full flex-col gap-4 p-5 no-underline opacity-[0.96]",
+				PANEL_STATIC,
+			)}
 		>
 			<div className="flex items-start justify-between gap-3">
 				<span className="flex size-10 items-center justify-center border border-dashed border-border bg-muted/50 text-muted-foreground">
@@ -185,7 +251,7 @@ function StatsGrid({
 		<section className="grid gap-4 sm:grid-cols-3">
 			<StatCard
 				label={t("home.statMembers")}
-				value={formatStat(stats.memberCount)}
+				value={<CountUpValue value={stats.memberCount} />}
 				hint={
 					stats.source === "mock"
 						? t("home.statMock")
@@ -196,7 +262,7 @@ function StatsGrid({
 			/>
 			<StatCard
 				label={t("home.statGroups")}
-				value={formatStat(stats.groupCount)}
+				value={<CountUpValue value={stats.groupCount} />}
 				hint={
 					stats.source === "unavailable"
 						? t("home.statUnavailable")
@@ -236,8 +302,7 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 	return (
 		<div className="flex w-full min-w-0 flex-col gap-6 sm:gap-8">
 			<section
-				className="surface-panel relative overflow-hidden"
-				style={{ animationDelay: "0ms" }}
+				className={cn("surface-panel relative overflow-hidden", PANEL_STATIC)}
 			>
 				<div
 					aria-hidden
@@ -287,34 +352,32 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						title={t("home.actionMembersTitle")}
 						description={t("home.actionMembersDesc")}
 						cta={t("home.openMembers")}
-						delay="200ms"
 					/>
 					<PlaceholderCard
 						to={ROUTES.APPLICATIONS}
 						icon={<FileCheck2 className="size-5" aria-hidden />}
 						title={t("home.moduleApplicationsTitle")}
 						description={t("home.moduleApplicationsDesc")}
-						delay="240ms"
 					/>
 					<PlaceholderCard
 						to={ROUTES.ONBOARDING}
 						icon={<ClipboardList className="size-5" aria-hidden />}
 						title={t("home.moduleOnboardingTitle")}
 						description={t("home.moduleOnboardingDesc")}
-						delay="280ms"
 					/>
 					<PlaceholderCard
 						to={ROUTES.OFFBOARDING}
 						icon={<UserMinus className="size-5" aria-hidden />}
 						title={t("home.moduleOffboardingTitle")}
 						description={t("home.moduleOffboardingDesc")}
-						delay="320ms"
 					/>
 				</div>
 
 				<aside
-					className="surface-panel flex flex-col gap-5 p-5 sm:p-6"
-					style={{ animationDelay: "220ms" }}
+					className={cn(
+						"surface-panel flex flex-col gap-5 p-5 sm:p-6",
+						PANEL_STATIC,
+					)}
 				>
 					<div className="flex items-center gap-3">
 						<span
