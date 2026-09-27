@@ -324,10 +324,10 @@ const de = {
 	"members.searchPlaceholder": "Name suchen…",
 	"members.filterTitle": "Filter",
 	"members.filterGroups": "Gruppen",
-	"members.filterMatchAny": "Beliebig",
-	"members.filterMatchAll": "Alle",
+	"members.filterMatchAny": "Oder",
+	"members.filterMatchAll": "Und",
 	"members.filterMatchHint":
-		"Treffer, wenn die Person die gewählten Gruppen erfüllt.",
+		"Oder: mindestens eine Gruppe · Und: alle gewählten Gruppen",
 	"members.clearFilters": "Zurücksetzen",
 	"members.showing": "{filtered} von {total}",
 	"members.count": "{count} Einträge",
@@ -415,8 +415,6 @@ const de = {
 	"scanner.resultInvalid": "Verifizierung fehlgeschlagen",
 	"scanner.resultDuplicate": "Bereits verifiziert",
 	"scanner.resultValidLead": "Signatur der Member-ID ist gültig.",
-	"scanner.resultDuplicateLead":
-		"Diese Person wurde in dieser Sitzung bereits gescannt.",
 	"scanner.badgeValid": "Gültig",
 	"scanner.badgeInvalid": "Ungültig",
 	"scanner.errorInvalidSignature": "Ungültige Signatur",
@@ -444,7 +442,6 @@ const de = {
 	"scanner.publicKeyUnavailable":
 		"Scanner nicht verfügbar — öffentlicher Schlüssel konnte nicht geladen werden.",
 	"scanner.publicKeyRetry": "Schlüssel erneut laden",
-	"scanner.clearResult": "Scan zurücksetzen",
 	"scanner.historyTitle": "Lokale Historie",
 	"scanner.historyHint": "Nur auf diesem Gerät gespeichert.",
 	"scanner.historyClear": "Leeren",
@@ -778,9 +775,10 @@ const en: Record<MessageKey, string> = {
 	"members.searchPlaceholder": "Search by name…",
 	"members.filterTitle": "Filters",
 	"members.filterGroups": "Groups",
-	"members.filterMatchAny": "Any",
-	"members.filterMatchAll": "All",
-	"members.filterMatchHint": "Match people who satisfy the selected groups.",
+	"members.filterMatchAny": "Or",
+	"members.filterMatchAll": "And",
+	"members.filterMatchHint":
+		"Or: at least one group · And: all selected groups",
 	"members.clearFilters": "Reset",
 	"members.showing": "{filtered} of {total}",
 	"members.count": "{count} entries",
@@ -863,8 +861,6 @@ const en: Record<MessageKey, string> = {
 	"scanner.resultInvalid": "Verification failed",
 	"scanner.resultDuplicate": "Already verified",
 	"scanner.resultValidLead": "Member ID signature is valid.",
-	"scanner.resultDuplicateLead":
-		"This person was already scanned in this session.",
 	"scanner.badgeValid": "Valid",
 	"scanner.badgeInvalid": "Invalid",
 	"scanner.errorInvalidSignature": "Invalid signature",
@@ -891,7 +887,6 @@ const en: Record<MessageKey, string> = {
 	"scanner.publicKeyUnavailable":
 		"Scanner unavailable — could not load the public key.",
 	"scanner.publicKeyRetry": "Reload key",
-	"scanner.clearResult": "Clear scan",
 	"scanner.historyTitle": "Local history",
 	"scanner.historyHint": "Stored only on this device.",
 	"scanner.historyClear": "Clear",

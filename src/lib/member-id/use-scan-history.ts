@@ -8,8 +8,22 @@ export type ScanHistoryEntry = {
 	sub: string;
 	name: string;
 	success: boolean;
+	/** True when this successful scan repeats a prior successful scan of the same sub. */
+	duplicate: boolean;
 	timestamp: number;
 };
+
+/** Entries are newest-first; mark later successful rescans of the same sub. */
+function withDuplicateFlags(entries: ScanHistoryEntry[]): ScanHistoryEntry[] {
+	const seen = new Set<string>();
+	const oldestFirst = [...entries].reverse().map((entry) => {
+		if (!entry.success) return { ...entry, duplicate: false };
+		const duplicate = seen.has(entry.sub);
+		seen.add(entry.sub);
+		return { ...entry, duplicate };
+	});
+	return oldestFirst.reverse();
+}
 
 function loadHistory(): ScanHistoryEntry[] {
 	if (typeof window === "undefined") return [];
@@ -18,14 +32,21 @@ function loadHistory(): ScanHistoryEntry[] {
 		if (!raw) return [];
 		const parsed = JSON.parse(raw) as ScanHistoryEntry[];
 		if (!Array.isArray(parsed)) return [];
-		return parsed.filter(
-			(entry) =>
-				entry &&
-				typeof entry.id === "string" &&
-				typeof entry.sub === "string" &&
-				typeof entry.name === "string" &&
-				typeof entry.timestamp === "number",
-		);
+		const normalized = parsed
+			.filter(
+				(entry) =>
+					entry &&
+					typeof entry.id === "string" &&
+					typeof entry.sub === "string" &&
+					typeof entry.name === "string" &&
+					typeof entry.timestamp === "number",
+			)
+			.map((entry) => ({
+				...entry,
+				success: Boolean(entry.success),
+				duplicate: Boolean(entry.duplicate),
+			}));
+		return withDuplicateFlags(normalized);
 	} catch {
 		return [];
 	}
@@ -76,6 +97,7 @@ export function useScanHistory() {
 				sub: input.sub,
 				name: input.name,
 				success: input.success,
+				duplicate: isDuplicate,
 				timestamp: Date.now(),
 			};
 

@@ -18,7 +18,6 @@ type ScannerResultProps = {
 	lookup: LookupMemberResult | null;
 	lookupLoading: boolean;
 	isDuplicate?: boolean;
-	onClear: () => void;
 };
 
 function formatTimestamp(seconds: number, locale: string): string {
@@ -62,7 +61,6 @@ export function ScannerResult({
 	lookup,
 	lookupLoading,
 	isDuplicate = false,
-	onClear,
 }: ScannerResultProps) {
 	const { t, locale } = useI18n();
 	const [profileId, setProfileId] = useState<string | null>(null);
@@ -121,8 +119,18 @@ export function ScannerResult({
 							: "border-destructive/40",
 				)}
 			>
-				<div className="flex flex-wrap items-start justify-between gap-3">
-					<div className="flex min-w-0 items-start gap-3">
+				<div
+					className={cn(
+						"flex flex-wrap justify-between gap-3",
+						duplicate ? "items-center" : "items-start",
+					)}
+				>
+					<div
+						className={cn(
+							"flex min-w-0 gap-3",
+							duplicate ? "items-center" : "items-start",
+						)}
+					>
 						<div
 							className={cn(
 								"border p-2",
@@ -145,7 +153,7 @@ export function ScannerResult({
 							<h2
 								className={cn(
 									"text-base font-semibold tracking-tight",
-									duplicate && "text-sky-800 dark:text-sky-300",
+									duplicate && "text-white",
 								)}
 							>
 								{duplicate
@@ -154,30 +162,20 @@ export function ScannerResult({
 										? t("scanner.resultValid")
 										: t("scanner.resultInvalid")}
 							</h2>
-							<p
-								className={cn(
-									"text-sm text-muted-foreground",
-									duplicate && "text-sky-700/80 dark:text-sky-300/80",
-								)}
-							>
-								{duplicate
-									? t("scanner.resultDuplicateLead")
-									: success
+							{duplicate ? null : (
+								<p className="text-sm text-muted-foreground">
+									{success
 										? t("scanner.resultValidLead")
 										: verifyErrorMessage(t, result.error)}
-							</p>
+								</p>
+							)}
 						</div>
 					</div>
-					<div className="flex items-center gap-2">
-						{duplicate ? null : (
-							<Badge variant={success ? "default" : "destructive"}>
-								{success ? t("scanner.badgeValid") : t("scanner.badgeInvalid")}
-							</Badge>
-						)}
-						<Button type="button" variant="outline" size="sm" onClick={onClear}>
-							{t("scanner.clearResult")}
-						</Button>
-					</div>
+					{duplicate ? null : (
+						<Badge variant={success ? "default" : "destructive"}>
+							{success ? t("scanner.badgeValid") : t("scanner.badgeInvalid")}
+						</Badge>
+					)}
 				</div>
 
 				{result.payload ? (
@@ -219,61 +217,77 @@ export function ScannerResult({
 									<User />
 									{t("scanner.openProfile")}
 								</Button>
+							) : lookupLoading ? (
+								<span
+									className="inline-flex h-8 w-[8.75rem] shrink-0"
+									aria-hidden
+								/>
 							) : null}
 						</div>
 
-						{lookupLoading ? (
-							<p className="text-sm text-muted-foreground">
-								{t("scanner.enrichLoading")}
-							</p>
-						) : null}
-
-						{foundMember ? (
-							<button
-								type="button"
-								onClick={() => openProfile(foundMember.id)}
-								aria-label={`${t("scanner.openProfile")}: ${foundMember.name}`}
-								className="w-full space-y-1.5 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-							>
-								<div className="flex flex-wrap items-center gap-2">
-									<p className="text-base font-semibold">{foundMember.name}</p>
-									{!foundMember.isActive ? (
-										<Badge variant="destructive">
-											{t("scanner.enrichInactive")}
-										</Badge>
-									) : null}
-									{!foundMember.isMitglied ? (
-										<Badge variant="muted">
-											{t("scanner.enrichNotMember")}
-										</Badge>
-									) : null}
+						{/* Fixed slot so Authentik lookup does not jump the panel height. */}
+						<div className="min-h-[4.75rem]">
+							{lookupLoading ? (
+								<div
+									className="w-full space-y-1.5 border border-border bg-muted/20 p-3"
+									aria-busy="true"
+									aria-live="polite"
+								>
+									<p className="sr-only">{t("scanner.enrichLoading")}</p>
+									<div className="h-5 w-40 max-w-full animate-pulse bg-muted" />
+									<div className="h-4 w-56 max-w-full animate-pulse bg-muted" />
 								</div>
+							) : null}
+
+							{foundMember ? (
+								<button
+									type="button"
+									onClick={() => openProfile(foundMember.id)}
+									aria-label={`${t("scanner.openProfile")}: ${foundMember.name}`}
+									className="w-full space-y-1.5 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+								>
+									<div className="flex flex-wrap items-center gap-2">
+										<p className="text-base font-semibold">
+											{foundMember.name}
+										</p>
+										{!foundMember.isActive ? (
+											<Badge variant="destructive">
+												{t("scanner.enrichInactive")}
+											</Badge>
+										) : null}
+										{!foundMember.isMitglied ? (
+											<Badge variant="muted">
+												{t("scanner.enrichNotMember")}
+											</Badge>
+										) : null}
+									</div>
+									<p className="text-sm text-muted-foreground">
+										{previewRessorts.length > 0
+											? previewRessorts
+													.map((group) => {
+														const labelKey = ressortLabelKey(group);
+														return labelKey ? t(labelKey) : group;
+													})
+													.join(" · ")
+											: t("profile.noRessorts")}
+									</p>
+								</button>
+							) : null}
+
+							{!lookupLoading && lookup?.status === "not_found" ? (
 								<p className="text-sm text-muted-foreground">
-									{previewRessorts.length > 0
-										? previewRessorts
-												.map((group) => {
-													const labelKey = ressortLabelKey(group);
-													return labelKey ? t(labelKey) : group;
-												})
-												.join(" · ")
-										: t("profile.noRessorts")}
+									{t("scanner.enrichMissing")}
 								</p>
-							</button>
-						) : null}
+							) : null}
 
-						{!lookupLoading && lookup?.status === "not_found" ? (
-							<p className="text-sm text-muted-foreground">
-								{t("scanner.enrichMissing")}
-							</p>
-						) : null}
-
-						{!lookupLoading && lookup?.status === "error" ? (
-							<p className="text-sm text-destructive" role="alert">
-								{lookup.error === "authentik_api_missing"
-									? t("scanner.enrichErrorApi")
-									: t("scanner.enrichError")}
-							</p>
-						) : null}
+							{!lookupLoading && lookup?.status === "error" ? (
+								<p className="text-sm text-destructive" role="alert">
+									{lookup.error === "authentik_api_missing"
+										? t("scanner.enrichErrorApi")
+										: t("scanner.enrichError")}
+								</p>
+							) : null}
+						</div>
 					</section>
 				) : null}
 			</div>

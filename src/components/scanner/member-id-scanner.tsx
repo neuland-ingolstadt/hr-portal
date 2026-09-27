@@ -73,13 +73,6 @@ export function MemberIdScanner() {
 		}, RESCAN_COOLDOWN_MS);
 	}, []);
 
-	const clearResult = useCallback(() => {
-		setResult(null);
-		setLookup(null);
-		setLookupLoading(false);
-		setIsDuplicate(false);
-	}, []);
-
 	const handleScan = useCallback(
 		async (data: string) => {
 			if (!isPublicKeyAvailable() || cooldown) return;
@@ -87,6 +80,11 @@ export function MemberIdScanner() {
 			startCooldown();
 
 			const verification = await verifyQRCode(data);
+			const willLookup =
+				verification.success && Boolean(verification.payload?.sub);
+
+			// Batch with result so the enrich skeleton appears in the same paint.
+			setLookupLoading(willLookup);
 			setResult(verification);
 			setLookup(null);
 			setIsDuplicate(false);
@@ -100,12 +98,10 @@ export function MemberIdScanner() {
 				setIsDuplicate(duplicate && verification.success);
 			}
 
-			if (!verification.success || !verification.payload?.sub) {
-				setLookupLoading(false);
+			if (!willLookup || !verification.payload?.sub) {
 				return;
 			}
 
-			setLookupLoading(true);
 			try {
 				const enriched = await lookupScannedMemberFn({
 					data: { sub: verification.payload.sub },
@@ -158,7 +154,6 @@ export function MemberIdScanner() {
 					lookup={lookup}
 					lookupLoading={lookupLoading}
 					isDuplicate={isDuplicate}
-					onClear={clearResult}
 				/>
 			</div>
 			<ScanHistoryList entries={entries} onClear={clearHistory} />
