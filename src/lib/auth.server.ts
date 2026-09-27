@@ -207,7 +207,15 @@ export async function handleOidcCallback(
 		throw new Error("oauth_session_missing");
 	}
 
-	const tokens = await client.authorizationCodeGrant(config, callbackUrl, {
+	// Rebuild with APP_URL origin. Behind TLS-terminating Traefik the inbound
+	// request URL is http://…, but authorize used https://… from APP_URL —
+	// Authentik then rejects the token exchange (often as misleading invalid_client).
+	const canonicalCallbackUrl = new URL(
+		`${callbackUrl.pathname}${callbackUrl.search}`,
+		serverConfig.appUrl,
+	);
+
+	const tokens = await client.authorizationCodeGrant(config, canonicalCallbackUrl, {
 		pkceCodeVerifier: oauth.codeVerifier,
 		expectedState: oauth.state,
 		expectedNonce: oauth.nonce,
