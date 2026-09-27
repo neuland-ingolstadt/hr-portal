@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Badge } from "#/components/ui/badge";
-import { Button } from "#/components/ui/button";
 import type { SessionUser } from "#/lib/auth";
 import { primaryRole, roleBadgeVariant } from "#/lib/auth";
 import { ROUTES } from "#/lib/constants";
@@ -248,7 +247,7 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 					aria-hidden
 					className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-primary"
 				/>
-				<div className="relative flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between">
+				<div className="relative p-5 sm:p-7">
 					<div className="min-w-0 space-y-3">
 						<p className="eyebrow mb-0">{t("home.eyebrow")}</p>
 						<h1 className="page-title text-balance">
@@ -269,14 +268,6 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 								{t("home.signedInAs", { email: user.email || user.name })}
 							</span>
 						</div>
-					</div>
-					<div className="flex shrink-0 flex-wrap gap-2">
-						<Button asChild size="lg">
-							<Link to={ROUTES.MITGLIEDER}>
-								<Users />
-								{t("home.openMembers")}
-							</Link>
-						</Button>
 					</div>
 				</div>
 			</section>

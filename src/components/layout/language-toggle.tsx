@@ -6,9 +6,11 @@ import { cn } from "#/lib/utils";
 export function LanguageToggle({
 	className,
 	size = "icon-sm",
+	variant = "outline",
 }: {
 	className?: string;
 	size?: "sm" | "icon-sm";
+	variant?: "outline" | "ghost";
 }) {
 	const { locale, toggleLocale, t } = useI18n();
 	const next = otherLocale(locale);
@@ -16,7 +18,7 @@ export function LanguageToggle({
 	return (
 		<Button
 			type="button"
-			variant="outline"
+			variant={variant}
 			size={size}
 			onClick={toggleLocale}
 			aria-label={`${t("header.language")}: ${t(`header.language.${next}`)}`}

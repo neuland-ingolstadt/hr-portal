@@ -171,10 +171,18 @@ function buildGroupNameIndex(groups: AuthentikGroup[]): Map<string, string> {
 	return groupNamesById;
 }
 
-function hasMitgliederGroup(groups: string[]): boolean {
-	const expected = serverConfig.groups.mitglieder.trim().toLowerCase();
+function hasConfiguredGroup(groups: string[], expectedName: string): boolean {
+	const expected = expectedName.trim().toLowerCase();
 	if (!expected) return false;
 	return groups.some((group) => group.trim().toLowerCase() === expected);
+}
+
+function hasMitgliederGroup(groups: string[]): boolean {
+	return hasConfiguredGroup(groups, serverConfig.groups.mitglieder);
+}
+
+function hasTechnicalUsersGroup(groups: string[]): boolean {
+	return hasConfiguredGroup(groups, serverConfig.groups.technicalUsers);
 }
 
 async function loadActiveDirectoryMembers(): Promise<{
@@ -255,13 +263,16 @@ export async function listMembersFromAuthentik(): Promise<MembersResult> {
 }
 
 /**
- * Active Authentik accounts that are not in the configured mitglieder group.
+ * Active Authentik accounts that are not in the configured mitglieder group
+ * and not technical accounts (technical-users group).
  * Useful as an offboarding / cleanup candidate list.
  */
 export async function listNonMitgliederAccountsFromAuthentik(): Promise<MembersResult> {
 	const { members, source } = await loadActiveDirectoryMembers();
 	const candidates = members.filter(
-		(member) => !hasMitgliederGroup(member.groups),
+		(member) =>
+			!hasMitgliederGroup(member.groups) &&
+			!hasTechnicalUsersGroup(member.groups),
 	);
 	return toMembersResult(candidates, source);
 }

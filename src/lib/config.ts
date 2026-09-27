@@ -36,6 +36,11 @@ export const serverConfig = {
 		admin: optional("ADMIN_GROUP_NAME", "Admin"),
 		/** Authentik group counted as Verein-Mitglieder on the dashboard. */
 		mitglieder: optional("MITGLIEDER_GROUP_NAME", "mitglieder"),
+		/** Technical/service accounts — excluded from offboarding candidates. */
+		technicalUsers: optional(
+			"TECHNICAL_USERS_GROUP_NAME",
+			"technical-users",
+		),
 	},
 	/** Local mock auth — only when AUTH_MOCK=true (never auto-enable). */
 	authMock: optional("AUTH_MOCK", "false") === "true",

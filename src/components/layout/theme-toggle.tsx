@@ -6,9 +6,11 @@ import { cn } from "#/lib/utils";
 export function ThemeToggle({
 	className,
 	size = "icon-sm",
+	variant = "outline",
 }: {
 	className?: string;
 	size?: "sm" | "icon-sm";
+	variant?: "outline" | "ghost";
 }) {
 	useEffect(() => {
 		document.dispatchEvent(new Event("neuland:theme-hydrate"));
@@ -17,7 +19,7 @@ export function ThemeToggle({
 	return (
 		<Button
 			type="button"
-			variant="outline"
+			variant={variant}
 			size={size}
 			data-theme-toggle
 			data-theme-mode="system"

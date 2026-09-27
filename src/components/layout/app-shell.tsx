@@ -1,10 +1,13 @@
-import { Menu, X } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { Menu } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
 import { AppSidebar } from "#/components/layout/app-sidebar";
 import { LegalFooter } from "#/components/layout/legal-footer";
+import { MobileNavSheet } from "#/components/layout/mobile-nav-sheet";
 import { Button } from "#/components/ui/button";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
+
+const SIDEBAR_COLLAPSED_KEY = "neuland-sidebar-collapsed";
 
 type AppShellProps = {
 	children: ReactNode;
@@ -14,6 +17,24 @@ type AppShellProps = {
 export function AppShell({ children, mainClassName }: AppShellProps) {
 	const { t } = useI18n();
 	const [mobileOpen, setMobileOpen] = useState(false);
+	const [collapsed, setCollapsed] = useState(false);
+
+	useEffect(() => {
+		try {
+			setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
+		} catch {
+			/* ignore */
+		}
+	}, []);
+
+	function handleCollapsedChange(next: boolean) {
+		setCollapsed(next);
+		try {
+			localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+		} catch {
+			/* ignore */
+		}
+	}
 
 	return (
 		<div className="relative flex min-h-screen w-full min-w-0">
@@ -23,38 +44,19 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 			/>
 
 			{/* Desktop sidebar */}
-			<div className="sticky top-0 hidden h-svh w-[16.5rem] shrink-0 md:block">
-				<AppSidebar />
-			</div>
-
-			{/* Mobile drawer */}
 			<div
 				className={cn(
-					"fixed inset-0 z-50 md:hidden",
-					mobileOpen ? "pointer-events-auto" : "pointer-events-none",
+					"sticky top-0 hidden h-svh shrink-0 transition-[width] duration-200 ease-out md:block",
+					collapsed ? "w-[4.25rem]" : "w-[16.5rem]",
 				)}
 			>
-				<button
-					type="button"
-					aria-label={t("nav.closeMenu")}
-					className={cn(
-						"absolute inset-0 bg-foreground/25 transition-opacity",
-						mobileOpen ? "opacity-100" : "opacity-0",
-					)}
-					onClick={() => setMobileOpen(false)}
+				<AppSidebar
+					collapsed={collapsed}
+					onCollapsedChange={handleCollapsedChange}
 				/>
-				<div
-					className={cn(
-						"absolute inset-y-0 left-0 flex transition-transform duration-200 ease-out",
-						mobileOpen ? "translate-x-0" : "-translate-x-full",
-					)}
-				>
-					<AppSidebar
-						mobileOpen={mobileOpen}
-						onNavigate={() => setMobileOpen(false)}
-					/>
-				</div>
 			</div>
+
+			<MobileNavSheet open={mobileOpen} onOpenChange={setMobileOpen} />
 
 			<div className="flex min-h-screen min-w-0 flex-1 flex-col">
 				<header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
@@ -64,9 +66,10 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 						size="icon-sm"
 						aria-label={t("nav.openMenu")}
 						aria-expanded={mobileOpen}
-						onClick={() => setMobileOpen((open) => !open)}
+						aria-haspopup="dialog"
+						onClick={() => setMobileOpen(true)}
 					>
-						{mobileOpen ? <X aria-hidden /> : <Menu aria-hidden />}
+						<Menu aria-hidden />
 					</Button>
 					<span className="font-mono text-sm font-semibold tracking-wide">
 						Neuland HR
