@@ -10,7 +10,6 @@ import { AcceptApplicationDialog } from "#/components/applications/accept-applic
 import { ApplicationsTable } from "#/components/applications/applications-table";
 import { ManualCreateMemberDialog } from "#/components/applications/manual-create-member-dialog";
 import { Button } from "#/components/ui/button";
-import { Spinner } from "#/components/ui/spinner";
 import type {
 	ApplicationsResult,
 	PendingApplication,
@@ -64,8 +63,37 @@ function ApplicationsHeader({
 function ApplicationsSkeleton() {
 	const { t } = useI18n();
 	return (
-		<div className="surface-panel flex min-h-72 items-center justify-center">
-			<Spinner label={t("applications.loading")} />
+		<div
+			className="space-y-4"
+			aria-busy="true"
+			aria-label={t("applications.loading")}
+		>
+			<div
+				className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+				aria-hidden
+			>
+				<div className="h-9 w-full max-w-sm animate-pulse bg-muted" />
+				<div className="h-4 w-20 animate-pulse bg-muted" />
+			</div>
+			<div className="surface-panel overflow-hidden" aria-hidden>
+				<div className="flex gap-4 border-b border-border bg-muted/40 px-4 py-3">
+					<div className="h-3 w-16 animate-pulse bg-muted" />
+					<div className="h-3 w-20 animate-pulse bg-muted" />
+					<div className="h-3 w-24 animate-pulse bg-muted" />
+					<div className="ml-auto h-3 w-14 animate-pulse bg-muted" />
+				</div>
+				<ul className="divide-y divide-border">
+					{Array.from({ length: 8 }, (_, i) => (
+						<li key={i} className="flex items-center gap-3 px-4 py-3">
+							<div className="size-9 shrink-0 animate-pulse bg-muted" />
+							<div className="h-3.5 w-36 max-w-[30%] animate-pulse bg-muted" />
+							<div className="h-3 w-40 max-w-[28%] animate-pulse bg-muted" />
+							<div className="h-3 w-20 animate-pulse bg-muted" />
+							<div className="ml-auto h-8 w-20 animate-pulse bg-muted" />
+						</li>
+					))}
+				</ul>
+			</div>
 		</div>
 	);
 }

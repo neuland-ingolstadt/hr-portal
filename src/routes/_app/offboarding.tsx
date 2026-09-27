@@ -17,7 +17,6 @@ import { DeleteAccountDialog } from "#/components/offboarding/delete-account-dia
 import { OffboardingStageTable } from "#/components/offboarding/offboarding-candidates-table";
 import { RevokeMitgliederDialog } from "#/components/offboarding/revoke-mitglieder-dialog";
 import { Button } from "#/components/ui/button";
-import { Spinner } from "#/components/ui/spinner";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import {
@@ -247,11 +246,72 @@ function StageSection({
 	);
 }
 
+function StageTableSkeleton({ rows = 5 }: { rows?: number }) {
+	return (
+		<div className="min-w-0 border border-border/60" aria-hidden>
+			<div className="flex items-center gap-2 border-b border-border/60 px-3 py-2">
+				<div className="h-8 min-w-0 flex-1 animate-pulse bg-muted" />
+				<div className="h-3 w-6 shrink-0 animate-pulse bg-muted" />
+			</div>
+			<ul className="divide-y divide-border/50">
+				{Array.from({ length: rows }, (_, i) => (
+					<li key={i} className="flex items-center gap-3 px-3 py-3">
+						<div className="min-w-0 flex-1 space-y-2">
+							<div className="h-3.5 w-36 max-w-full animate-pulse bg-muted" />
+							<div className="h-3 w-24 max-w-full animate-pulse bg-muted" />
+						</div>
+						<div className="h-8 w-8 shrink-0 animate-pulse bg-muted" />
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
 function CandidatesSkeleton() {
 	const { t } = useI18n();
 	return (
-		<div className="surface-panel flex min-h-72 items-center justify-center">
-			<Spinner label={t("offboarding.candidatesLoading")} />
+		<div
+			className="space-y-8"
+			aria-busy="true"
+			aria-label={t("offboarding.candidatesLoading")}
+		>
+			<section
+				className="surface-panel flex flex-col gap-4 p-5 sm:p-6"
+				aria-hidden
+			>
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+					<div className="min-w-0 flex-1 space-y-2">
+						<div className="h-4 w-40 animate-pulse bg-muted" />
+						<div className="h-3 w-full max-w-md animate-pulse bg-muted" />
+						<div className="h-3 w-2/3 max-w-sm animate-pulse bg-muted" />
+					</div>
+					<div className="h-10 w-36 shrink-0 animate-pulse bg-muted" />
+				</div>
+			</section>
+
+			<div className="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-6">
+				<section className="min-w-0 space-y-2">
+					<div
+						className="flex items-baseline justify-between gap-3"
+						aria-hidden
+					>
+						<div className="h-4 w-36 animate-pulse bg-muted" />
+						<div className="h-3 w-6 animate-pulse bg-muted" />
+					</div>
+					<StageTableSkeleton />
+				</section>
+				<section className="min-w-0 space-y-2">
+					<div
+						className="flex items-baseline justify-between gap-3"
+						aria-hidden
+					>
+						<div className="h-4 w-40 animate-pulse bg-muted" />
+						<div className="h-3 w-6 animate-pulse bg-muted" />
+					</div>
+					<StageTableSkeleton />
+				</section>
+			</div>
 		</div>
 	);
 }

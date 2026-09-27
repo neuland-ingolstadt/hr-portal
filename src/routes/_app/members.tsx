@@ -5,7 +5,6 @@ import {
 } from "@tanstack/react-router";
 import { MembersTable } from "#/components/members/members-table";
 import { Button } from "#/components/ui/button";
-import { Spinner } from "#/components/ui/spinner";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import type { MembersResult } from "#/lib/members";
@@ -39,11 +38,50 @@ function MembersHeader({ lead, meta }: { lead: string; meta?: string }) {
 function MembersBodySkeleton() {
 	const { t } = useI18n();
 	return (
-		<div className="grid gap-4 xl:grid-cols-[minmax(17rem,19rem)_minmax(0,1fr)]">
-			<div className="surface-panel min-h-48 animate-pulse" aria-hidden />
-			<div className="surface-panel flex min-h-72 items-center justify-center">
-				<Spinner label={t("members.loading")} />
-			</div>
+		<div
+			className="members-workspace grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(17rem,19rem)_minmax(0,1fr)] xl:items-start"
+			aria-busy="true"
+			aria-label={t("members.loading")}
+		>
+			<aside className="surface-panel flex flex-col" aria-hidden>
+				<div className="border-b border-border px-4 py-3.5">
+					<div className="h-4 w-24 animate-pulse bg-muted" />
+				</div>
+				<div className="flex flex-col gap-5 p-4">
+					<div className="space-y-2">
+						<div className="h-3 w-16 animate-pulse bg-muted" />
+						<div className="h-9 w-full animate-pulse bg-muted" />
+					</div>
+					<div className="space-y-2">
+						<div className="h-3 w-20 animate-pulse bg-muted" />
+						{Array.from({ length: 6 }, (_, i) => (
+							<div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
+								<div className="size-4 shrink-0 animate-pulse bg-muted" />
+								<div className="h-3.5 flex-1 animate-pulse bg-muted" />
+								<div className="h-3 w-5 animate-pulse bg-muted" />
+							</div>
+						))}
+					</div>
+				</div>
+			</aside>
+
+			<section className="surface-panel min-w-0 overflow-hidden" aria-hidden>
+				<div className="border-b border-border px-4 py-3.5 sm:px-5">
+					<div className="h-4 w-32 animate-pulse bg-muted" />
+				</div>
+				<ul className="divide-y divide-border">
+					{Array.from({ length: 8 }, (_, i) => (
+						<li key={i} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+							<div className="size-9 shrink-0 animate-pulse bg-muted" />
+							<div className="min-w-0 flex-1 space-y-2">
+								<div className="h-3.5 w-40 max-w-full animate-pulse bg-muted" />
+								<div className="h-3 w-24 max-w-full animate-pulse bg-muted" />
+							</div>
+							<div className="hidden h-5 w-16 animate-pulse bg-muted sm:block" />
+						</li>
+					))}
+				</ul>
+			</section>
 		</div>
 	);
 }
@@ -101,7 +139,7 @@ function MembersPage() {
 			promise={membersPromise}
 			fallback={
 				<>
-					<MembersHeader lead={t("members.loading")} />
+					<MembersHeader lead={t("members.lead")} />
 					<MembersBodySkeleton />
 				</>
 			}
