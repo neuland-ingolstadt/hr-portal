@@ -51,7 +51,6 @@ export const workflowItems: NavItem[] = [
 		labelKey: "nav.onboarding",
 		icon: ClipboardList,
 		match: (pathname) => pathname.startsWith(ROUTES.ONBOARDING),
-		soon: true,
 	},
 	{
 		to: ROUTES.OFFBOARDING,

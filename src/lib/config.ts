@@ -37,10 +37,20 @@ export const serverConfig = {
 		/** Authentik group counted as Verein-Mitglieder on the dashboard. */
 		mitglieder: optional("MITGLIEDER_GROUP_NAME", "mitglieder"),
 		/** Technical/service accounts — excluded from offboarding candidates. */
-		technicalUsers: optional(
-			"TECHNICAL_USERS_GROUP_NAME",
-			"technical-users",
+		technicalUsers: optional("TECHNICAL_USERS_GROUP_NAME", "technical-users"),
+	},
+	/**
+	 * Default Authentik group for newly onboarded members.
+	 * Empty → fall back to MITGLIEDER_GROUP_NAME.
+	 */
+	authentikDefaultGroup: optional("AUTHENTIK_DEFAULT_GROUP"),
+	/** Authentik user path for created accounts (LDAP sync path). */
+	authentikUserPath: optional("AUTHENTIK_USER_PATH", "neuland-ldap"),
+	azure: {
+		emailConnectionString: optional(
+			"AZURE_COMMUNICATION_SERVICE_CONNECTION_STRING",
 		),
+		fromEmail: optional("FROM_EMAIL", "welcome@neuland-ingolstadt.de"),
 	},
 	/** Local mock auth — only when AUTH_MOCK=true (never auto-enable). */
 	authMock: optional("AUTH_MOCK", "false") === "true",

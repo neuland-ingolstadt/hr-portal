@@ -143,6 +143,13 @@ const directoryCache: DirectoryCache = {
 	inflight: null,
 };
 
+/** Drop the in-memory directory dump after mutations (e.g. create user). */
+export function invalidateDirectoryCache(): void {
+	directoryCache.expiresAt = 0;
+	directoryCache.value = { members: [], source: "mock" };
+	directoryCache.inflight = null;
+}
+
 function authHeaders(): HeadersInit {
 	return {
 		Authorization: `Bearer ${serverConfig.authentik.apiToken}`,
@@ -609,12 +616,7 @@ export async function getMemberProfileByUuid(
 		const groups = await resolveProfileGroups(user, sub);
 		return {
 			status: "found",
-			profile: toMemberProfile(
-				user,
-				options.includeEmail,
-				"authentik",
-				groups,
-			),
+			profile: toMemberProfile(user, options.includeEmail, "authentik", groups),
 		};
 	} catch (err) {
 		console.error("[authentik] profile lookup error", err);

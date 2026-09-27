@@ -21,6 +21,11 @@
 - Every `createServerFn` / API route that exposes private data must call `requireAppAccess` (or equivalent). Route `beforeLoad` is UX only.
 - Separate Authentik application from Connect (own client id/secret, redirect `…/api/auth/callback`).
 
+## Onboarding
+
+- `/onboarding` creates Authentik users (`firstname.lastname`, path `neuland-ldap`) and sends the welcome mail via Azure Communication Services + React Email (`src/emails/welcome.tsx`).
+- Env: `AUTHENTIK_API_*` (write users), optional `AUTHENTIK_DEFAULT_GROUP` / `AUTHENTIK_USER_PATH`, `AZURE_COMMUNICATION_SERVICE_CONNECTION_STRING`, `FROM_EMAIL`.
+
 ## Out of scope for now
 
-EasyVerein API, queues, onboarding workflows, shared package with Connect.
+EasyVerein API, queues / checklist workflows, shared package with Connect.

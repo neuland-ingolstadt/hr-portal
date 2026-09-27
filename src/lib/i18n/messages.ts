@@ -96,10 +96,41 @@ const de = {
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Neue Mitglieder strukturiert einarbeiten — von Zugang bis Willkommen.",
+	"onboarding.leadLive":
+		"Authentik-Konto anlegen und Willkommensmail mit Zugangsdaten versenden.",
 	"onboarding.bulletChecklist": "Aufgabenlisten pro Rolle",
 	"onboarding.bulletAccess": "Zugänge und Gruppen vorbereiten",
 	"onboarding.bulletWelcome": "Willkommensschritte und Termine",
 	"onboarding.bulletTrack": "Fortschritt für HR & Vorstand",
+	"onboarding.create.title": "Konto anlegen",
+	"onboarding.create.lead":
+		"Erstellt einen Authentik-Benutzer (Vorname.Nachname), setzt ein Passwort und sendet die Willkommensmail.",
+	"onboarding.create.firstName": "Vorname",
+	"onboarding.create.lastName": "Nachname",
+	"onboarding.create.email": "E-Mail",
+	"onboarding.create.firstNamePlaceholder": "Max",
+	"onboarding.create.lastNamePlaceholder": "Mustermann",
+	"onboarding.create.emailPlaceholder": "mam1234@thi.de",
+	"onboarding.create.submit": "Anlegen",
+	"onboarding.create.reset": "Zurücksetzen",
+	"onboarding.create.submitting": "Wird angelegt…",
+	"onboarding.create.success": "Konto „{username}“ wurde angelegt.",
+	"onboarding.create.successNoEmail":
+		"Die Willkommensmail konnte nicht gesendet werden — Zugangsdaten bitte manuell weitergeben.",
+	"onboarding.create.errorUnauthorized": "Nicht autorisiert.",
+	"onboarding.create.errorInvalid":
+		"Bitte Vorname, Nachname und gültige E-Mail angeben.",
+	"onboarding.create.errorApiMissing":
+		"Authentik-API ist nicht konfiguriert. Kontoanlage nicht möglich.",
+	"onboarding.create.errorUsernameExists":
+		"Ein Benutzer mit diesem Benutzernamen existiert bereits.",
+	"onboarding.create.errorFailed": "Konto konnte nicht angelegt werden.",
+	"onboarding.preview.open": "Mail-Vorschau",
+	"onboarding.preview.title": "Willkommensmail",
+	"onboarding.preview.lead":
+		"Vorschau mit Beispieldaten (Max Mustermann). So sieht die Mail nach dem Anlegen aus.",
+	"onboarding.preview.loading": "Vorschau wird gerendert…",
+	"onboarding.preview.error": "Vorschau konnte nicht geladen werden.",
 	"offboarding.eyebrow": "Abläufe",
 	"offboarding.title": "Offboarding",
 	"offboarding.lead":
@@ -338,10 +369,41 @@ const en: Record<MessageKey, string> = {
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Bring new members up to speed — from access to welcome steps.",
+	"onboarding.leadLive":
+		"Create an Authentik account and send the welcome email with credentials.",
 	"onboarding.bulletChecklist": "Role-based task lists",
 	"onboarding.bulletAccess": "Prepare access and groups",
 	"onboarding.bulletWelcome": "Welcome steps and appointments",
 	"onboarding.bulletTrack": "Progress for HR & board",
+	"onboarding.create.title": "Create account",
+	"onboarding.create.lead":
+		"Creates an Authentik user (firstname.lastname), sets a password, and sends the welcome email.",
+	"onboarding.create.firstName": "First name",
+	"onboarding.create.lastName": "Last name",
+	"onboarding.create.email": "Email",
+	"onboarding.create.firstNamePlaceholder": "Max",
+	"onboarding.create.lastNamePlaceholder": "Mustermann",
+	"onboarding.create.emailPlaceholder": "mam1234@thi.de",
+	"onboarding.create.submit": "Create",
+	"onboarding.create.reset": "Reset",
+	"onboarding.create.submitting": "Creating…",
+	"onboarding.create.success": "Account “{username}” was created.",
+	"onboarding.create.successNoEmail":
+		"The welcome email could not be sent — please share credentials manually.",
+	"onboarding.create.errorUnauthorized": "Not authorized.",
+	"onboarding.create.errorInvalid":
+		"Please provide first name, last name, and a valid email.",
+	"onboarding.create.errorApiMissing":
+		"Authentik API is not configured. Account creation unavailable.",
+	"onboarding.create.errorUsernameExists":
+		"A user with this username already exists.",
+	"onboarding.create.errorFailed": "Could not create the account.",
+	"onboarding.preview.open": "Email preview",
+	"onboarding.preview.title": "Welcome email",
+	"onboarding.preview.lead":
+		"Preview with sample data (Max Mustermann). This is what the mail looks like after account creation.",
+	"onboarding.preview.loading": "Rendering preview…",
+	"onboarding.preview.error": "Could not load the preview.",
 	"offboarding.eyebrow": "Workflows",
 	"offboarding.title": "Offboarding",
 	"offboarding.lead":
