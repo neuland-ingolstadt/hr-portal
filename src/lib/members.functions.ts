@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { recordAudit } from "#/lib/audit.server";
 import { hasElevatedAccess } from "#/lib/auth";
 import { requireAppAccess, requireElevatedAccess } from "#/lib/auth.server";
 import {
@@ -73,10 +74,20 @@ export const updateMemberGroupsFn = createServerFn({ method: "POST" })
 		return { id: data.id.trim(), groups };
 	})
 	.handler(async ({ data }): Promise<UpdateMemberGroupsResult> => {
-		await requireElevatedAccess();
-		return updateMemberAssignableGroups(data.id, data.groups, {
+		const actor = await requireElevatedAccess();
+		const result = await updateMemberAssignableGroups(data.id, data.groups, {
 			includeEmail: true,
 		});
+		recordAudit({
+			actor,
+			action: "member.groups.update",
+			targetId: data.id,
+			targetLabel: result.success ? result.profile.name : null,
+			success: result.success,
+			error: result.success ? null : result.error,
+			meta: { groups: data.groups },
+		});
+		return result;
 	});
 
 export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
@@ -91,7 +102,17 @@ export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
 	})
 	.handler(async ({ data }): Promise<UpdateMemberOnboardingStageResult> => {
 		const user = await requireAppAccess();
-		return updateMemberOnboardingStage(data.id, data.stage, {
+		const result = await updateMemberOnboardingStage(data.id, data.stage, {
 			includeEmail: hasElevatedAccess(user.roles),
 		});
+		recordAudit({
+			actor: user,
+			action: "member.onboarding_stage.update",
+			targetId: data.id,
+			targetLabel: result.success ? result.profile.name : null,
+			success: result.success,
+			error: result.success ? null : result.error,
+			meta: { stage: data.stage },
+		});
+		return result;
 	});

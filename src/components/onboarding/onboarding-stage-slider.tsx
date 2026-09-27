@@ -55,6 +55,7 @@ export function OnboardingStageSlider({
 							const active = step === value;
 							return (
 								<li key={step} className="flex justify-center">
+									{/* biome-ignore lint/a11y/useSemanticElements: custom radio look for stepped track */}
 									<button
 										type="button"
 										role="radio"

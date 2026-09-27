@@ -108,6 +108,16 @@ export type MemberProfile = {
 	 * (0 = new … 4 = done).
 	 */
 	onboardingStage: OnboardingStage;
+	/**
+	 * Deep link into Authentik admin user detail (`/if/admin/#/identity/users/{pk}`).
+	 * `null` when PK or API base URL is unavailable (e.g. mock).
+	 */
+	authentikAdminUrl: string | null;
+	/**
+	 * Same admin user UI, Groups tab
+	 * (`…/users/{pk};{"page":"page-groups"}`).
+	 */
+	authentikAdminGroupsUrl: string | null;
 	source: "authentik" | "mock";
 };
 

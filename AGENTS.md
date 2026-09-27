@@ -7,7 +7,7 @@
 - Prefer the OIDC `groups` claim (ID token / UserInfo). REST API group lookup is optional fallback only (`sub` UUID is not a valid Authentik user path id).
 - Do not add a local user/member table or sync users into Postgres/SQLite for identity.
 - **App access** (`requireAppAccess`): `hr` | `vorstand` | `admin`.
-- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory, offboarding list/actions, **member profile group edit** (ressorts only). HR must not see or act on applications or offboarding.
+- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory, offboarding list/actions, **member profile group edit** (ressorts only), **audit log**. HR must not see or act on applications or offboarding.
 - Profile group edit never mutates protected Authentik groups: HR, Vorstand, Admin, Ehrenmitglied, technical-users, mitglieder.
 
 ## Layout
@@ -25,6 +25,7 @@
 - Every `createServerFn` / API route that exposes private data must call `requireAppAccess` or `requireElevatedAccess`. Route `beforeLoad` is UX only.
 - Applications + member create + offboarding use `requireElevatedAccess` (not HR).
 - Separate Authentik application from Connect (own client id/secret, redirect `…/api/auth/callback`).
+- **Audit trail** (`/audit`, Vorstand/Admin): append-only JSONL at `AUDIT_LOG_PATH` (default `data/audit.jsonl`). Authentik API calls use the service token; the OIDC session user is recorded as actor at each mutation gate. Also emits `[audit]` JSON lines to stdout. Mount a volume in production. Not an identity store.
 
 ## Applications (EasyVerein)
 

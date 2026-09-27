@@ -10,8 +10,8 @@ import {
 	groupsEqualIgnoreOrder,
 	isProtectedGroupName,
 } from "#/lib/groups.server";
-import type { MemberProfile } from "#/lib/members";
 import type { UpdateMemberGroupsError } from "#/lib/member-groups";
+import type { MemberProfile } from "#/lib/members";
 
 export type { UpdateMemberGroupsError };
 

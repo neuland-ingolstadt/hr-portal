@@ -1,5 +1,11 @@
 import { getRouteApi } from "@tanstack/react-router";
-import { CheckCircle2, CircleDashed, Loader2 } from "lucide-react";
+import {
+	CheckCircle2,
+	CircleDashed,
+	ExternalLink,
+	Loader2,
+	Pencil,
+} from "lucide-react";
 import { type ReactNode, useEffect, useId, useState } from "react";
 import { OnboardingStageSlider } from "#/components/onboarding/onboarding-stage-slider";
 import { Badge } from "#/components/ui/badge";
@@ -29,9 +35,9 @@ import {
 	updateMemberGroupsFn,
 	updateMemberOnboardingStageFn,
 } from "#/lib/members.functions";
-import {
-	type OnboardingStage,
-	type UpdateMemberOnboardingStageError,
+import type {
+	OnboardingStage,
+	UpdateMemberOnboardingStageError,
 } from "#/lib/onboarding";
 import { cn } from "#/lib/utils";
 
@@ -239,13 +245,13 @@ function ProfileBody({
 		setSelected(selectedFromProfile(profile.groups));
 		setErrorKey(null);
 		setSaved(false);
-	}, [profile.id, profile.groups]);
+	}, [profile.groups]);
 
 	useEffect(() => {
 		setStage(profile.onboardingStage);
 		setStageErrorKey(null);
 		setStageSaved(false);
-	}, [profile.id, profile.onboardingStage]);
+	}, [profile.onboardingStage]);
 
 	const initial = selectedFromProfile(profile.groups);
 	const dirty =
@@ -328,11 +334,24 @@ function ProfileBody({
 						<p className="truncate text-xl font-semibold tracking-tight">
 							{profile.name}
 						</p>
-						{profile.username ? (
-							<p className="truncate font-mono text-xs text-muted-foreground">
-								@{profile.username}
-							</p>
-						) : null}
+						<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+							{profile.username ? (
+								<p className="truncate font-mono text-xs text-muted-foreground">
+									@{profile.username}
+								</p>
+							) : null}
+							{profile.authentikAdminUrl ? (
+								<a
+									href={profile.authentikAdminUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+								>
+									{t("profile.openInAuthentik")}
+									<ExternalLink className="size-3" aria-hidden />
+								</a>
+							) : null}
+						</div>
 					</div>
 					<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
 						{profile.email ? (
@@ -477,18 +496,38 @@ function ProfileBody({
 				)}
 			</section>
 
-			{readOnlyGroups.length > 0 ? (
+			{readOnlyGroups.length > 0 || profile.authentikAdminGroupsUrl ? (
 				<section className="space-y-3 border-t border-border pt-6">
-					<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						{t("profile.groups")}
-					</p>
-					<ul className="flex flex-wrap gap-1.5">
-						{readOnlyGroups.map((group) => (
-							<li key={group}>
-								<Badge variant={groupBadgeVariant(group)}>{group}</Badge>
-							</li>
-						))}
-					</ul>
+					<div className="flex items-center gap-2">
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							{t("profile.groups")}
+						</p>
+						{profile.authentikAdminGroupsUrl ? (
+							<a
+								href={profile.authentikAdminGroupsUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								aria-label={t("profile.openGroupsInAuthentik")}
+								title={t("profile.openGroupsInAuthentik")}
+								className="inline-flex text-muted-foreground transition-colors hover:text-foreground"
+							>
+								<Pencil className="size-3.5" aria-hidden />
+							</a>
+						) : null}
+					</div>
+					{readOnlyGroups.length > 0 ? (
+						<ul className="flex flex-wrap gap-1.5">
+							{readOnlyGroups.map((group) => (
+								<li key={group}>
+									<Badge variant={groupBadgeVariant(group)}>{group}</Badge>
+								</li>
+							))}
+						</ul>
+					) : (
+						<p className="text-sm text-muted-foreground">
+							{t("profile.empty")}
+						</p>
+					)}
 				</section>
 			) : null}
 

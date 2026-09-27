@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { recordAudit } from "#/lib/audit.server";
 import { requireElevatedAccess } from "#/lib/auth.server";
 import type {
 	DeleteAccountResult,
@@ -22,7 +23,18 @@ export const revokeMitgliederFn = createServerFn({ method: "POST" })
 	})
 	.handler(async ({ data }): Promise<RevokeMitgliederResult> => {
 		const actor = await requireElevatedAccess();
-		return revokeMitgliederGroup(data.memberId, { actorSub: actor.sub });
+		const result = await revokeMitgliederGroup(data.memberId, {
+			actorSub: actor.sub,
+		});
+		recordAudit({
+			actor,
+			action: "offboarding.revoke_mitglieder",
+			targetId: data.memberId,
+			targetLabel: result.success ? result.name : null,
+			success: result.success,
+			error: result.success ? null : result.error,
+		});
+		return result;
 	});
 
 export const deleteAccountFn = createServerFn({ method: "POST" })
@@ -38,5 +50,16 @@ export const deleteAccountFn = createServerFn({ method: "POST" })
 	})
 	.handler(async ({ data }): Promise<DeleteAccountResult> => {
 		const actor = await requireElevatedAccess();
-		return deleteAuthentikAccount(data.memberId, { actorSub: actor.sub });
+		const result = await deleteAuthentikAccount(data.memberId, {
+			actorSub: actor.sub,
+		});
+		recordAudit({
+			actor,
+			action: "offboarding.delete_account",
+			targetId: data.memberId,
+			targetLabel: result.success ? result.name : null,
+			success: result.success,
+			error: result.success ? null : result.error,
+		});
+		return result;
 	});

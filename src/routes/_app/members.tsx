@@ -41,8 +41,8 @@ function MembersBodySkeleton() {
 		<div
 			className="members-workspace grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(17rem,19rem)_minmax(0,1fr)] xl:items-start"
 			aria-busy="true"
-			aria-label={t("members.loading")}
 		>
+			<span className="sr-only">{t("members.loading")}</span>
 			<aside className="surface-panel flex flex-col" aria-hidden>
 				<div className="border-b border-border px-4 py-3.5">
 					<div className="h-4 w-24 animate-pulse bg-muted" />
@@ -55,7 +55,10 @@ function MembersBodySkeleton() {
 					<div className="space-y-2">
 						<div className="h-3 w-20 animate-pulse bg-muted" />
 						{Array.from({ length: 6 }, (_, i) => (
-							<div key={i} className="flex items-center gap-2.5 px-2.5 py-2">
+							<div
+								key={`members-filter-skel-${String(i)}`}
+								className="flex items-center gap-2.5 px-2.5 py-2"
+							>
 								<div className="size-4 shrink-0 animate-pulse bg-muted" />
 								<div className="h-3.5 flex-1 animate-pulse bg-muted" />
 								<div className="h-3 w-5 animate-pulse bg-muted" />
@@ -71,7 +74,10 @@ function MembersBodySkeleton() {
 				</div>
 				<ul className="divide-y divide-border">
 					{Array.from({ length: 8 }, (_, i) => (
-						<li key={i} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+						<li
+							key={`members-row-skel-${String(i)}`}
+							className="flex items-center gap-3 px-4 py-3 sm:px-5"
+						>
 							<div className="size-9 shrink-0 animate-pulse bg-muted" />
 							<div className="min-w-0 flex-1 space-y-2">
 								<div className="h-3.5 w-40 max-w-full animate-pulse bg-muted" />

@@ -83,6 +83,11 @@ export const serverConfig = {
 		0,
 		Number.parseInt(optional("OFFBOARDING_DELETE_GRACE_DAYS", "14"), 10) || 14,
 	),
+	/**
+	 * Append-only JSONL audit log (ops history — not identity).
+	 * Mount a volume on this path in production.
+	 */
+	auditLogPath: optional("AUDIT_LOG_PATH", "data/audit.jsonl"),
 } as const;
 
 export function getCallbackUrl(): string {

@@ -23,9 +23,10 @@ const GO_TARGETS: Record<string, string> = {
 	q: ROUTES.SCANNER, // QR / Scanner
 	e: ROUTES.ONBOARDING, // Eintritt
 	a: ROUTES.OFFBOARDING, // Austritt (elevated)
+	v: ROUTES.AUDIT, // Verlauf / audit (elevated)
 };
 
-const ELEVATED_GO_KEYS = new Set(["a"]);
+const ELEVATED_GO_KEYS = new Set(["a", "v"]);
 
 const appRouteApi = getRouteApi("/_app");
 
@@ -46,6 +47,7 @@ const GO_SHORTCUTS: ShortcutRow[] = [
 	{ keys: ["g", "q"], labelKey: "nav.scanner" },
 	{ keys: ["g", "e"], labelKey: "nav.onboarding" },
 	{ keys: ["g", "a"], labelKey: "nav.offboarding" },
+	{ keys: ["g", "v"], labelKey: "nav.audit" },
 ];
 
 function isModalOpen(): boolean {

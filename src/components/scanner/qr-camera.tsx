@@ -112,7 +112,7 @@ export function QrCamera({ onScan, paused = false, className }: QrCameraProps) {
 		if (videoRef.current && streamRef.current) {
 			videoRef.current.srcObject = streamRef.current;
 		}
-	}, [errorKey, isScanning]);
+	}, [errorKey]);
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(

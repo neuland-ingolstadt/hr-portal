@@ -3,6 +3,7 @@ import {
 	FileCheck2,
 	Home,
 	ScanQrCode,
+	ScrollText,
 	UserMinus,
 	Users,
 } from "lucide-react";
@@ -37,6 +38,13 @@ export const overviewItems: NavItem[] = [
 		labelKey: "nav.scanner",
 		icon: ScanQrCode,
 		match: (pathname) => pathname.startsWith(ROUTES.SCANNER),
+	},
+	{
+		to: ROUTES.AUDIT,
+		labelKey: "nav.audit",
+		icon: ScrollText,
+		match: (pathname) => pathname.startsWith(ROUTES.AUDIT),
+		elevatedOnly: true,
 	},
 ];
 

@@ -5,6 +5,7 @@ import type {
 	ApplicationsResult,
 } from "#/lib/applications";
 import { acceptApplication, listApplications } from "#/lib/applications.server";
+import { recordAudit } from "#/lib/audit.server";
 import { requireElevatedAccess } from "#/lib/auth.server";
 
 function validateAcceptInput(
@@ -33,6 +34,20 @@ export const listApplicationsFn = createServerFn({ method: "GET" }).handler(
 export const acceptApplicationFn = createServerFn({ method: "POST" })
 	.validator(validateAcceptInput)
 	.handler(async ({ data }): Promise<AcceptApplicationResult> => {
-		await requireElevatedAccess();
-		return acceptApplication(data);
+		const actor = await requireElevatedAccess();
+		const result = await acceptApplication(data);
+		recordAudit({
+			actor,
+			action: "application.accept",
+			targetId: String(data.memberId),
+			targetLabel: result.username ?? null,
+			success: result.success,
+			error: result.success ? null : result.error,
+			meta: {
+				username: result.username ?? null,
+				emailSent: result.emailSent ?? null,
+				easyVereinAccepted: result.easyVereinAccepted ?? null,
+			},
+		});
+		return result;
 	});

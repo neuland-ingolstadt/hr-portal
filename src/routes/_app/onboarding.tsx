@@ -37,11 +37,8 @@ function OnboardingHeader({ lead, meta }: { lead: string; meta?: string }) {
 function OnboardingSkeleton() {
 	const { t } = useI18n();
 	return (
-		<section
-			className="space-y-3"
-			aria-busy="true"
-			aria-label={t("onboarding.recent.loading")}
-		>
+		<section className="space-y-3" aria-busy="true">
+			<span className="sr-only">{t("onboarding.recent.loading")}</span>
 			<div className="space-y-2" aria-hidden>
 				<div className="h-4 w-48 animate-pulse bg-muted" />
 				<div className="h-3 w-72 max-w-full animate-pulse bg-muted" />
@@ -51,7 +48,10 @@ function OnboardingSkeleton() {
 				aria-hidden
 			>
 				{Array.from({ length: 8 }, (_, i) => (
-					<li key={i} className="surface-panel flex flex-col gap-4 p-4">
+					<li
+						key={`onboarding-skel-${String(i)}`}
+						className="surface-panel flex flex-col gap-4 p-4"
+					>
 						<div className="flex items-start gap-3">
 							<div className="size-10 shrink-0 animate-pulse bg-muted" />
 							<div className="min-w-0 flex-1 space-y-2 pt-1">

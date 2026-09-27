@@ -1,9 +1,9 @@
+import { useI18n } from "#/lib/i18n/locale-context";
 import {
 	ONBOARDING_STAGE_LABEL_KEYS,
 	ONBOARDING_STAGE_MAX,
 	type OnboardingStage,
 } from "#/lib/onboarding";
-import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
 
 type OnboardingProgressBarProps = {

@@ -255,7 +255,10 @@ function StageTableSkeleton({ rows = 5 }: { rows?: number }) {
 			</div>
 			<ul className="divide-y divide-border/50">
 				{Array.from({ length: rows }, (_, i) => (
-					<li key={i} className="flex items-center gap-3 px-3 py-3">
+					<li
+						key={`offboarding-skel-${String(i)}`}
+						className="flex items-center gap-3 px-3 py-3"
+					>
 						<div className="min-w-0 flex-1 space-y-2">
 							<div className="h-3.5 w-36 max-w-full animate-pulse bg-muted" />
 							<div className="h-3 w-24 max-w-full animate-pulse bg-muted" />
@@ -271,11 +274,8 @@ function StageTableSkeleton({ rows = 5 }: { rows?: number }) {
 function CandidatesSkeleton() {
 	const { t } = useI18n();
 	return (
-		<div
-			className="space-y-8"
-			aria-busy="true"
-			aria-label={t("offboarding.candidatesLoading")}
-		>
+		<div className="space-y-8" aria-busy="true">
+			<span className="sr-only">{t("offboarding.candidatesLoading")}</span>
 			<section
 				className="surface-panel flex flex-col gap-4 p-5 sm:p-6"
 				aria-hidden

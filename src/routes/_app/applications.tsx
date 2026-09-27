@@ -63,11 +63,8 @@ function ApplicationsHeader({
 function ApplicationsSkeleton() {
 	const { t } = useI18n();
 	return (
-		<div
-			className="space-y-4"
-			aria-busy="true"
-			aria-label={t("applications.loading")}
-		>
+		<div className="space-y-4" aria-busy="true">
+			<span className="sr-only">{t("applications.loading")}</span>
 			<div
 				className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
 				aria-hidden
@@ -84,7 +81,10 @@ function ApplicationsSkeleton() {
 				</div>
 				<ul className="divide-y divide-border">
 					{Array.from({ length: 8 }, (_, i) => (
-						<li key={i} className="flex items-center gap-3 px-4 py-3">
+						<li
+							key={`applications-skel-${String(i)}`}
+							className="flex items-center gap-3 px-4 py-3"
+						>
 							<div className="size-9 shrink-0 animate-pulse bg-muted" />
 							<div className="h-3.5 w-36 max-w-[30%] animate-pulse bg-muted" />
 							<div className="h-3 w-40 max-w-[28%] animate-pulse bg-muted" />

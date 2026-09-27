@@ -31,9 +31,12 @@ ENV HR_GROUP_NAME="HR"
 ENV VORSTAND_GROUP_NAME="Vorstand"
 ENV ADMIN_GROUP_NAME="Admin"
 ENV AUTH_MOCK=""
+ENV AUDIT_LOG_PATH="/app/data/audit.jsonl"
 
 RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 --ingroup nodejs nodejs
+  && adduser --system --uid 1001 --ingroup nodejs nodejs \
+  && mkdir -p /app/data \
+  && chown nodejs:nodejs /app/data
 
 COPY --from=build --chown=nodejs:nodejs /app/.output ./.output
 COPY --from=build /app/package.json ./package.json

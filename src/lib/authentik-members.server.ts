@@ -17,9 +17,9 @@ import type {
 import { MEMBERSHIP_REVOKED_AT_ATTR } from "#/lib/offboarding";
 import {
 	ONBOARDING_STAGE_ATTR,
+	type OnboardingStage,
 	parseOnboardingStage,
 	RECENT_ONBOARDING_WEEKS,
-	type OnboardingStage,
 	type RecentOnboardingMember,
 	type RecentOnboardingMembersResult,
 	type UpdateMemberOnboardingStageResult,
@@ -136,6 +136,8 @@ const MOCK_PROFILES: Record<
 		githubConnected: true,
 		discordConnected: true,
 		onboardingStage: 4,
+		authentikAdminUrl: null,
+		authentikAdminGroupsUrl: null,
 		source: "mock",
 	},
 	"mock-2": {
@@ -147,6 +149,8 @@ const MOCK_PROFILES: Record<
 		githubConnected: true,
 		discordConnected: false,
 		onboardingStage: 2,
+		authentikAdminUrl: null,
+		authentikAdminGroupsUrl: null,
 		source: "mock",
 	},
 	"mock-3": {
@@ -158,6 +162,8 @@ const MOCK_PROFILES: Record<
 		githubConnected: false,
 		discordConnected: true,
 		onboardingStage: 1,
+		authentikAdminUrl: null,
+		authentikAdminGroupsUrl: null,
 		source: "mock",
 	},
 	"mock-4": {
@@ -169,6 +175,8 @@ const MOCK_PROFILES: Record<
 		githubConnected: false,
 		discordConnected: false,
 		onboardingStage: 0,
+		authentikAdminUrl: null,
+		authentikAdminGroupsUrl: null,
 		source: "mock",
 	},
 	"mock-5": {
@@ -180,6 +188,8 @@ const MOCK_PROFILES: Record<
 		githubConnected: true,
 		discordConnected: true,
 		onboardingStage: 3,
+		authentikAdminUrl: null,
+		authentikAdminGroupsUrl: null,
 		source: "mock",
 	},
 };
@@ -871,6 +881,22 @@ function isDiscordConnected(
 	);
 }
 
+/** Authentik admin UI deep links for a user PK. */
+function authentikAdminUrls(pk: number | string | null | undefined): {
+	user: string | null;
+	groups: string | null;
+} {
+	if (pk == null || pk === "") return { user: null, groups: null };
+	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+	if (!base) return { user: null, groups: null };
+	const user = `${base}/if/admin/#/identity/users/${pk}`;
+	const groupsTab = encodeURIComponent(JSON.stringify({ page: "page-groups" }));
+	return {
+		user,
+		groups: `${user};${groupsTab}`,
+	};
+}
+
 function toMemberProfile(
 	user: AuthentikUser,
 	includeEmail: boolean,
@@ -882,6 +908,7 @@ function toMemberProfile(
 		(user.pk != null ? String(user.pk) : user.username) ??
 		"unknown";
 	const email = user.email?.trim() || null;
+	const admin = authentikAdminUrls(user.pk);
 	return {
 		id,
 		name: displayName(user),
@@ -893,6 +920,8 @@ function toMemberProfile(
 		onboardingStage: parseOnboardingStage(
 			user.attributes?.[ATTR.onboardingStage],
 		),
+		authentikAdminUrl: admin.user,
+		authentikAdminGroupsUrl: admin.groups,
 		source,
 	};
 }

@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppApplicationsRouteImport } from './routes/_app/applications'
+import { Route as AppAuditRouteImport } from './routes/_app/audit'
 import { Route as AppMembersRouteImport } from './routes/_app/members'
 import { Route as AppOffboardingRouteImport } from './routes/_app/offboarding'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
@@ -46,6 +47,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppApplicationsRoute = AppApplicationsRouteImport.update({
   id: '/applications',
   path: '/applications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAuditRoute = AppAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMembersRoute = AppMembersRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/applications': typeof AppApplicationsRoute
+  '/audit': typeof AppAuditRoute
   '/members': typeof AppMembersRoute
   '/offboarding': typeof AppOffboardingRoute
   '/onboarding': typeof AppOnboardingRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/applications': typeof AppApplicationsRoute
+  '/audit': typeof AppAuditRoute
   '/members': typeof AppMembersRoute
   '/offboarding': typeof AppOffboardingRoute
   '/onboarding': typeof AppOnboardingRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/no-access': typeof NoAccessRoute
   '/_app/applications': typeof AppApplicationsRoute
+  '/_app/audit': typeof AppAuditRoute
   '/_app/members': typeof AppMembersRoute
   '/_app/offboarding': typeof AppOffboardingRoute
   '/_app/onboarding': typeof AppOnboardingRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/applications'
+    | '/audit'
     | '/members'
     | '/offboarding'
     | '/onboarding'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/applications'
+    | '/audit'
     | '/members'
     | '/offboarding'
     | '/onboarding'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/no-access'
     | '/_app/applications'
+    | '/_app/audit'
     | '/_app/members'
     | '/_app/offboarding'
     | '/_app/onboarding'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/applications'
       fullPath: '/applications'
       preLoaderRoute: typeof AppApplicationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/audit': {
+      id: '/_app/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AppAuditRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/members': {
@@ -306,6 +325,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppApplicationsRoute: typeof AppApplicationsRoute
+  AppAuditRoute: typeof AppAuditRoute
   AppMembersRoute: typeof AppMembersRoute
   AppOffboardingRoute: typeof AppOffboardingRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
@@ -315,6 +335,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppApplicationsRoute: AppApplicationsRoute,
+  AppAuditRoute: AppAuditRoute,
   AppMembersRoute: AppMembersRoute,
   AppOffboardingRoute: AppOffboardingRoute,
   AppOnboardingRoute: AppOnboardingRoute,

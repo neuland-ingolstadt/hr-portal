@@ -1,8 +1,9 @@
 import { render } from "@react-email/render";
 import { createServerFn } from "@tanstack/react-start";
 import { WelcomeEmail, welcomeEmailPreviewProps } from "#/emails/welcome";
-import { listRecentOnboardingMembersFromAuthentik } from "#/lib/authentik-members.server";
+import { recordAudit } from "#/lib/audit.server";
 import { requireAppAccess, requireElevatedAccess } from "#/lib/auth.server";
+import { listRecentOnboardingMembersFromAuthentik } from "#/lib/authentik-members.server";
 import type {
 	CreateMemberResult,
 	NewMemberInput,
@@ -28,8 +29,22 @@ function validateNewMember(data: NewMemberInput): NewMemberInput {
 export const createMemberFn = createServerFn({ method: "POST" })
 	.validator(validateNewMember)
 	.handler(async ({ data }): Promise<CreateMemberResult> => {
-		await requireElevatedAccess();
-		return createMemberAccount(data);
+		const actor = await requireElevatedAccess();
+		const result = await createMemberAccount(data);
+		recordAudit({
+			actor,
+			action: "member.create",
+			targetId: result.success ? result.username : data.email,
+			targetLabel: `${data.firstName} ${data.lastName}`.trim(),
+			success: result.success,
+			error: result.success ? null : result.error,
+			meta: {
+				email: data.email,
+				username: result.success ? result.username : null,
+				emailSent: result.success ? result.emailSent : null,
+			},
+		});
+		return result;
 	});
 
 /** Render the welcome template with sample props for in-app iframe preview. */

@@ -17,6 +17,7 @@ export const ROUTES = {
 	APPLICATIONS: "/applications",
 	ONBOARDING: "/onboarding",
 	OFFBOARDING: "/offboarding",
+	AUDIT: "/audit",
 	AUTH_LOGIN: "/api/auth/login",
 	AUTH_LOGOUT: "/api/auth/logout",
 } as const;
