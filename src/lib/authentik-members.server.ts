@@ -1,4 +1,10 @@
 import { serverConfig } from "#/lib/config";
+import {
+	classifyEasyVereinMemberStatus,
+	type EasyVereinMembershipSnapshot,
+	getEasyVereinMembershipSnapshot,
+	isEasyVereinConfigured,
+} from "#/lib/easyverein.server";
 import type {
 	Member,
 	MemberProfile,
@@ -8,6 +14,7 @@ import type {
 	OffboardingCandidatesResult,
 	OffboardingReason,
 } from "#/lib/members";
+import { MEMBERSHIP_REVOKED_AT_ATTR } from "#/lib/offboarding";
 
 type AuthentikPaginated<T> = {
 	pagination?: { next?: number | null; count?: number };
@@ -38,14 +45,19 @@ type AuthentikUser = {
 	groups?: Array<string | AuthentikGroup>;
 };
 
-/** Connect-written Authentik user attributes (neuland-connect). */
+/** Connect-written Authentik user attributes (neuland-connect + HR offboarding). */
 const ATTR = {
 	githubUsername: "github_username",
 	githubId: "github_id",
 	discordUsername: "discord_username",
 	discordId: "discord_id",
 	easyVereinMemberId: "easyVereinMemberId",
+	membershipRevokedAt: MEMBERSHIP_REVOKED_AT_ATTR,
 } as const;
+
+function daysAgoIso(days: number): string {
+	return new Date(Date.now() - days * 86_400_000).toISOString();
+}
 
 const MOCK_MEMBERS: Member[] = [
 	{
@@ -53,38 +65,51 @@ const MOCK_MEMBERS: Member[] = [
 		name: "Alex Berger",
 		groups: ["HR", "Mitglieder", "management"],
 		easyVereinMemberId: 1001,
+		membershipRevokedAt: null,
 	},
 	{
 		id: "mock-2",
 		name: "Sam Kovacs",
 		groups: ["Vorstand", "Mitglieder", "engineering"],
 		easyVereinMemberId: null,
+		membershipRevokedAt: null,
 	},
 	{
 		id: "mock-3",
 		name: "Jordan Weiss",
 		groups: ["Mitglieder", "events"],
 		easyVereinMemberId: 1003,
+		membershipRevokedAt: null,
 	},
 	{
 		id: "mock-4",
 		name: "Riley Hartmann",
 		groups: ["HR", "design-marketing"],
 		easyVereinMemberId: null,
+		membershipRevokedAt: daysAgoIso(5),
 	},
 	{
 		id: "mock-5",
 		name: "Casey Vogel",
 		groups: ["Mitglieder", "events", "engineering"],
 		easyVereinMemberId: null,
+		membershipRevokedAt: null,
 	},
 	{
 		id: "mock-6",
 		name: "Taylor Neumann",
 		groups: ["design-marketing"],
 		easyVereinMemberId: null,
+		membershipRevokedAt: null,
 	},
 ];
+
+/** Soft-deleted from mock directory after stage-2 delete. */
+const mockDeletedIds = new Set<string>();
+
+function activeMockMembers(): Member[] {
+	return MOCK_MEMBERS.filter((member) => !mockDeletedIds.has(member.id));
+}
 
 const MOCK_PROFILES: Record<
 	string,
@@ -180,6 +205,32 @@ function invalidateCache(cache: DirectoryCache): void {
 export function invalidateDirectoryCache(): void {
 	invalidateCache(directoryCache);
 	invalidateCache(mitgliederCache);
+}
+
+/**
+ * AUTH_MOCK helper: strip Mitglieder group so the account moves to stage 2.
+ */
+export function mockRevokeMitgliederMembership(memberId: string): boolean {
+	const member = MOCK_MEMBERS.find((entry) => entry.id === memberId);
+	if (!member) return false;
+	const expected =
+		serverConfig.groups.mitglieder.trim().toLowerCase() || "mitglieder";
+	member.groups = member.groups.filter(
+		(group) => group.trim().toLowerCase() !== expected,
+	);
+	member.membershipRevokedAt = new Date().toISOString();
+	invalidateDirectoryCache();
+	return true;
+}
+
+/**
+ * AUTH_MOCK helper: permanently remove account from mock directory.
+ */
+export function mockDeleteAccount(memberId: string): boolean {
+	if (!MOCK_MEMBERS.some((entry) => entry.id === memberId)) return false;
+	mockDeletedIds.add(memberId);
+	invalidateDirectoryCache();
+	return true;
 }
 
 async function loadCachedSnapshot(
@@ -380,6 +431,16 @@ function easyVereinMemberIdFromAttributes(
 	return null;
 }
 
+function membershipRevokedAtFromAttributes(
+	attributes: Record<string, unknown> | undefined,
+): string | null {
+	const value = attributes?.[ATTR.membershipRevokedAt];
+	if (typeof value !== "string") return null;
+	const trimmed = value.trim();
+	if (!trimmed || Number.isNaN(Date.parse(trimmed))) return null;
+	return trimmed;
+}
+
 function usersToMembers(
 	users: AuthentikUser[],
 	groupNamesById: Map<string, string>,
@@ -399,6 +460,7 @@ function usersToMembers(
 			name: displayName(user),
 			groups: resolveUserGroups(user, groupNamesById),
 			easyVereinMemberId: easyVereinMemberIdFromAttributes(user.attributes),
+			membershipRevokedAt: membershipRevokedAtFromAttributes(user.attributes),
 		});
 	}
 
@@ -420,7 +482,7 @@ async function loadMitgliederDirectoryMembers(): Promise<DirectorySnapshot> {
 async function fetchActiveDirectoryMembers(): Promise<DirectorySnapshot> {
 	if (!isAuthentikApiConfigured()) {
 		if (serverConfig.authMock) {
-			return { members: MOCK_MEMBERS, source: "mock" };
+			return { members: activeMockMembers(), source: "mock" };
 		}
 		throw new Error("authentik_api_missing");
 	}
@@ -451,7 +513,9 @@ async function fetchMitgliederDirectoryMembers(): Promise<DirectorySnapshot> {
 	if (!isAuthentikApiConfigured()) {
 		if (serverConfig.authMock) {
 			return {
-				members: MOCK_MEMBERS.filter((m) => hasMitgliederGroup(m.groups)),
+				members: activeMockMembers().filter((m) =>
+					hasMitgliederGroup(m.groups),
+				),
 				source: "mock",
 			};
 		}
@@ -540,6 +604,7 @@ export async function listMembersFromAuthentik(): Promise<MembersResult> {
 function toOffboardingCandidatesResult(
 	members: OffboardingCandidate[],
 	source: OffboardingCandidatesResult["source"],
+	easyVereinReconciled = false,
 ): OffboardingCandidatesResult {
 	const groupSet = new Set<string>();
 	for (const member of members) {
@@ -549,44 +614,127 @@ function toOffboardingCandidatesResult(
 		members,
 		availableGroups: [...groupSet].sort((a, b) => a.localeCompare(b, "de")),
 		source,
+		easyVereinReconciled,
+		deleteGraceDays: serverConfig.offboardingDeleteGraceDays,
 	};
 }
 
 /**
- * Collect offboarding reasons for a directory member.
- * - missing_mitglieder: active account without the Mitglieder group
+ * Collect base Authentik-only offboarding reasons (no EV API).
+ * - membership_revoked: Authentik `membershipRevokedAt` set (stage 1 done)
  * - not_in_easyverein: Mitglieder without Authentik `easyVereinMemberId`
- *   (only checked for members — non-Mitglieder are not expected to be linked)
  */
-function collectOffboardingReasons(member: Member): OffboardingReason[] {
+function collectAuthentikOffboardingReasons(
+	member: Member,
+): OffboardingReason[] {
 	const reasons: OffboardingReason[] = [];
-	const isMitglied = hasMitgliederGroup(member.groups);
-	if (!isMitglied) {
-		reasons.push("missing_mitglieder");
+	if (member.membershipRevokedAt) {
+		reasons.push("membership_revoked");
 		return reasons;
 	}
-	if (member.easyVereinMemberId == null) {
+	if (hasMitgliederGroup(member.groups) && member.easyVereinMemberId == null) {
 		reasons.push("not_in_easyverein");
 	}
 	return reasons;
 }
 
+function applyEasyVereinReconciliation(
+	member: Member,
+	snapshot: EasyVereinMembershipSnapshot,
+): OffboardingCandidate | null {
+	if (member.membershipRevokedAt) {
+		return {
+			...member,
+			reasons: ["membership_revoked"],
+		};
+	}
+
+	if (!hasMitgliederGroup(member.groups)) {
+		return null;
+	}
+
+	if (member.easyVereinMemberId == null) {
+		return {
+			...member,
+			reasons: ["not_in_easyverein"],
+		};
+	}
+
+	const status = classifyEasyVereinMemberStatus(
+		member.easyVereinMemberId,
+		snapshot,
+	);
+
+	if (status.state === "active") {
+		return null;
+	}
+
+	if (status.state === "leaving") {
+		return {
+			...member,
+			reasons: ["left_easyverein"],
+			easyVereinResignationDate: status.resignationDate,
+		};
+	}
+
+	if (status.state === "left") {
+		return {
+			...member,
+			reasons: ["left_easyverein"],
+			easyVereinResignationDate: status.resignationDate,
+		};
+	}
+
+	// missing (purged / unknown)
+	return {
+		...member,
+		reasons: ["left_easyverein"],
+		easyVereinResignationDate: null,
+	};
+}
+
 /**
- * Active Authentik accounts that fail one or more membership checks,
+ * Active Authentik accounts that fail membership / EV linkage checks,
  * excluding technical accounts (technical-users group).
+ *
+ * When EasyVerein is configured, linked Mitglieder are reconciled against EV
+ * (resignation / wastebasket / missing id) so leavers surface in stage 1.
  */
 export async function listNonMitgliederAccountsFromAuthentik(): Promise<OffboardingCandidatesResult> {
 	const { members, source } = await loadActiveDirectoryMembers();
+
+	let snapshot: EasyVereinMembershipSnapshot | null = null;
+	let easyVereinReconciled = false;
+	if (isEasyVereinConfigured()) {
+		try {
+			snapshot = await getEasyVereinMembershipSnapshot();
+			easyVereinReconciled = true;
+		} catch (err) {
+			console.error("[offboarding] EasyVerein reconciliation failed", err);
+		}
+	}
+
 	const candidates: OffboardingCandidate[] = [];
 
 	for (const member of members) {
 		if (hasTechnicalUsersGroup(member.groups)) continue;
-		const reasons = collectOffboardingReasons(member);
+
+		if (snapshot) {
+			const candidate = applyEasyVereinReconciliation(member, snapshot);
+			if (candidate) candidates.push(candidate);
+			continue;
+		}
+
+		const reasons = collectAuthentikOffboardingReasons(member);
 		if (reasons.length === 0) continue;
 		candidates.push({ ...member, reasons });
 	}
 
-	return toOffboardingCandidatesResult(candidates, source);
+	return toOffboardingCandidatesResult(
+		candidates,
+		source,
+		easyVereinReconciled,
+	);
 }
 
 async function fetchPageCount(path: string): Promise<number> {
@@ -809,11 +957,12 @@ export async function getDirectoryStatsFromAuthentik(): Promise<{
 			const mitgliederName = serverConfig.groups.mitglieder
 				.trim()
 				.toLowerCase();
+			const active = activeMockMembers();
 			return {
-				memberCount: MOCK_MEMBERS.filter((m) =>
+				memberCount: active.filter((m) =>
 					m.groups.some((g) => g.toLowerCase() === mitgliederName),
 				).length,
-				groupCount: new Set(MOCK_MEMBERS.flatMap((m) => m.groups)).size,
+				groupCount: new Set(active.flatMap((m) => m.groups)).size,
 				source: "mock",
 			};
 		}

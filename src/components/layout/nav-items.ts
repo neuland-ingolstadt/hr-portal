@@ -59,6 +59,7 @@ export const workflowItems: NavItem[] = [
 		labelKey: "nav.offboarding",
 		icon: UserMinus,
 		match: (pathname) => pathname.startsWith(ROUTES.OFFBOARDING),
+		elevatedOnly: true,
 	},
 ];
 

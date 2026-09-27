@@ -1,6 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { hasElevatedAccess } from "#/lib/auth";
-import { requireAppAccess } from "#/lib/auth.server";
+import {
+	requireAppAccess,
+	requireElevatedAccess,
+} from "#/lib/auth.server";
 import {
 	getDirectoryStatsFromAuthentik,
 	getMemberProfileByUuid,
@@ -24,7 +27,7 @@ export const listMembersFn = createServerFn({ method: "GET" }).handler(
 export const listOffboardingCandidatesFn = createServerFn({
 	method: "GET",
 }).handler(async (): Promise<OffboardingCandidatesResult> => {
-	await requireAppAccess();
+	await requireElevatedAccess();
 	return listNonMitgliederAccountsFromAuthentik();
 });
 

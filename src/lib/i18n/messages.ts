@@ -179,12 +179,30 @@ const de = {
 	"offboarding.eyebrow": "Abläufe",
 	"offboarding.title": "Offboarding",
 	"offboarding.lead":
-		"Austritte sauber abwickeln — Zugänge, Übergaben und Dokumentation.",
+		"Austritte sauber abwickeln: Zugänge, Übergaben und Dokumentation.",
 	"offboarding.leadLive":
-		"Aktive Konten ohne Mitglieder-Rolle, sowie Mitglieder nicht im EasyVerein.",
+		"Zwei Schritte: Mitglieder-Rolle entfernen, danach Konten nach Karenz löschen. Start über „Prozess starten“.",
+	"offboarding.process.title": "Automatischen Prozess starten",
+	"offboarding.process.lead":
+		"Entzieht fällige Austritte (nicht künftige) und löscht Konten nach {days} Tagen Karenz. Watchlist bleibt unberührt.",
+	"offboarding.process.button": "Prozess starten",
+	"offboarding.process.running": "Prozess läuft…",
+	"offboarding.process.confirm":
+		"Fällige Mitglieder-Rollen entfernen und Konten nach Karenz löschen?",
+	"offboarding.process.result":
+		"Erledigt: {revoked} Rollen entfernt, {deleted} Konten gelöscht. Watchlist: {skipped}. Fehler: {errors}.",
+	"offboarding.process.error":
+		"Prozess fehlgeschlagen. Bitte erneut versuchen.",
+	"offboarding.process.nothingDue": "Nichts fällig — Watchlist bleibt unberührt.",
+	"offboarding.process.phaseRevoke": "Mitglieder-Rolle entfernen",
+	"offboarding.process.phaseDelete": "Konto löschen",
+	"offboarding.process.progressCount": "{done} von {total}",
+	"offboarding.process.current": "Aktuell: {name}",
+	"offboarding.process.counts":
+		"Entzogen {revoked}/{revokeTotal} · Gelöscht {deleted}/{deleteTotal} · Fehler {errors}",
 	"offboarding.candidatesTitle": "Offboarding-Kandidaten",
 	"offboarding.candidatesLead":
-		"Aktive Konten ohne Mitglieder-Rolle, sowie Mitglieder ohne EasyVerein-Verknüpfung.",
+		"Mitglieder ohne aktives EasyVerein, sowie Konten mit entzogenem Zugang.",
 	"offboarding.candidatesCount": "{count} Kandidaten",
 	"offboarding.candidatesShowing": "{filtered} von {total}",
 	"offboarding.candidatesPage": "{from}–{to} von {total}",
@@ -196,9 +214,75 @@ const de = {
 		"Kandidaten konnten nicht geladen werden. Bitte versuche es erneut.",
 	"offboarding.noGroups": "Keine Gruppen",
 	"offboarding.colReason": "Grund",
+	"offboarding.colRevoked": "Zugang entzogen",
+	"offboarding.colLeaveDate": "Austritt",
+	"offboarding.colAction": "Aktion",
 	"offboarding.filterReasons": "Grund filtern",
-	"offboarding.reason.missing_mitglieder": "Keine Mitglieder-Rolle",
+	"offboarding.reason.membership_revoked": "Zugang entzogen",
 	"offboarding.reason.not_in_easyverein": "Nicht im EasyVerein",
+	"offboarding.reason.left_easyverein": "EasyVerein-Austritt",
+	"offboarding.leaveOn": "Austritt am {date}",
+	"offboarding.leftOn": "Ausgetreten am {date}",
+	"offboarding.leaveMissing": "Nicht mehr in EasyVerein",
+	"offboarding.revokedToday": "heute",
+	"offboarding.revokedOneDayAgo": "vor 1 Tag",
+	"offboarding.revokedDaysAgo": "vor {days} Tagen",
+	"offboarding.pipeline.then": "Danach",
+	"offboarding.stageLabel": "Schritt {n}",
+	"offboarding.stage1.badge": "Zugang einschränken",
+	"offboarding.stage1.title": "Mitglieder-Rolle entfernen",
+	"offboarding.stage1.lead":
+		"Noch in der Mitglieder-Gruppe: fehlende EV-ID, Austritt, oder künftiger Austritt (Watchlist).",
+	"offboarding.stage1.listTitle": "Rolle / Watchlist",
+	"offboarding.stage1.listLead":
+		"Fällige Austritte und fehlende EV-IDs werden per Prozess entzogen. Künftige Austrittsdaten bleiben Watchlist.",
+	"offboarding.stage1.empty": "Keine Einträge.",
+	"offboarding.stage2.badge": "Konto löschen",
+	"offboarding.stage2.title": "Authentik-Konto löschen",
+	"offboarding.stage2.lead":
+		"Nur Konten mit entzogenem Zugang. Löschung nach Karenz oder manuell.",
+	"offboarding.stage2.irreversible": "Unwiderruflich: Konto wird gelöscht.",
+	"offboarding.stage2.listTitle": "Zugang entzogen",
+	"offboarding.stage2.listLead":
+		"Nach Schritt 1. Prozess löscht erst nach Karenz; Einzelaktion jederzeit möglich.",
+	"offboarding.stage2.empty": "Keine Einträge.",
+	"offboarding.action.revoke": "Rolle entfernen",
+	"offboarding.action.delete": "Löschen",
+	"offboarding.dialogCancel": "Abbrechen",
+	"offboarding.dialogDone": "Fertig",
+	"offboarding.revoke.title": "Mitglieder-Rolle entfernen",
+	"offboarding.revoke.lead":
+		"Entfernt die Mitglieder-Gruppe in Authentik. EasyVerein bleibt unverändert.",
+	"offboarding.revoke.bulletRemove": "Mitglieder-Gruppe in Authentik entfernen",
+	"offboarding.revoke.bulletKeepAccount":
+		"Merkt den Entzug; Konto erscheint danach unter Schritt 2",
+	"offboarding.revoke.confirm": "Mitglieder-Rolle entfernen",
+	"offboarding.revoke.submitting": "Wird entfernt…",
+	"offboarding.revoke.success":
+		"Mitglieder-Rolle für {name} entfernt. Das Konto liegt jetzt in Schritt 2.",
+	"offboarding.delete.title": "Authentik-Konto löschen",
+	"offboarding.delete.lead":
+		"Benutzer in Authentik endgültig entfernen. Das kann nicht rückgängig gemacht werden.",
+	"offboarding.delete.calloutTitle": "Dauerhaft löschen",
+	"offboarding.delete.calloutBody":
+		"Der Authentik-Benutzer wird gelöscht, inkl. Gruppen und Login.",
+	"offboarding.delete.bulletPermanent": "Löschung ist unwiderruflich",
+	"offboarding.delete.bulletLogin": "Keine Anmeldung mehr über dieses Konto",
+	"offboarding.delete.confirm": "Konto endgültig löschen",
+	"offboarding.delete.submitting": "Wird gelöscht…",
+	"offboarding.delete.success": "{name} wurde aus Authentik gelöscht.",
+	"offboarding.errorUnauthorized": "Keine Berechtigung für diese Aktion.",
+	"offboarding.errorInvalid": "Ungültige Anfrage.",
+	"offboarding.errorNotEligible":
+		"Dieses Konto ist für diese Offboarding-Aktion nicht freigegeben.",
+	"offboarding.errorApiMissing":
+		"Authentik-API ist nicht konfiguriert. Aktion nicht möglich.",
+	"offboarding.errorUserNotFound": "Benutzer in Authentik nicht gefunden.",
+	"offboarding.errorGroupMissing":
+		"Mitglieder-Gruppe in Authentik wurde nicht gefunden.",
+	"offboarding.errorRevokeFailed":
+		"Mitglieder-Rolle konnte nicht entfernt werden.",
+	"offboarding.errorDeleteFailed": "Konto konnte nicht gelöscht werden.",
 	"offboarding.bulletChecklist": "Austritts-Checkliste",
 	"offboarding.bulletAccess": "Zugänge und Geräte zurücknehmen",
 	"offboarding.bulletHandover": "Wissen und Aufgaben übergeben",
@@ -501,12 +585,29 @@ const en: Record<MessageKey, string> = {
 	"offboarding.eyebrow": "Workflows",
 	"offboarding.title": "Offboarding",
 	"offboarding.lead":
-		"Handle departures cleanly — access, handovers, and documentation.",
+		"Handle departures cleanly: access, handovers, and documentation.",
 	"offboarding.leadLive":
-		"Active accounts without the membership role, plus members not in EasyVerein.",
+		"Two steps: revoke Mitglieder, then delete accounts after grace. Start via “Run process”.",
+	"offboarding.process.title": "Run automatic process",
+	"offboarding.process.lead":
+		"Revokes due departures (not future ones) and deletes accounts after {days} days of grace. Watchlist stays untouched.",
+	"offboarding.process.button": "Run process",
+	"offboarding.process.running": "Running…",
+	"offboarding.process.confirm":
+		"Revoke due Mitglieder roles and delete accounts past grace?",
+	"offboarding.process.result":
+		"Done: {revoked} roles revoked, {deleted} accounts deleted. Watchlist: {skipped}. Errors: {errors}.",
+	"offboarding.process.error": "Process failed. Please try again.",
+	"offboarding.process.nothingDue": "Nothing due — watchlist stays untouched.",
+	"offboarding.process.phaseRevoke": "Removing Mitglieder role",
+	"offboarding.process.phaseDelete": "Deleting account",
+	"offboarding.process.progressCount": "{done} of {total}",
+	"offboarding.process.current": "Current: {name}",
+	"offboarding.process.counts":
+		"Revoked {revoked}/{revokeTotal} · Deleted {deleted}/{deleteTotal} · Errors {errors}",
 	"offboarding.candidatesTitle": "Offboarding candidates",
 	"offboarding.candidatesLead":
-		"Active accounts without the membership role, plus members missing EasyVerein linkage.",
+		"Mitglieder without active EasyVerein membership, plus accounts with revoked access.",
 	"offboarding.candidatesCount": "{count} candidates",
 	"offboarding.candidatesShowing": "{filtered} of {total}",
 	"offboarding.candidatesPage": "{from}–{to} of {total}",
@@ -518,9 +619,75 @@ const en: Record<MessageKey, string> = {
 		"Candidates could not be loaded. Please try again.",
 	"offboarding.noGroups": "No groups",
 	"offboarding.colReason": "Reason",
+	"offboarding.colRevoked": "Access revoked",
+	"offboarding.colLeaveDate": "Departure",
+	"offboarding.colAction": "Action",
 	"offboarding.filterReasons": "Filter by reason",
-	"offboarding.reason.missing_mitglieder": "No membership role",
+	"offboarding.reason.membership_revoked": "Access revoked",
 	"offboarding.reason.not_in_easyverein": "Not in EasyVerein",
+	"offboarding.reason.left_easyverein": "EasyVerein departure",
+	"offboarding.leaveOn": "Leaving on {date}",
+	"offboarding.leftOn": "Left on {date}",
+	"offboarding.leaveMissing": "No longer in EasyVerein",
+	"offboarding.revokedToday": "today",
+	"offboarding.revokedOneDayAgo": "1 day ago",
+	"offboarding.revokedDaysAgo": "{days} days ago",
+	"offboarding.pipeline.then": "Then",
+	"offboarding.stageLabel": "Step {n}",
+	"offboarding.stage1.badge": "Restrict access",
+	"offboarding.stage1.title": "Remove Mitglieder role",
+	"offboarding.stage1.lead":
+		"Still in Mitglieder: missing EV ID, departed, or future departure (watchlist).",
+	"offboarding.stage1.listTitle": "Role / watchlist",
+	"offboarding.stage1.listLead":
+		"Due departures and missing EV IDs are revoked by the process. Future resignation dates stay on the watchlist.",
+	"offboarding.stage1.empty": "No entries.",
+	"offboarding.stage2.badge": "Delete account",
+	"offboarding.stage2.title": "Delete Authentik account",
+	"offboarding.stage2.lead":
+		"Only accounts with revoked access. Deleted after grace or manually.",
+	"offboarding.stage2.irreversible":
+		"Irreversible: the account will be deleted.",
+	"offboarding.stage2.listTitle": "Access revoked",
+	"offboarding.stage2.listLead":
+		"After step 1. Process deletes only after grace; per-row delete anytime.",
+	"offboarding.stage2.empty": "No entries.",
+	"offboarding.action.revoke": "Remove role",
+	"offboarding.action.delete": "Delete",
+	"offboarding.dialogCancel": "Cancel",
+	"offboarding.dialogDone": "Done",
+	"offboarding.revoke.title": "Remove Mitglieder role",
+	"offboarding.revoke.lead":
+		"Removes the Mitglieder group in Authentik. EasyVerein stays unchanged.",
+	"offboarding.revoke.bulletRemove": "Remove Mitglieder group in Authentik",
+	"offboarding.revoke.bulletKeepAccount":
+		"Records the revoke; account then appears under step 2",
+	"offboarding.revoke.confirm": "Remove Mitglieder role",
+	"offboarding.revoke.submitting": "Removing…",
+	"offboarding.revoke.success":
+		"Mitglieder role removed for {name}. The account is now in step 2.",
+	"offboarding.delete.title": "Delete Authentik account",
+	"offboarding.delete.lead":
+		"Permanently remove the user from Authentik. This cannot be undone.",
+	"offboarding.delete.calloutTitle": "Permanent delete",
+	"offboarding.delete.calloutBody":
+		"The Authentik user is deleted, including groups and login.",
+	"offboarding.delete.bulletPermanent": "Deletion is irreversible",
+	"offboarding.delete.bulletLogin": "No further sign-in with this account",
+	"offboarding.delete.confirm": "Delete account permanently",
+	"offboarding.delete.submitting": "Deleting…",
+	"offboarding.delete.success": "{name} was deleted from Authentik.",
+	"offboarding.errorUnauthorized":
+		"You are not allowed to perform this action.",
+	"offboarding.errorInvalid": "Invalid request.",
+	"offboarding.errorNotEligible":
+		"This account is not eligible for this offboarding action.",
+	"offboarding.errorApiMissing":
+		"Authentik API is not configured. Action unavailable.",
+	"offboarding.errorUserNotFound": "User not found in Authentik.",
+	"offboarding.errorGroupMissing": "Mitglieder group not found in Authentik.",
+	"offboarding.errorRevokeFailed": "Could not remove the Mitglieder role.",
+	"offboarding.errorDeleteFailed": "Could not delete the account.",
 	"offboarding.bulletChecklist": "Departure checklist",
 	"offboarding.bulletAccess": "Revoke access and collect assets",
 	"offboarding.bulletHandover": "Hand over knowledge and tasks",

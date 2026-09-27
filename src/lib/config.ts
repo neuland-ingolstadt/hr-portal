@@ -73,6 +73,14 @@ export const serverConfig = {
 		).replace(/\/$/, ""),
 		apiToken: optional("EASYVEREIN_API_TOKEN"),
 	},
+	/**
+	 * Days after `membershipRevokedAt` before auto-delete may run
+	 * (via Offboarding “Prozess starten”).
+	 */
+	offboardingDeleteGraceDays: Math.max(
+		0,
+		Number.parseInt(optional("OFFBOARDING_DELETE_GRACE_DAYS", "14"), 10) || 14,
+	),
 } as const;
 
 export function getCallbackUrl(): string {

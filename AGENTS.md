@@ -7,7 +7,7 @@
 - Prefer the OIDC `groups` claim (ID token / UserInfo). REST API group lookup is optional fallback only (`sub` UUID is not a valid Authentik user path id).
 - Do not add a local user/member table or sync users into Postgres/SQLite for identity.
 - **App access** (`requireAppAccess`): `hr` | `vorstand` | `admin`.
-- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory. HR must not see or act on applications.
+- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory, offboarding list/actions. HR must not see or act on applications or offboarding.
 
 ## Layout
 
@@ -22,7 +22,7 @@
 ## Security
 
 - Every `createServerFn` / API route that exposes private data must call `requireAppAccess` or `requireElevatedAccess`. Route `beforeLoad` is UX only.
-- Applications + member create use `requireElevatedAccess` (not HR).
+- Applications + member create + offboarding use `requireElevatedAccess` (not HR).
 - Separate Authentik application from Connect (own client id/secret, redirect `…/api/auth/callback`).
 
 ## Applications (EasyVerein)
@@ -43,3 +43,15 @@
 ## Out of scope for now
 
 Queues / checklist workflows, shared package with Connect, decline flow in EasyVerein.
+
+## Offboarding
+
+- `/offboarding` is Vorstand/Admin only (`requireElevatedAccess` / `requireElevatedUser`). HR has no nav entry or API access.
+- Two-step Authentik pipeline (no EasyVerein writes):
+  1. **Revoke Mitglieder** — missing `easyVereinMemberId`, or linked EV id that has left / is missing (read-only EV check); stamps `attributes.membershipRevokedAt`. Future `resignation_date` stays watchlist-only.
+  2. **Delete account** — only accounts with `membershipRevokedAt` set (`DELETE /core/users/{pk}/`)
+- Step 1 reconciles linked Mitglieder against EasyVerein member + wastebasket snapshots (cached ~5 min).
+- Step 2 ignores “no Mitglieder” alone so random non-member accounts are not delete candidates.
+- Mutations re-check eligibility against that candidate set (reject watchlist / arbitrary IDs / self).
+- **Prozess starten** (button, not on visit / not cron): auto-revokes due stage-1 candidates and hard-deletes stage-2 past `OFFBOARDING_DELETE_GRACE_DAYS` (default 14). Per-row actions remain available.
+- Desktop: both stage tables side by side.

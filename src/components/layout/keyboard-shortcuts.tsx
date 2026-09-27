@@ -1,6 +1,6 @@
-import { useRouter } from "@tanstack/react-router";
+import { getRouteApi, useRouter } from "@tanstack/react-router";
 import { Keyboard } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "#/components/ui/button";
 import {
 	Dialog,
@@ -9,6 +9,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "#/components/ui/dialog";
+import { hasElevatedAccess } from "#/lib/auth";
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
@@ -21,8 +22,12 @@ const GO_TARGETS: Record<string, string> = {
 	m: ROUTES.MEMBERS, // Mitglieder
 	q: ROUTES.SCANNER, // QR / Scanner
 	e: ROUTES.ONBOARDING, // Eintritt
-	a: ROUTES.OFFBOARDING, // Austritt
+	a: ROUTES.OFFBOARDING, // Austritt (elevated)
 };
+
+const ELEVATED_GO_KEYS = new Set(["a"]);
+
+const appRouteApi = getRouteApi("/_app");
 
 type ShortcutRow = {
 	keys: readonly string[];
@@ -113,6 +118,15 @@ export function KeyboardShortcutsHelpButton({
 export function KeyboardShortcuts({ onToggleSidebar }: KeyboardShortcutsProps) {
 	const { t } = useI18n();
 	const router = useRouter();
+	const { user } = appRouteApi.useRouteContext();
+	const elevated = hasElevatedAccess(user.roles);
+	const goShortcuts = useMemo(
+		() =>
+			GO_SHORTCUTS.filter(
+				(row) => elevated || !ELEVATED_GO_KEYS.has(row.keys[1] ?? ""),
+			),
+		[elevated],
+	);
 	const [helpOpen, setHelpOpen] = useState(false);
 	const awaitingGo = useRef(false);
 	const goTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,7 +170,9 @@ export function KeyboardShortcuts({ onToggleSidebar }: KeyboardShortcutsProps) {
 
 			if (awaitingGo.current) {
 				clearGoPending();
-				const target = GO_TARGETS[key.toLowerCase()];
+				const goKey = key.toLowerCase();
+				if (ELEVATED_GO_KEYS.has(goKey) && !elevated) return;
+				const target = GO_TARGETS[goKey];
 				if (target) {
 					event.preventDefault();
 					void router.navigate({ to: target });
@@ -195,7 +211,7 @@ export function KeyboardShortcuts({ onToggleSidebar }: KeyboardShortcutsProps) {
 			window.removeEventListener("keydown", onKeyDown);
 			clearGoPending();
 		};
-	}, [clearGoPending, helpOpen, onToggleSidebar, router]);
+	}, [clearGoPending, elevated, helpOpen, onToggleSidebar, router]);
 
 	useEffect(() => {
 		function onOpenHelp() {
@@ -237,7 +253,7 @@ export function KeyboardShortcuts({ onToggleSidebar }: KeyboardShortcutsProps) {
 							{t("shortcuts.sectionGo")}
 						</p>
 						<ul className="space-y-1.5">
-							{GO_SHORTCUTS.map((row) => (
+							{goShortcuts.map((row) => (
 								<li
 									key={row.labelKey}
 									className="flex items-center justify-between gap-4 py-1.5 text-sm"

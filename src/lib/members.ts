@@ -9,6 +9,12 @@ export type Member = {
 	 * `null` = known missing; `undefined` = not loaded (e.g. mitglieder-only list).
 	 */
 	easyVereinMemberId?: number | null;
+	/**
+	 * ISO timestamp from Authentik `attributes.membershipRevokedAt`
+	 * (set when Mitglieder is removed in offboarding stage 1).
+	 * `null` = known missing; `undefined` = not loaded.
+	 */
+	membershipRevokedAt?: string | null;
 };
 
 export type MembersResult = {
@@ -20,24 +26,62 @@ export type MembersResult = {
 
 /**
  * Why a directory account appears on the offboarding list.
- * Add new codes here as more checks land.
  */
-export type OffboardingReason = "missing_mitglieder" | "not_in_easyverein";
+export type OffboardingReason =
+	| "membership_revoked"
+	| "not_in_easyverein"
+	| "left_easyverein";
 
 export const OFFBOARDING_REASONS: OffboardingReason[] = [
-	"missing_mitglieder",
+	"membership_revoked",
 	"not_in_easyverein",
+	"left_easyverein",
 ];
 
 export type OffboardingCandidate = Member & {
 	reasons: OffboardingReason[];
+	/**
+	 * EasyVerein `resignation_date` (YYYY-MM-DD) when known for leave/leaving.
+	 */
+	easyVereinResignationDate?: string | null;
 };
 
 export type OffboardingCandidatesResult = {
 	members: OffboardingCandidate[];
 	availableGroups: string[];
 	source: "authentik" | "mock";
+	/** True when EV reconciliation ran (false if EV API missing). */
+	easyVereinReconciled?: boolean;
+	/** Days after revoke before process may auto-delete. */
+	deleteGraceDays?: number;
 };
+
+/**
+ * Stage 1: revoke Mitglieder (missing EV link, or EV leave/missing).
+ * Stage 2: has `membershipRevokedAt` → delete Authentik account.
+ */
+export function partitionOffboardingStages(
+	candidates: OffboardingCandidate[],
+): {
+	revokeMembership: OffboardingCandidate[];
+	deleteAccount: OffboardingCandidate[];
+} {
+	const revokeMembership: OffboardingCandidate[] = [];
+	const deleteAccount: OffboardingCandidate[] = [];
+
+	for (const candidate of candidates) {
+		if (candidate.reasons.includes("membership_revoked")) {
+			deleteAccount.push(candidate);
+		} else if (
+			candidate.reasons.includes("not_in_easyverein") ||
+			candidate.reasons.includes("left_easyverein")
+		) {
+			revokeMembership.push(candidate);
+		}
+	}
+
+	return { revokeMembership, deleteAccount };
+}
 
 export type DirectoryStats = {
 	memberCount: number;
