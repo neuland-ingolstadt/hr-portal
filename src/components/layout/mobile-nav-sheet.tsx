@@ -94,10 +94,7 @@ export function MobileNavSheet({ open, onOpenChange }: MobileNavSheetProps) {
 				showClose
 				className="max-h-[85dvh] gap-0 overflow-hidden p-0 md:hidden"
 			>
-				<div
-					aria-hidden
-					className="mx-auto mt-3 h-1 w-10 shrink-0 bg-border"
-				/>
+				<div aria-hidden className="mx-auto mt-3 h-1 w-10 shrink-0 bg-border" />
 				<SheetHeader className="border-b border-border px-4 py-4 pr-12">
 					<div className="flex items-center gap-3">
 						<NeulandPalm className="h-7 w-auto shrink-0 text-foreground" />

@@ -728,9 +728,12 @@ export async function getMemberProfileByUuid(
 				body.results?.find((entry) => entry.uuid === sub) ?? body.results?.[0];
 		} else {
 			// Members list uses Authentik numeric PK (users_obj has no uuid).
-			const res = await fetch(`${base}/api/v3/core/users/${encodeURIComponent(sub)}/`, {
-				headers: authHeaders(),
-			});
+			const res = await fetch(
+				`${base}/api/v3/core/users/${encodeURIComponent(sub)}/`,
+				{
+					headers: authHeaders(),
+				},
+			);
 			if (res.status === 404) {
 				return { status: "not_found", source: "authentik" };
 			}

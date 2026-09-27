@@ -17,9 +17,7 @@ export type MembersResult = {
  * Why a directory account appears on the offboarding list.
  * Add new codes here as more checks land (e.g. EasyVerein).
  */
-export type OffboardingReason =
-	| "missing_mitglieder"
-	| "not_in_easyverein";
+export type OffboardingReason = "missing_mitglieder" | "not_in_easyverein";
 
 export type OffboardingCandidate = Member & {
 	reasons: OffboardingReason[];

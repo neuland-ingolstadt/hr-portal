@@ -50,8 +50,7 @@ function SidebarHoverLabel({
 	const updatePosition = useCallback(() => {
 		const el = triggerRef.current;
 		if (!el) return;
-		const target =
-			(el.firstElementChild as HTMLElement | null) ?? el;
+		const target = (el.firstElementChild as HTMLElement | null) ?? el;
 		const rect = target.getBoundingClientRect();
 		setCoords({
 			top: rect.top + rect.height / 2,
@@ -147,9 +146,7 @@ function NavSection({
 				const Icon = item.icon;
 				const active = item.match(pathname);
 				const label = t(item.labelKey);
-				const titleText = item.soon
-					? `${label} (${t("home.soon")})`
-					: label;
+				const titleText = item.soon ? `${label} (${t("home.soon")})` : label;
 				return (
 					<SidebarHoverLabel
 						key={item.to}
@@ -161,9 +158,7 @@ function NavSection({
 							to={item.to}
 							className={cn(
 								"relative flex w-full items-center border border-transparent text-sm no-underline transition-colors",
-								collapsed
-									? "justify-center px-0 py-2.5"
-									: "gap-3 px-3 py-2.5",
+								collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
 								active
 									? "border-border bg-muted font-medium text-foreground"
 									: "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
@@ -180,10 +175,7 @@ function NavSection({
 							<Icon className="size-4 shrink-0" aria-hidden />
 							{collapsed ? null : (
 								<>
-									<span
-										data-sidebar-label
-										className="min-w-0 flex-1 truncate"
-									>
+									<span data-sidebar-label className="min-w-0 flex-1 truncate">
 										{label}
 									</span>
 									{item.soon ? (
@@ -257,9 +249,7 @@ export function AppSidebar({
 				{canCollapse ? (
 					<SidebarHoverLabel
 						label={
-							collapsed
-								? t("nav.expandSidebar")
-								: t("nav.collapseSidebar")
+							collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")
 						}
 						enabled
 					>
@@ -269,9 +259,7 @@ export function AppSidebar({
 							size="icon-sm"
 							className="shrink-0 text-muted-foreground"
 							aria-label={
-								collapsed
-									? t("nav.expandSidebar")
-									: t("nav.collapseSidebar")
+								collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")
 							}
 							aria-expanded={!collapsed}
 							onClick={() => onCollapsedChange(!collapsed)}
@@ -319,10 +307,7 @@ export function AppSidebar({
 						collapsed ? "flex-col gap-0.5" : "gap-0.5 px-1",
 					)}
 				>
-					<SidebarHoverLabel
-						label={t("header.language")}
-						enabled={collapsed}
-					>
+					<SidebarHoverLabel label={t("header.language")} enabled={collapsed}>
 						<LanguageToggle
 							variant="ghost"
 							size="icon-sm"

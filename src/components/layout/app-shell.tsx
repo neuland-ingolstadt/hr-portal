@@ -5,10 +5,7 @@ import { LegalFooter } from "#/components/layout/legal-footer";
 import { MobileNavSheet } from "#/components/layout/mobile-nav-sheet";
 import { Button } from "#/components/ui/button";
 import { useI18n } from "#/lib/i18n/locale-context";
-import {
-	readSidebarCollapsed,
-	writeSidebarCollapsed,
-} from "#/lib/sidebar";
+import { readSidebarCollapsed, writeSidebarCollapsed } from "#/lib/sidebar";
 import { cn } from "#/lib/utils";
 
 type AppShellProps = {

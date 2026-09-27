@@ -315,7 +315,9 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 														active
 															? "border-primary/35 bg-primary/10 text-foreground"
 															: "border-transparent hover:border-border hover:bg-muted/60",
-														isRessort && !active && "bg-[color:var(--badge-ressort-bg)]/40",
+														isRessort &&
+															!active &&
+															"bg-[color:var(--badge-ressort-bg)]/40",
 													)}
 												>
 													<span
