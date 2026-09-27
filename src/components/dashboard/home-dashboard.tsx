@@ -282,7 +282,7 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 			<section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.9fr)]">
 				<div className="grid gap-4 sm:grid-cols-2">
 					<ActionCard
-						to={ROUTES.MITGLIEDER}
+						to={ROUTES.MEMBERS}
 						icon={<Users className="size-5" aria-hidden />}
 						title={t("home.actionMembersTitle")}
 						description={t("home.actionMembersDesc")}
@@ -290,7 +290,7 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						delay="200ms"
 					/>
 					<PlaceholderCard
-						to={ROUTES.BEWERBUNGEN}
+						to={ROUTES.APPLICATIONS}
 						icon={<FileCheck2 className="size-5" aria-hidden />}
 						title={t("home.moduleApplicationsTitle")}
 						description={t("home.moduleApplicationsDesc")}

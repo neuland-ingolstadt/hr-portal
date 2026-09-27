@@ -10,11 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as KeinZugangRouteImport } from './routes/kein-zugang'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as NoAccessRouteImport } from './routes/no-access'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppBewerbungenRouteImport } from './routes/_app/bewerbungen'
-import { Route as AppMitgliederRouteImport } from './routes/_app/mitglieder'
+import { Route as AppApplicationsRouteImport } from './routes/_app/applications'
+import { Route as AppMembersRouteImport } from './routes/_app/members'
 import { Route as AppOffboardingRouteImport } from './routes/_app/offboarding'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
 import { Route as AppScannerRouteImport } from './routes/_app/scanner'
@@ -28,14 +28,14 @@ const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const KeinZugangRoute = KeinZugangRouteImport.update({
-  id: '/kein-zugang',
-  path: '/kein-zugang',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NoAccessRoute = NoAccessRouteImport.update({
+  id: '/no-access',
+  path: '/no-access',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -43,14 +43,14 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppBewerbungenRoute = AppBewerbungenRouteImport.update({
-  id: '/bewerbungen',
-  path: '/bewerbungen',
+const AppApplicationsRoute = AppApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMitgliederRoute = AppMitgliederRouteImport.update({
-  id: '/mitglieder',
-  path: '/mitglieder',
+const AppMembersRoute = AppMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
   getParentRoute: () => AppRoute,
 } as any)
 const AppOffboardingRoute = AppOffboardingRouteImport.update({
@@ -96,10 +96,10 @@ const ApiAuthMockRoute = ApiAuthMockRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
-  '/kein-zugang': typeof KeinZugangRoute
   '/login': typeof LoginRoute
-  '/bewerbungen': typeof AppBewerbungenRoute
-  '/mitglieder': typeof AppMitgliederRoute
+  '/no-access': typeof NoAccessRoute
+  '/applications': typeof AppApplicationsRoute
+  '/members': typeof AppMembersRoute
   '/offboarding': typeof AppOffboardingRoute
   '/onboarding': typeof AppOnboardingRoute
   '/scanner': typeof AppScannerRoute
@@ -110,10 +110,10 @@ export interface FileRoutesByFullPath {
   '/api/auth/mock': typeof ApiAuthMockRoute
 }
 export interface FileRoutesByTo {
-  '/kein-zugang': typeof KeinZugangRoute
   '/login': typeof LoginRoute
-  '/bewerbungen': typeof AppBewerbungenRoute
-  '/mitglieder': typeof AppMitgliederRoute
+  '/no-access': typeof NoAccessRoute
+  '/applications': typeof AppApplicationsRoute
+  '/members': typeof AppMembersRoute
   '/offboarding': typeof AppOffboardingRoute
   '/onboarding': typeof AppOnboardingRoute
   '/scanner': typeof AppScannerRoute
@@ -127,10 +127,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
-  '/kein-zugang': typeof KeinZugangRoute
   '/login': typeof LoginRoute
-  '/_app/bewerbungen': typeof AppBewerbungenRoute
-  '/_app/mitglieder': typeof AppMitgliederRoute
+  '/no-access': typeof NoAccessRoute
+  '/_app/applications': typeof AppApplicationsRoute
+  '/_app/members': typeof AppMembersRoute
   '/_app/offboarding': typeof AppOffboardingRoute
   '/_app/onboarding': typeof AppOnboardingRoute
   '/_app/scanner': typeof AppScannerRoute
@@ -145,10 +145,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/kein-zugang'
     | '/login'
-    | '/bewerbungen'
-    | '/mitglieder'
+    | '/no-access'
+    | '/applications'
+    | '/members'
     | '/offboarding'
     | '/onboarding'
     | '/scanner'
@@ -159,10 +159,10 @@ export interface FileRouteTypes {
     | '/api/auth/mock'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/kein-zugang'
     | '/login'
-    | '/bewerbungen'
-    | '/mitglieder'
+    | '/no-access'
+    | '/applications'
+    | '/members'
     | '/offboarding'
     | '/onboarding'
     | '/scanner'
@@ -175,10 +175,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_app'
-    | '/kein-zugang'
     | '/login'
-    | '/_app/bewerbungen'
-    | '/_app/mitglieder'
+    | '/no-access'
+    | '/_app/applications'
+    | '/_app/members'
     | '/_app/offboarding'
     | '/_app/onboarding'
     | '/_app/scanner'
@@ -192,8 +192,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
-  KeinZugangRoute: typeof KeinZugangRoute
   LoginRoute: typeof LoginRoute
+  NoAccessRoute: typeof NoAccessRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -210,18 +210,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/kein-zugang': {
-      id: '/kein-zugang'
-      path: '/kein-zugang'
-      fullPath: '/kein-zugang'
-      preLoaderRoute: typeof KeinZugangRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/no-access': {
+      id: '/no-access'
+      path: '/no-access'
+      fullPath: '/no-access'
+      preLoaderRoute: typeof NoAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -231,18 +231,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/bewerbungen': {
-      id: '/_app/bewerbungen'
-      path: '/bewerbungen'
-      fullPath: '/bewerbungen'
-      preLoaderRoute: typeof AppBewerbungenRouteImport
+    '/_app/applications': {
+      id: '/_app/applications'
+      path: '/applications'
+      fullPath: '/applications'
+      preLoaderRoute: typeof AppApplicationsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/mitglieder': {
-      id: '/_app/mitglieder'
-      path: '/mitglieder'
-      fullPath: '/mitglieder'
-      preLoaderRoute: typeof AppMitgliederRouteImport
+    '/_app/members': {
+      id: '/_app/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof AppMembersRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/offboarding': {
@@ -305,8 +305,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppBewerbungenRoute: typeof AppBewerbungenRoute
-  AppMitgliederRoute: typeof AppMitgliederRoute
+  AppApplicationsRoute: typeof AppApplicationsRoute
+  AppMembersRoute: typeof AppMembersRoute
   AppOffboardingRoute: typeof AppOffboardingRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppScannerRoute: typeof AppScannerRoute
@@ -314,8 +314,8 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppBewerbungenRoute: AppBewerbungenRoute,
-  AppMitgliederRoute: AppMitgliederRoute,
+  AppApplicationsRoute: AppApplicationsRoute,
+  AppMembersRoute: AppMembersRoute,
   AppOffboardingRoute: AppOffboardingRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppScannerRoute: AppScannerRoute,
@@ -326,8 +326,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
-  KeinZugangRoute: KeinZugangRoute,
   LoginRoute: LoginRoute,
+  NoAccessRoute: NoAccessRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiAuthCallbackRoute: ApiAuthCallbackRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,

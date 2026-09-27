@@ -11,6 +11,8 @@ const badgeVariants = cva(
 				hr: "border-primary/40 bg-primary/12 text-primary",
 				vorstand:
 					"border-[color:var(--badge-vorstand-border)] bg-[image:var(--badge-vorstand-bg)] text-[color:var(--badge-vorstand-text)]",
+				ressort:
+					"border-[color:var(--badge-ressort-border)] bg-[color:var(--badge-ressort-bg)] text-[color:var(--badge-ressort-text)]",
 				muted: "border-border/80 bg-muted/70 text-muted-foreground",
 				destructive: "border-destructive/40 bg-destructive/10 text-destructive",
 			},

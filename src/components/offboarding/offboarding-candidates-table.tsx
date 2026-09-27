@@ -8,15 +8,27 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
 import { Input } from "#/components/ui/input";
+import {
+	groupBadgeVariant,
+	ressortLabelKey,
+	sortGroupsForDisplay,
+} from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
-import type { Member } from "#/lib/members";
+import type { MessageKey } from "#/lib/i18n/messages";
+import type { OffboardingCandidate, OffboardingReason } from "#/lib/members";
 import { cn } from "#/lib/utils";
 
 type OffboardingCandidatesTableProps = {
-	candidates: Member[];
+	candidates: OffboardingCandidate[];
+};
+
+const REASON_MESSAGE_KEYS: Record<OffboardingReason, MessageKey> = {
+	missing_mitglieder: "offboarding.reason.missing_mitglieder",
+	not_in_easyverein: "offboarding.reason.not_in_easyverein",
 };
 
 function initials(name: string): string {
@@ -24,13 +36,6 @@ function initials(name: string): string {
 	if (parts.length === 0) return "?";
 	if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 	return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
-}
-
-function groupBadgeVariant(group: string) {
-	const key = group.toLowerCase();
-	if (key === "vorstand" || key === "admin") return "vorstand" as const;
-	if (key === "hr") return "hr" as const;
-	return "muted" as const;
 }
 
 export function OffboardingCandidatesTable({
@@ -41,14 +46,33 @@ export function OffboardingCandidatesTable({
 		{ id: "name", desc: false },
 	]);
 	const [nameFilter, setNameFilter] = useState("");
+	const [profileId, setProfileId] = useState<string | null>(null);
+	const [profileOpen, setProfileOpen] = useState(false);
 
-	const columns = useMemo<ColumnDef<Member>[]>(
+	const openProfile = useCallback((id: string) => {
+		setProfileId(id);
+		setProfileOpen(true);
+	}, []);
+
+	const handleProfileOpenChange = useCallback((open: boolean) => {
+		setProfileOpen(open);
+		if (!open) setProfileId(null);
+	}, []);
+
+	const columns = useMemo<ColumnDef<OffboardingCandidate>[]>(
 		() => [
 			{
 				accessorKey: "name",
 				header: t("members.colName"),
 				cell: ({ row }) => (
-					<div className="flex min-w-0 items-center gap-3">
+					<button
+						type="button"
+						onClick={(event) => {
+							event.stopPropagation();
+							openProfile(row.original.id);
+						}}
+						className="flex min-w-0 max-w-full items-center gap-3 text-left transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					>
 						<span
 							aria-hidden
 							className="flex size-9 shrink-0 items-center justify-center border border-border bg-muted font-mono text-[0.65rem] font-semibold tracking-wide text-muted-foreground"
@@ -58,15 +82,33 @@ export function OffboardingCandidatesTable({
 						<span className="truncate font-medium text-foreground">
 							{row.original.name}
 						</span>
+					</button>
+				),
+			},
+			{
+				id: "reasons",
+				accessorFn: (row) => row.reasons.join(", "),
+				header: t("offboarding.colReason"),
+				cell: ({ row }) => (
+					<div className="flex flex-wrap gap-1.5">
+						{row.original.reasons.map((reason) => (
+							<Badge key={reason} variant="destructive">
+								{t(REASON_MESSAGE_KEYS[reason])}
+							</Badge>
+						))}
 					</div>
 				),
+				sortingFn: (a, b) =>
+					a.original.reasons
+						.join(",")
+						.localeCompare(b.original.reasons.join(","), "de"),
 			},
 			{
 				id: "groups",
 				accessorFn: (row) => row.groups.join(", "),
 				header: t("members.colGroups"),
 				cell: ({ row }) => {
-					const groups = row.original.groups;
+					const groups = sortGroupsForDisplay(row.original.groups);
 					if (groups.length === 0) {
 						return (
 							<span className="text-muted-foreground">
@@ -76,11 +118,14 @@ export function OffboardingCandidatesTable({
 					}
 					return (
 						<div className="flex flex-wrap gap-1.5">
-							{groups.map((group) => (
-								<Badge key={group} variant={groupBadgeVariant(group)}>
-									{group}
-								</Badge>
-							))}
+							{groups.map((group) => {
+								const labelKey = ressortLabelKey(group);
+								return (
+									<Badge key={group} variant={groupBadgeVariant(group)}>
+										{labelKey ? t(labelKey) : group}
+									</Badge>
+								);
+							})}
 						</div>
 					);
 				},
@@ -90,7 +135,7 @@ export function OffboardingCandidatesTable({
 						.localeCompare(b.original.groups.join(","), "de"),
 			},
 		],
-		[t],
+		[t, openProfile],
 	);
 
 	const table = useReactTable({
@@ -109,116 +154,130 @@ export function OffboardingCandidatesTable({
 	const filteredCount = table.getFilteredRowModel().rows.length;
 
 	return (
-		<div className="surface-panel min-w-0 overflow-hidden">
-			<div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-				<div className="relative w-full max-w-md">
-					<Search
-						className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-						aria-hidden
-					/>
-					<Input
-						value={nameFilter}
-						onChange={(event) => setNameFilter(event.target.value)}
-						placeholder={t("members.searchPlaceholder")}
-						aria-label={t("members.searchPlaceholder")}
-						className="pl-9"
-					/>
+		<>
+			<div className="surface-panel min-w-0 overflow-hidden">
+				<div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+					<div className="relative w-full max-w-md">
+						<Search
+							className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+							aria-hidden
+						/>
+						<Input
+							value={nameFilter}
+							onChange={(event) => setNameFilter(event.target.value)}
+							placeholder={t("members.searchPlaceholder")}
+							aria-label={t("members.searchPlaceholder")}
+							className="pl-9"
+						/>
+					</div>
+					<p className="shrink-0 text-sm text-muted-foreground tabular-nums">
+						{t("offboarding.candidatesShowing", {
+							filtered: String(filteredCount),
+							total: String(candidates.length),
+						})}
+					</p>
 				</div>
-				<p className="shrink-0 text-sm text-muted-foreground tabular-nums">
-					{t("offboarding.candidatesShowing", {
-						filtered: String(filteredCount),
-						total: String(candidates.length),
-					})}
-				</p>
-			</div>
 
-			<div className="w-full min-w-0 overflow-x-auto">
-				<table className="w-full min-w-[32rem] border-collapse text-left">
-					<thead className="sticky top-0 z-10 bg-card">
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id} className="border-b border-border">
-								{headerGroup.headers.map((header) => {
-									const sorted = header.column.getIsSorted();
-									const isName = header.column.id === "name";
-									return (
-										<th
-											key={header.id}
-											className={cn(
-												"bg-muted/45 px-4 py-3 text-left text-[0.7rem] font-semibold tracking-[0.06em] text-muted-foreground uppercase sm:px-5",
-												isName ? "w-[40%]" : "w-[60%]",
-											)}
-										>
-											{header.isPlaceholder ? null : header.column.getCanSort() ? (
-												<button
-													type="button"
-													className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
-													onClick={header.column.getToggleSortingHandler()}
-												>
-													{flexRender(
+				<div className="w-full min-w-0 overflow-x-auto">
+					<table className="w-full min-w-[40rem] border-collapse text-left">
+						<thead className="sticky top-0 z-10 bg-card">
+							{table.getHeaderGroups().map((headerGroup) => (
+								<tr key={headerGroup.id} className="border-b border-border">
+									{headerGroup.headers.map((header) => {
+										const sorted = header.column.getIsSorted();
+										const widthClass =
+											header.column.id === "name"
+												? "w-[32%]"
+												: header.column.id === "reasons"
+													? "w-[28%]"
+													: "w-[40%]";
+										return (
+											<th
+												key={header.id}
+												className={cn(
+													"bg-muted/45 px-4 py-3 text-left text-[0.7rem] font-semibold tracking-[0.06em] text-muted-foreground uppercase sm:px-5",
+													widthClass,
+												)}
+											>
+												{header.isPlaceholder ? null : header.column.getCanSort() ? (
+													<button
+														type="button"
+														className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
+														onClick={header.column.getToggleSortingHandler()}
+													>
+														{flexRender(
+															header.column.columnDef.header,
+															header.getContext(),
+														)}
+														{sorted === "asc" ? (
+															<ArrowUp className="size-3.5" aria-hidden />
+														) : sorted === "desc" ? (
+															<ArrowDown className="size-3.5" aria-hidden />
+														) : (
+															<ArrowUpDown
+																className="size-3.5 opacity-40"
+																aria-hidden
+															/>
+														)}
+													</button>
+												) : (
+													flexRender(
 														header.column.columnDef.header,
 														header.getContext(),
-													)}
-													{sorted === "asc" ? (
-														<ArrowUp className="size-3.5" aria-hidden />
-													) : sorted === "desc" ? (
-														<ArrowDown className="size-3.5" aria-hidden />
-													) : (
-														<ArrowUpDown
-															className="size-3.5 opacity-40"
-															aria-hidden
-														/>
-													)}
-												</button>
-											) : (
-												flexRender(
-													header.column.columnDef.header,
-													header.getContext(),
-												)
-											)}
-										</th>
-									);
-								})}
-							</tr>
-						))}
-					</thead>
-					<tbody>
-						{table.getRowModel().rows.length === 0 ? (
-							<tr>
-								<td
-									colSpan={columns.length}
-									className="px-4 py-16 text-center text-sm text-muted-foreground sm:px-5"
-								>
-									{candidates.length === 0
-										? t("offboarding.candidatesEmpty")
-										: t("members.emptyFiltered")}
-								</td>
-							</tr>
-						) : (
-							table.getRowModel().rows.map((row, index) => (
-								<tr
-									key={row.id}
-									className={cn(
-										"border-b border-border/70 transition-colors last:border-b-0 hover:bg-primary/[0.04]",
-										index % 2 === 1 && "bg-muted/20",
-									)}
-								>
-									{row.getVisibleCells().map((cell) => (
-										<td
-											key={cell.id}
-											className="px-4 py-3.5 align-middle text-sm sm:px-5"
-										>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</td>
-									))}
+													)
+												)}
+											</th>
+										);
+									})}
 								</tr>
-							))
-						)}
-					</tbody>
-				</table>
+							))}
+						</thead>
+						<tbody>
+							{table.getRowModel().rows.length === 0 ? (
+								<tr>
+									<td
+										colSpan={columns.length}
+										className="px-4 py-16 text-center text-sm text-muted-foreground sm:px-5"
+									>
+										{candidates.length === 0
+											? t("offboarding.candidatesEmpty")
+											: t("members.emptyFiltered")}
+									</td>
+								</tr>
+							) : (
+								table.getRowModel().rows.map((row, index) => (
+									<tr
+										key={row.id}
+										onClick={() => openProfile(row.original.id)}
+										className={cn(
+											"cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-primary/[0.04]",
+											index % 2 === 1 && "bg-muted/20",
+										)}
+									>
+										{row.getVisibleCells().map((cell) => (
+											<td
+												key={cell.id}
+												className="px-4 py-3.5 align-middle text-sm sm:px-5"
+											>
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</td>
+										))}
+									</tr>
+								))
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
-		</div>
+
+			<MemberProfileSheet
+				memberId={profileId}
+				open={profileOpen}
+				onOpenChange={handleProfileOpenChange}
+			/>
+		</>
 	);
 }

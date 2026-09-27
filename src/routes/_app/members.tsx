@@ -5,12 +5,13 @@ import {
 } from "@tanstack/react-router";
 import { MembersTable } from "#/components/members/members-table";
 import { Button } from "#/components/ui/button";
+import { Spinner } from "#/components/ui/spinner";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import type { MembersResult } from "#/lib/members";
 import { listMembersFn } from "#/lib/members.functions";
 
-export const Route = createFileRoute("/_app/mitglieder")({
+export const Route = createFileRoute("/_app/members")({
 	loader: () => ({
 		// Do not await — page chrome stays interactive while Authentik loads.
 		membersPromise: listMembersFn(),
@@ -40,11 +41,8 @@ function MembersBodySkeleton() {
 	return (
 		<div className="grid gap-4 xl:grid-cols-[minmax(17rem,19rem)_minmax(0,1fr)]">
 			<div className="surface-panel min-h-48 animate-pulse" aria-hidden />
-			<div
-				className="surface-panel flex min-h-64 items-center justify-center"
-				aria-busy="true"
-			>
-				<p className="text-sm text-muted-foreground">{t("members.loading")}</p>
+			<div className="surface-panel flex min-h-72 items-center justify-center">
+				<Spinner label={t("members.loading")} />
 			</div>
 		</div>
 	);

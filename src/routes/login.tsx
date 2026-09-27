@@ -31,7 +31,7 @@ export const Route = createFileRoute("/login")({
 			throw redirect({ to: "/" });
 		}
 		if (status.user && !hasAppAccess(status.user.roles)) {
-			throw redirect({ to: "/kein-zugang" });
+			throw redirect({ to: "/no-access" });
 		}
 		return status;
 	},

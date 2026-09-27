@@ -10,7 +10,7 @@ export const Route = createFileRoute("/api/auth/callback")({
 			GET: async ({ request }) => {
 				try {
 					const user = await handleOidcCallback(new URL(request.url));
-					const target = hasAppAccess(user.roles) ? "/" : "/kein-zugang";
+					const target = hasAppAccess(user.roles) ? "/" : "/no-access";
 					return redirectResponse(
 						new URL(target, serverConfig.appUrl).toString(),
 					);

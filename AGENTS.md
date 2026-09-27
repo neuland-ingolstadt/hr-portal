@@ -14,7 +14,7 @@
 - `src/lib/auth.server.ts` — OIDC, Authentik API, RBAC helpers
 - `src/lib/session.ts` — encrypted httpOnly session cookie
 - `src/routes/api/auth/*` — login, callback, logout (+ mock for local)
-- `src/routes/` — UI routes (`/`, `/login`, `/kein-zugang`)
+- `src/routes/` — UI routes (`/`, `/login`, `/no-access`)
 
 ## Security
 

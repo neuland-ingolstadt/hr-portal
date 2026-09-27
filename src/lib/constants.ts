@@ -11,10 +11,10 @@ export const EXTERNAL_LINKS = {
 export const ROUTES = {
 	HOME: "/",
 	LOGIN: "/login",
-	KEIN_ZUGANG: "/kein-zugang",
-	MITGLIEDER: "/mitglieder",
+	NO_ACCESS: "/no-access",
+	MEMBERS: "/members",
 	SCANNER: "/scanner",
-	BEWERBUNGEN: "/bewerbungen",
+	APPLICATIONS: "/applications",
 	ONBOARDING: "/onboarding",
 	OFFBOARDING: "/offboarding",
 	AUTH_LOGIN: "/api/auth/login",

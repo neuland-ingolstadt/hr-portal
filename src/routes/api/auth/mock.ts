@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/auth/mock")({
 								: "hr";
 
 				const user = await createMockSession(role);
-				const target = hasAppAccess(user.roles) ? "/" : "/kein-zugang";
+				const target = hasAppAccess(user.roles) ? "/" : "/no-access";
 				return redirectResponse(
 					new URL(target, serverConfig.appUrl).toString(),
 				);

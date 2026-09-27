@@ -8,7 +8,7 @@ import { getAuthStatusFn } from "#/lib/auth.functions";
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 
-export const Route = createFileRoute("/kein-zugang")({
+export const Route = createFileRoute("/no-access")({
 	beforeLoad: async () => {
 		const status = await getAuthStatusFn();
 		if (!status.user) {

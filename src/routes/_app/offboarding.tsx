@@ -5,9 +5,10 @@ import {
 } from "@tanstack/react-router";
 import { OffboardingCandidatesTable } from "#/components/offboarding/offboarding-candidates-table";
 import { Button } from "#/components/ui/button";
+import { Spinner } from "#/components/ui/spinner";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
-import type { MembersResult } from "#/lib/members";
+import type { OffboardingCandidatesResult } from "#/lib/members";
 import { listOffboardingCandidatesFn } from "#/lib/members.functions";
 
 export const Route = createFileRoute("/_app/offboarding")({
@@ -64,18 +65,13 @@ function OffboardingSoonSection() {
 function CandidatesSkeleton() {
 	const { t } = useI18n();
 	return (
-		<div
-			className="surface-panel flex min-h-64 items-center justify-center"
-			aria-busy="true"
-		>
-			<p className="text-sm text-muted-foreground">
-				{t("offboarding.candidatesLoading")}
-			</p>
+		<div className="surface-panel flex min-h-72 items-center justify-center">
+			<Spinner label={t("offboarding.candidatesLoading")} />
 		</div>
 	);
 }
 
-function CandidatesSection({ data }: { data: MembersResult }) {
+function CandidatesSection({ data }: { data: OffboardingCandidatesResult }) {
 	const { t } = useI18n();
 	const { members, source } = data;
 

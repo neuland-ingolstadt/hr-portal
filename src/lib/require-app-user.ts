@@ -9,7 +9,7 @@ export function requireAppUser(
 		throw redirect({ to: "/login" });
 	}
 	if (!hasAppAccess(user.roles)) {
-		throw redirect({ to: "/kein-zugang" });
+		throw redirect({ to: "/no-access" });
 	}
 	return user;
 }

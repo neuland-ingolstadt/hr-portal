@@ -351,7 +351,7 @@ export async function requireAppAccess(options?: {
 			setResponseStatus(403);
 			throw new Error("Kein Zugang");
 		}
-		throw redirect({ to: "/kein-zugang" });
+		throw redirect({ to: "/no-access" });
 	}
 
 	return user;

@@ -25,10 +25,10 @@ export const overviewItems: NavItem[] = [
 		match: (pathname) => pathname === ROUTES.HOME,
 	},
 	{
-		to: ROUTES.MITGLIEDER,
+		to: ROUTES.MEMBERS,
 		labelKey: "nav.members",
 		icon: Users,
-		match: (pathname) => pathname.startsWith(ROUTES.MITGLIEDER),
+		match: (pathname) => pathname.startsWith(ROUTES.MEMBERS),
 	},
 	{
 		to: ROUTES.SCANNER,
@@ -40,10 +40,10 @@ export const overviewItems: NavItem[] = [
 
 export const workflowItems: NavItem[] = [
 	{
-		to: ROUTES.BEWERBUNGEN,
+		to: ROUTES.APPLICATIONS,
 		labelKey: "nav.applications",
 		icon: FileCheck2,
-		match: (pathname) => pathname.startsWith(ROUTES.BEWERBUNGEN),
+		match: (pathname) => pathname.startsWith(ROUTES.APPLICATIONS),
 		soon: true,
 	},
 	{

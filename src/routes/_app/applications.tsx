@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileCheck2 } from "lucide-react";
 import { ComingSoonPage } from "#/components/layout/coming-soon-page";
 
-export const Route = createFileRoute("/_app/bewerbungen")({
-	component: BewerbungenPage,
+export const Route = createFileRoute("/_app/applications")({
+	component: ApplicationsPage,
 });
 
-function BewerbungenPage() {
+function ApplicationsPage() {
 	return (
 		<ComingSoonPage
 			eyebrowKey="applications.eyebrow"

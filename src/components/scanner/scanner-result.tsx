@@ -1,8 +1,15 @@
 import { Link } from "@tanstack/react-router";
 import { CheckCircle2, Info, Link2, ShieldX, User } from "lucide-react";
+import { useState } from "react";
+import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ROUTES } from "#/lib/constants";
+import {
+	groupBadgeVariant,
+	ressortLabelKey,
+	sortGroupsForDisplay,
+} from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import {
@@ -56,13 +63,6 @@ function verifyErrorMessage(
 	return error;
 }
 
-function groupBadgeVariant(group: string) {
-	const key = group.toLowerCase();
-	if (key === "vorstand" || key === "admin") return "vorstand" as const;
-	if (key === "hr") return "hr" as const;
-	return "muted" as const;
-}
-
 export function ScannerResult({
 	result,
 	lookup,
@@ -71,6 +71,18 @@ export function ScannerResult({
 	onClear,
 }: ScannerResultProps) {
 	const { t, locale } = useI18n();
+	const [profileId, setProfileId] = useState<string | null>(null);
+	const [profileOpen, setProfileOpen] = useState(false);
+
+	function openProfile(id: string) {
+		setProfileId(id);
+		setProfileOpen(true);
+	}
+
+	function handleProfileOpenChange(open: boolean) {
+		setProfileOpen(open);
+		if (!open) setProfileId(null);
+	}
 
 	if (!result) {
 		return (
@@ -97,174 +109,210 @@ export function ScannerResult({
 
 	const success = result.success;
 	const duplicate = success && isDuplicate;
+	const foundMember =
+		!lookupLoading && lookup?.status === "found" ? lookup.member : null;
 
 	return (
-		<div
-			className={cn(
-				"surface-panel space-y-5 p-5 sm:p-6",
-				duplicate
-					? "border-sky-500/40"
-					: success
-						? "border-primary/30"
-						: "border-destructive/40",
-			)}
-		>
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div className="flex min-w-0 items-start gap-3">
-					<div
-						className={cn(
-							"border p-2",
-							duplicate
-								? "border-sky-500/40 bg-sky-500/15 text-sky-700 dark:text-sky-300"
-								: success
-									? "border-primary/40 bg-primary/10 text-primary"
-									: "border-destructive/40 bg-destructive/10 text-destructive",
-						)}
-					>
-						{duplicate ? (
-							<Info className="size-5" aria-hidden />
-						) : success ? (
-							<CheckCircle2 className="size-5" aria-hidden />
-						) : (
-							<ShieldX className="size-5" aria-hidden />
-						)}
-					</div>
-					<div className="min-w-0 space-y-1">
-						<h2
+		<>
+			<div
+				className={cn(
+					"surface-panel space-y-5 p-5 sm:p-6",
+					duplicate
+						? "border-sky-500/40"
+						: success
+							? "border-primary/30"
+							: "border-destructive/40",
+				)}
+			>
+				<div className="flex flex-wrap items-start justify-between gap-3">
+					<div className="flex min-w-0 items-start gap-3">
+						<div
 							className={cn(
-								"text-base font-semibold tracking-tight",
-								duplicate && "text-sky-800 dark:text-sky-300",
+								"border p-2",
+								duplicate
+									? "border-sky-500/40 bg-sky-500/15 text-sky-700 dark:text-sky-300"
+									: success
+										? "border-primary/40 bg-primary/10 text-primary"
+										: "border-destructive/40 bg-destructive/10 text-destructive",
 							)}
 						>
-							{duplicate
-								? t("scanner.resultDuplicate")
-								: success
-									? t("scanner.resultValid")
-									: t("scanner.resultInvalid")}
-						</h2>
-						<p
-							className={cn(
-								"text-sm text-muted-foreground",
-								duplicate && "text-sky-700/80 dark:text-sky-300/80",
+							{duplicate ? (
+								<Info className="size-5" aria-hidden />
+							) : success ? (
+								<CheckCircle2 className="size-5" aria-hidden />
+							) : (
+								<ShieldX className="size-5" aria-hidden />
 							)}
-						>
-							{duplicate
-								? t("scanner.resultDuplicateLead")
-								: success
-									? t("scanner.resultValidLead")
-									: verifyErrorMessage(t, result.error)}
-						</p>
+						</div>
+						<div className="min-w-0 space-y-1">
+							<h2
+								className={cn(
+									"text-base font-semibold tracking-tight",
+									duplicate && "text-sky-800 dark:text-sky-300",
+								)}
+							>
+								{duplicate
+									? t("scanner.resultDuplicate")
+									: success
+										? t("scanner.resultValid")
+										: t("scanner.resultInvalid")}
+							</h2>
+							<p
+								className={cn(
+									"text-sm text-muted-foreground",
+									duplicate && "text-sky-700/80 dark:text-sky-300/80",
+								)}
+							>
+								{duplicate
+									? t("scanner.resultDuplicateLead")
+									: success
+										? t("scanner.resultValidLead")
+										: verifyErrorMessage(t, result.error)}
+							</p>
+						</div>
 					</div>
-				</div>
-				<div className="flex items-center gap-2">
-					{duplicate ? null : (
-						<Badge variant={success ? "default" : "destructive"}>
-							{success ? t("scanner.badgeValid") : t("scanner.badgeInvalid")}
-						</Badge>
-					)}
-					<Button type="button" variant="outline" size="sm" onClick={onClear}>
-						{t("scanner.clearResult")}
-					</Button>
-				</div>
-			</div>
-
-			{result.payload ? (
-				<div className="grid gap-4 sm:grid-cols-2">
-					<Field label={t("scanner.fieldName")} value={result.payload.name} />
-					<Field
-						label={t("scanner.fieldSub")}
-						value={result.payload.sub}
-						mono
-					/>
-					<Field
-						label={t("scanner.fieldIssued")}
-						value={formatTimestamp(result.payload.iat, locale)}
-					/>
-					<Field
-						label={t("scanner.fieldExpires")}
-						value={formatTimestamp(result.payload.exp, locale)}
-					/>
-					<Field
-						label={t("scanner.fieldType")}
-						value={t(qrTypeKey(result.payload.type))}
-					/>
-				</div>
-			) : null}
-
-			{success && result.payload ? (
-				<section className="space-y-3 border-t border-border pt-4">
-					<div className="flex flex-wrap items-center justify-between gap-2">
-						<h3 className="text-sm font-semibold tracking-tight">
-							{t("scanner.enrichTitle")}
-						</h3>
-						<Button variant="outline" size="sm" asChild>
-							<Link to={ROUTES.MITGLIEDER}>
-								<Link2 />
-								{t("scanner.openMembers")}
-							</Link>
+					<div className="flex items-center gap-2">
+						{duplicate ? null : (
+							<Badge variant={success ? "default" : "destructive"}>
+								{success ? t("scanner.badgeValid") : t("scanner.badgeInvalid")}
+							</Badge>
+						)}
+						<Button type="button" variant="outline" size="sm" onClick={onClear}>
+							{t("scanner.clearResult")}
 						</Button>
 					</div>
+				</div>
 
-					{lookupLoading ? (
-						<p className="text-sm text-muted-foreground">
-							{t("scanner.enrichLoading")}
-						</p>
-					) : null}
+				{result.payload ? (
+					<div className="grid gap-4 sm:grid-cols-2">
+						<Field label={t("scanner.fieldName")} value={result.payload.name} />
+						<Field
+							label={t("scanner.fieldSub")}
+							value={result.payload.sub}
+							mono
+						/>
+						<Field
+							label={t("scanner.fieldIssued")}
+							value={formatTimestamp(result.payload.iat, locale)}
+						/>
+						<Field
+							label={t("scanner.fieldExpires")}
+							value={formatTimestamp(result.payload.exp, locale)}
+						/>
+						<Field
+							label={t("scanner.fieldType")}
+							value={t(qrTypeKey(result.payload.type))}
+						/>
+					</div>
+				) : null}
 
-					{!lookupLoading && lookup?.status === "found" ? (
-						<div className="space-y-3">
+				{success && result.payload ? (
+					<section className="space-y-3 border-t border-border pt-4">
+						<div className="flex flex-wrap items-center justify-between gap-2">
+							<h3 className="text-sm font-semibold tracking-tight">
+								{t("scanner.enrichTitle")}
+							</h3>
 							<div className="flex flex-wrap items-center gap-2">
-								<p className="text-base font-semibold">{lookup.member.name}</p>
-								<Badge
-									variant={lookup.member.isActive ? "default" : "destructive"}
-								>
-									{lookup.member.isActive
-										? t("scanner.enrichActive")
-										: t("scanner.enrichInactive")}
-								</Badge>
-								<Badge variant={lookup.member.isMitglied ? "hr" : "muted"}>
-									{lookup.member.isMitglied
-										? t("scanner.enrichMember")
-										: t("scanner.enrichNotMember")}
-								</Badge>
-							</div>
-							<div className="space-y-2">
-								<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-									{t("scanner.enrichGroups")}
-								</p>
-								{lookup.member.groups.length === 0 ? (
-									<p className="text-sm text-muted-foreground">
-										{t("scanner.enrichNoGroups")}
-									</p>
-								) : (
-									<div className="flex flex-wrap gap-1.5">
-										{lookup.member.groups.map((group) => (
-											<Badge key={group} variant={groupBadgeVariant(group)}>
-												{group}
-											</Badge>
-										))}
-									</div>
-								)}
+								{foundMember ? (
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										onClick={() => openProfile(foundMember.id)}
+									>
+										<User />
+										{t("scanner.openProfile")}
+									</Button>
+								) : null}
+								<Button variant="outline" size="sm" asChild>
+									<Link to={ROUTES.MEMBERS}>
+										<Link2 />
+										{t("scanner.openMembers")}
+									</Link>
+								</Button>
 							</div>
 						</div>
-					) : null}
 
-					{!lookupLoading && lookup?.status === "not_found" ? (
-						<p className="text-sm text-muted-foreground">
-							{t("scanner.enrichMissing")}
-						</p>
-					) : null}
+						{lookupLoading ? (
+							<p className="text-sm text-muted-foreground">
+								{t("scanner.enrichLoading")}
+							</p>
+						) : null}
 
-					{!lookupLoading && lookup?.status === "error" ? (
-						<p className="text-sm text-destructive" role="alert">
-							{lookup.error === "authentik_api_missing"
-								? t("scanner.enrichErrorApi")
-								: t("scanner.enrichError")}
-						</p>
-					) : null}
-				</section>
-			) : null}
-		</div>
+						{foundMember ? (
+							<button
+								type="button"
+								onClick={() => openProfile(foundMember.id)}
+								aria-label={`${t("scanner.openProfile")}: ${foundMember.name}`}
+								className="w-full space-y-3 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+							>
+								<div className="flex flex-wrap items-center gap-2">
+									<p className="text-base font-semibold">{foundMember.name}</p>
+									<Badge
+										variant={foundMember.isActive ? "default" : "destructive"}
+									>
+										{foundMember.isActive
+											? t("scanner.enrichActive")
+											: t("scanner.enrichInactive")}
+									</Badge>
+									<Badge variant={foundMember.isMitglied ? "hr" : "muted"}>
+										{foundMember.isMitglied
+											? t("scanner.enrichMember")
+											: t("scanner.enrichNotMember")}
+									</Badge>
+								</div>
+								<div className="space-y-2">
+									<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+										{t("scanner.enrichGroups")}
+									</p>
+									{foundMember.groups.length === 0 ? (
+										<p className="text-sm text-muted-foreground">
+											{t("scanner.enrichNoGroups")}
+										</p>
+									) : (
+										<div className="flex flex-wrap gap-1.5">
+											{sortGroupsForDisplay(foundMember.groups).map(
+												(group) => {
+													const labelKey = ressortLabelKey(group);
+													return (
+														<Badge
+															key={group}
+															variant={groupBadgeVariant(group)}
+														>
+															{labelKey ? t(labelKey) : group}
+														</Badge>
+													);
+												},
+											)}
+										</div>
+									)}
+								</div>
+							</button>
+						) : null}
+
+						{!lookupLoading && lookup?.status === "not_found" ? (
+							<p className="text-sm text-muted-foreground">
+								{t("scanner.enrichMissing")}
+							</p>
+						) : null}
+
+						{!lookupLoading && lookup?.status === "error" ? (
+							<p className="text-sm text-destructive" role="alert">
+								{lookup.error === "authentik_api_missing"
+									? t("scanner.enrichErrorApi")
+									: t("scanner.enrichError")}
+							</p>
+						) : null}
+					</section>
+				) : null}
+			</div>
+
+			<MemberProfileSheet
+				memberId={profileId}
+				open={profileOpen}
+				onOpenChange={handleProfileOpenChange}
+			/>
+		</>
 	);
 }
 

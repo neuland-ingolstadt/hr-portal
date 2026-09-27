@@ -24,7 +24,7 @@ Create a separate OAuth2/OIDC application (not Connect’s):
 
 Access requires membership in `HR`, `Vorstand`, or `Admin` (names via `HR_GROUP_NAME` / `VORSTAND_GROUP_NAME` / `ADMIN_GROUP_NAME`). Admin has the same app permissions as Vorstand.
 
-`/mitglieder` loads name + groups from the Authentik API (`AUTHENTIK_API_URL` / `AUTHENTIK_API_TOKEN`). No emails are shown.
+`/members` loads name + groups from the Authentik API (`AUTHENTIK_API_URL` / `AUTHENTIK_API_TOKEN`). No emails are shown.
 
 ## Docker
 
