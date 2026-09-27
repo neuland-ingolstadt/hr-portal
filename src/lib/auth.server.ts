@@ -215,11 +215,15 @@ export async function handleOidcCallback(
 		serverConfig.appUrl,
 	);
 
-	const tokens = await client.authorizationCodeGrant(config, canonicalCallbackUrl, {
-		pkceCodeVerifier: oauth.codeVerifier,
-		expectedState: oauth.state,
-		expectedNonce: oauth.nonce,
-	});
+	const tokens = await client.authorizationCodeGrant(
+		config,
+		canonicalCallbackUrl,
+		{
+			pkceCodeVerifier: oauth.codeVerifier,
+			expectedState: oauth.state,
+			expectedNonce: oauth.nonce,
+		},
+	);
 
 	const claims = tokens.claims();
 	if (!claims?.sub) {
