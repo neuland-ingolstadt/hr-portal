@@ -91,6 +91,7 @@ function SidebarHoverLabel({
 
 	return (
 		<>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: tooltip trigger wraps interactive children */}
 			<span
 				ref={triggerRef}
 				className={cn("inline-flex max-w-full", className)}

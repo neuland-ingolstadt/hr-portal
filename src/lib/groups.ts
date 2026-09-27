@@ -49,10 +49,14 @@ export function partitionGroups(groups: string[]): {
 		if (isRessortGroup(group)) ressorts.push(group);
 		else other.push(group);
 	}
-	ressorts.sort(
-		(a, b) =>
-			RESSORTS.indexOf(matchRessort(a)!) - RESSORTS.indexOf(matchRessort(b)!),
-	);
+	ressorts.sort((a, b) => {
+		const aIdx = matchRessort(a);
+		const bIdx = matchRessort(b);
+		return (
+			(aIdx ? RESSORTS.indexOf(aIdx) : Number.POSITIVE_INFINITY) -
+			(bIdx ? RESSORTS.indexOf(bIdx) : Number.POSITIVE_INFINITY)
+		);
+	});
 	other.sort((a, b) => a.localeCompare(b, "de"));
 	return { ressorts, other };
 }
