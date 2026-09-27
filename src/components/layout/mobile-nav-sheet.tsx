@@ -1,10 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { NeulandPalm } from "#/components/brand/neuland-palm";
+import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortcuts";
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
-	overviewItems,
 	type NavItem,
+	overviewItems,
 	workflowItems,
 } from "#/components/layout/nav-items";
 import { ThemeToggle } from "#/components/layout/theme-toggle";
@@ -22,6 +23,7 @@ import { cn } from "#/lib/utils";
 type MobileNavSheetProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	onOpenShortcuts?: () => void;
 };
 
 function MobileNavSection({
@@ -79,7 +81,11 @@ function MobileNavSection({
 	);
 }
 
-export function MobileNavSheet({ open, onOpenChange }: MobileNavSheetProps) {
+export function MobileNavSheet({
+	open,
+	onOpenChange,
+	onOpenShortcuts,
+}: MobileNavSheetProps) {
 	const { t } = useI18n();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -136,6 +142,14 @@ export function MobileNavSheet({ open, onOpenChange }: MobileNavSheetProps) {
 						size="icon-sm"
 						className="text-muted-foreground"
 					/>
+					{onOpenShortcuts ? (
+						<KeyboardShortcutsHelpButton
+							onOpen={() => {
+								close();
+								onOpenShortcuts();
+							}}
+						/>
+					) : null}
 					<a
 						href={ROUTES.AUTH_LOGOUT}
 						className="ml-auto inline-flex h-9 items-center gap-2 px-2.5 text-sm text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground"

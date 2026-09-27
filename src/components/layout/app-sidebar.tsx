@@ -10,10 +10,11 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { NeulandPalm } from "#/components/brand/neuland-palm";
+import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortcuts";
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
-	overviewItems,
 	type NavItem,
+	overviewItems,
 	workflowItems,
 } from "#/components/layout/nav-items";
 import { ThemeToggle } from "#/components/layout/theme-toggle";
@@ -27,6 +28,7 @@ type AppSidebarProps = {
 	onCollapsedChange?: (collapsed: boolean) => void;
 	/** When false, skip width transition (initial hydrate from localStorage). */
 	animateWidth?: boolean;
+	onOpenShortcuts?: () => void;
 };
 
 function SidebarHoverLabel({
@@ -200,6 +202,7 @@ export function AppSidebar({
 	collapsed = false,
 	onCollapsedChange,
 	animateWidth = true,
+	onOpenShortcuts,
 }: AppSidebarProps) {
 	const { t } = useI18n();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -321,6 +324,14 @@ export function AppSidebar({
 							className="text-muted-foreground"
 						/>
 					</SidebarHoverLabel>
+					{onOpenShortcuts ? (
+						<SidebarHoverLabel
+							label={t("shortcuts.showHelp")}
+							enabled={collapsed}
+						>
+							<KeyboardShortcutsHelpButton onOpen={onOpenShortcuts} />
+						</SidebarHoverLabel>
+					) : null}
 					{collapsed ? null : (
 						<a
 							href={ROUTES.AUTH_LOGOUT}

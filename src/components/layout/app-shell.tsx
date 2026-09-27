@@ -1,6 +1,11 @@
 import { Menu } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { AppSidebar } from "#/components/layout/app-sidebar";
+import {
+	KeyboardShortcuts,
+	KeyboardShortcutsHelpButton,
+	openKeyboardShortcutsHelp,
+} from "#/components/layout/keyboard-shortcuts";
 import { LegalFooter } from "#/components/layout/legal-footer";
 import { MobileNavSheet } from "#/components/layout/mobile-nav-sheet";
 import { Button } from "#/components/ui/button";
@@ -30,6 +35,19 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 		writeSidebarCollapsed(next);
 	}
 
+	const handleToggleSidebar = useCallback(() => {
+		const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+		if (isDesktop) {
+			setCollapsed((prev) => {
+				const next = !prev;
+				writeSidebarCollapsed(next);
+				return next;
+			});
+			return;
+		}
+		setMobileOpen((prev) => !prev);
+	}, []);
+
 	return (
 		<div className="relative flex min-h-screen w-full min-w-0">
 			<div
@@ -50,10 +68,17 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 					collapsed={collapsed}
 					onCollapsedChange={handleCollapsedChange}
 					animateWidth={ready}
+					onOpenShortcuts={openKeyboardShortcutsHelp}
 				/>
 			</div>
 
-			<MobileNavSheet open={mobileOpen} onOpenChange={setMobileOpen} />
+			<MobileNavSheet
+				open={mobileOpen}
+				onOpenChange={setMobileOpen}
+				onOpenShortcuts={openKeyboardShortcutsHelp}
+			/>
+
+			<KeyboardShortcuts onToggleSidebar={handleToggleSidebar} />
 
 			<div className="flex min-h-screen min-w-0 flex-1 flex-col">
 				<header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
@@ -71,6 +96,10 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 					<span className="font-mono text-sm font-semibold tracking-wide">
 						Neuland HR
 					</span>
+					<KeyboardShortcutsHelpButton
+						onOpen={openKeyboardShortcutsHelp}
+						className="ml-auto"
+					/>
 				</header>
 
 				<main

@@ -67,9 +67,10 @@ export function MemberProfileSheet({
 	const { t } = useI18n();
 	const [result, setResult] = useState<MemberProfileResult | null>(null);
 	const [loading, setLoading] = useState(false);
+	const sheetOpen = open && Boolean(memberId);
 
 	useEffect(() => {
-		if (!open || !memberId) {
+		if (!sheetOpen || !memberId) {
 			setResult(null);
 			setLoading(false);
 			return;
@@ -96,16 +97,24 @@ export function MemberProfileSheet({
 		return () => {
 			cancelled = true;
 		};
-	}, [open, memberId]);
+	}, [sheetOpen, memberId]);
+
+	// Radix locks body pointer-events while open; restore if we unmount mid-open
+	// (e.g. Await remount) so the app does not stay frozen.
+	useEffect(() => {
+		if (!sheetOpen) return;
+		return () => {
+			document.body.style.pointerEvents = "";
+		};
+	}, [sheetOpen]);
 
 	const profile = result?.status === "found" ? result.profile : null;
 
 	return (
-		<Sheet open={open} onOpenChange={onOpenChange}>
+		<Sheet open={sheetOpen} onOpenChange={onOpenChange}>
 			<SheetContent
 				side="right"
-				overlayClassName="bg-transparent duration-150"
-				className="w-full gap-0 overflow-y-auto p-0 shadow-none duration-200 ease-[cubic-bezier(0.32,0.72,0,1)] sm:max-w-md"
+				className="w-full gap-0 overflow-y-auto p-0 sm:max-w-lg"
 			>
 				<SheetHeader className="border-b border-border px-5 py-5 pr-14">
 					<SheetTitle className="font-sans text-base tracking-tight">

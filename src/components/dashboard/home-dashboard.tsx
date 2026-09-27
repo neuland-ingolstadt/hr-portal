@@ -319,20 +319,9 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 							{t("home.hello", { name: firstName })}
 						</h1>
 						<p className="page-lead max-w-xl">{t("home.lead")}</p>
-						<div className="flex flex-wrap items-center gap-2 pt-1">
-							{role ? (
-								<Badge variant={roleBadgeVariant(role)}>
-									{role === "admin"
-										? t("role.admin")
-										: role === "vorstand"
-											? t("role.vorstand")
-											: t("role.hr")}
-								</Badge>
-							) : null}
-							<span className="text-xs text-muted-foreground">
-								{t("home.signedInAs", { email: user.email || user.name })}
-							</span>
-						</div>
+						<p className="pt-1 text-xs text-muted-foreground">
+							{t("home.signedInAs", { email: user.email || user.name })}
+						</p>
 					</div>
 				</div>
 			</section>

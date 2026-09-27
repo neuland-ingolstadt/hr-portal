@@ -41,6 +41,21 @@
 	--radius-md: 0;
 	--radius-lg: 0;
 	--radius-xl: 0;
+
+	--animate-sheet-in-right: sheet-in-right 320ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-out-right: sheet-out-right 220ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-in-left: sheet-in-left 320ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-out-left: sheet-out-left 220ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-in-bottom: sheet-in-bottom 320ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-out-bottom: sheet-out-bottom 220ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-in-top: sheet-in-top 320ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-out-top: sheet-out-top 220ms cubic-bezier(0.32, 0.72, 0, 1);
+	--animate-sheet-overlay-in: sheet-overlay-in 200ms ease-out;
+	--animate-sheet-overlay-out: sheet-overlay-out 180ms ease-in;
+	--animate-dialog-in: dialog-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+	--animate-dialog-out: dialog-out 140ms ease-in;
+	--animate-dialog-overlay-in: sheet-overlay-in 200ms ease-out;
+	--animate-dialog-overlay-out: sheet-overlay-out 180ms ease-in;
 }
 
 :root {
@@ -75,19 +90,6 @@
 	--ambient-background: #f5f8f5;
 	--ambient-grid-line: rgba(13, 50, 36, 0.045);
 	--ambient-glow: rgba(25, 141, 94, 0.035);
-
-	--badge-vorstand-text: #1e3a8a;
-	--badge-vorstand-border: rgba(37, 99, 235, 0.55);
-	--badge-vorstand-bg: linear-gradient(
-		to bottom right,
-		rgba(96, 165, 250, 0.45),
-		rgba(59, 130, 246, 0.3),
-		rgba(37, 99, 235, 0.35)
-	);
-
-	--badge-ressort-text: #0d3224;
-	--badge-ressort-border: rgba(25, 141, 94, 0.45);
-	--badge-ressort-bg: rgba(25, 141, 94, 0.12);
 }
 
 :root[data-theme="light"] {
@@ -122,19 +124,6 @@
 		--ambient-background: #050505;
 		--ambient-grid-line: rgba(255, 255, 255, 0.035);
 		--ambient-glow: rgba(35, 255, 136, 0.035);
-
-		--badge-vorstand-text: #bfdbfe;
-		--badge-vorstand-border: rgba(96, 165, 250, 0.5);
-		--badge-vorstand-bg: linear-gradient(
-			to bottom right,
-			rgba(59, 130, 246, 0.28),
-			rgba(37, 99, 235, 0.16),
-			rgba(29, 78, 216, 0.22)
-		);
-
-		--badge-ressort-text: #86efac;
-		--badge-ressort-border: rgba(35, 255, 136, 0.4);
-		--badge-ressort-bg: rgba(35, 255, 136, 0.1);
 	}
 }
 
@@ -165,19 +154,6 @@
 	--ambient-background: #050505;
 	--ambient-grid-line: rgba(255, 255, 255, 0.035);
 	--ambient-glow: rgba(35, 255, 136, 0.035);
-
-	--badge-vorstand-text: #bfdbfe;
-	--badge-vorstand-border: rgba(96, 165, 250, 0.5);
-	--badge-vorstand-bg: linear-gradient(
-		to bottom right,
-		rgba(59, 130, 246, 0.28),
-		rgba(37, 99, 235, 0.16),
-		rgba(29, 78, 216, 0.22)
-	);
-
-	--badge-ressort-text: #86efac;
-	--badge-ressort-border: rgba(35, 255, 136, 0.4);
-	--badge-ressort-bg: rgba(35, 255, 136, 0.1);
 }
 
 /* Theme toggle transitions (Connect) */
@@ -481,6 +457,114 @@ html[data-sidebar-collapsed] .app-sidebar nav a {
 .stack-gap {
 	display: grid;
 	gap: 0.75rem;
+}
+
+@keyframes sheet-in-right {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes sheet-out-right {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes sheet-in-left {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes sheet-out-left {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-100%);
+	}
+}
+
+@keyframes sheet-in-bottom {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes sheet-out-bottom {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(100%);
+	}
+}
+
+@keyframes sheet-in-top {
+	from {
+		transform: translateY(-100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes sheet-out-top {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(-100%);
+	}
+}
+
+@keyframes sheet-overlay-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes sheet-overlay-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes dialog-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes dialog-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
 }
 
 @keyframes fade-down {

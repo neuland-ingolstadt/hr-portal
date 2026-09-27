@@ -3,6 +3,8 @@ import {
 	createFileRoute,
 	type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { useCallback, useState } from "react";
+import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { OffboardingCandidatesTable } from "#/components/offboarding/offboarding-candidates-table";
 import { Button } from "#/components/ui/button";
 import { Spinner } from "#/components/ui/spinner";
@@ -71,7 +73,13 @@ function CandidatesSkeleton() {
 	);
 }
 
-function CandidatesSection({ data }: { data: OffboardingCandidatesResult }) {
+function CandidatesSection({
+	data,
+	onOpenProfile,
+}: {
+	data: OffboardingCandidatesResult;
+	onOpenProfile: (id: string) => void;
+}) {
 	const { t } = useI18n();
 	const { members, source } = data;
 
@@ -92,7 +100,10 @@ function CandidatesSection({ data }: { data: OffboardingCandidatesResult }) {
 				<p className="hint m-0">{t("members.mockHint")}</p>
 			) : null}
 
-			<OffboardingCandidatesTable candidates={members} />
+			<OffboardingCandidatesTable
+				candidates={members}
+				onOpenProfile={onOpenProfile}
+			/>
 		</section>
 	);
 }
@@ -124,6 +135,13 @@ function OffboardingError({ error, reset }: ErrorComponentProps) {
 function OffboardingPage() {
 	const { candidatesPromise } = Route.useLoaderData();
 	const { t } = useI18n();
+	const [profileId, setProfileId] = useState<string | null>(null);
+	const [profileOpen, setProfileOpen] = useState(false);
+
+	const openProfile = useCallback((id: string) => {
+		setProfileId(id);
+		setProfileOpen(true);
+	}, []);
 
 	return (
 		<>
@@ -153,10 +171,16 @@ function OffboardingPage() {
 								count: String(data.members.length),
 							})}
 						/>
-						<CandidatesSection data={data} />
+						<CandidatesSection data={data} onOpenProfile={openProfile} />
 					</>
 				)}
 			</Await>
+			{/* Keep sheet outside Await so loader remounts cannot leave the modal lock stuck */}
+			<MemberProfileSheet
+				memberId={profileId}
+				open={profileOpen}
+				onOpenChange={setProfileOpen}
+			/>
 			<OffboardingSoonSection />
 		</>
 	);

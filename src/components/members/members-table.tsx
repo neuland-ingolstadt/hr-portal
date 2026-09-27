@@ -247,6 +247,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 								/>
 								<Input
 									id="members-search"
+									data-shortcut="search"
 									value={nameFilter}
 									onChange={(event) =>
 										table.getColumn("name")?.setFilterValue(event.target.value)
@@ -313,11 +314,8 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 													className={cn(
 														"flex w-full items-center gap-2.5 border px-2.5 py-2 text-left text-sm transition-colors",
 														active
-															? "border-primary/35 bg-primary/10 text-foreground"
+															? "border-border bg-muted/70 text-foreground"
 															: "border-transparent hover:border-border hover:bg-muted/60",
-														isRessort &&
-															!active &&
-															"bg-[color:var(--badge-ressort-bg)]/40",
 													)}
 												>
 													<span
