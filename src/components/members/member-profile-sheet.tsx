@@ -1,6 +1,7 @@
 import { getRouteApi } from "@tanstack/react-router";
 import { CheckCircle2, CircleDashed, Loader2 } from "lucide-react";
 import { type ReactNode, useEffect, useId, useState } from "react";
+import { OnboardingStageSlider } from "#/components/onboarding/onboarding-stage-slider";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -26,7 +27,12 @@ import type { MemberProfile, MemberProfileResult } from "#/lib/members";
 import {
 	getMemberProfileFn,
 	updateMemberGroupsFn,
+	updateMemberOnboardingStageFn,
 } from "#/lib/members.functions";
+import {
+	type OnboardingStage,
+	type UpdateMemberOnboardingStageError,
+} from "#/lib/onboarding";
 import { cn } from "#/lib/utils";
 
 const appRouteApi = getRouteApi("/_app");
@@ -41,10 +47,20 @@ const GROUP_ERROR_KEYS: Record<UpdateMemberGroupsError, MessageKey> = {
 	update_failed: "profile.errorGroupsFailed",
 };
 
+const STAGE_ERROR_KEYS: Record<UpdateMemberOnboardingStageError, MessageKey> = {
+	invalid_id: "profile.errorOnboardingNotFound",
+	invalid_stage: "profile.errorOnboardingInvalid",
+	user_not_found: "profile.errorOnboardingNotFound",
+	authentik_api_missing: "profile.errorOnboardingApi",
+	update_failed: "profile.errorOnboardingFailed",
+};
+
 type MemberProfileSheetProps = {
 	memberId: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	/** Called after a successful stage save so list cards can refresh. */
+	onOnboardingStageChange?: (memberId: string, stage: OnboardingStage) => void;
 };
 
 function initials(name: string): string {
@@ -86,6 +102,7 @@ export function MemberProfileSheet({
 	memberId,
 	open,
 	onOpenChange,
+	onOnboardingStageChange,
 }: MemberProfileSheetProps) {
 	const { t } = useI18n();
 	const { user } = appRouteApi.useRouteContext();
@@ -139,16 +156,16 @@ export function MemberProfileSheet({
 		<Sheet open={sheetOpen} onOpenChange={onOpenChange}>
 			<SheetContent
 				side="right"
-				className="w-full gap-0 overflow-y-auto p-0 sm:max-w-lg"
+				className="w-full gap-0 overflow-y-auto p-0 sm:max-w-2xl"
 			>
-				<SheetHeader className="border-b border-border px-5 py-5 pr-14">
+				<SheetHeader className="border-b border-border px-6 py-5 pr-14">
 					<SheetTitle className="font-sans text-base tracking-tight">
 						{t("profile.title")}
 					</SheetTitle>
 					<SheetDescription>{t("profile.lead")}</SheetDescription>
 				</SheetHeader>
 
-				<div className="flex flex-col gap-6 px-5 py-5">
+				<div className="flex flex-col gap-6 px-6 py-6">
 					{loading ? (
 						<p className="text-sm text-muted-foreground">
 							{t("profile.loading")}
@@ -173,9 +190,10 @@ export function MemberProfileSheet({
 						<ProfileBody
 							profile={profile}
 							canEditGroups={canEditGroups}
-							onProfileUpdate={(next) =>
-								setResult({ status: "found", profile: next })
-							}
+							onProfileUpdate={(next) => {
+								setResult({ status: "found", profile: next });
+								onOnboardingStageChange?.(next.id, next.onboardingStage);
+							}}
 						/>
 					) : null}
 				</div>
@@ -213,16 +231,27 @@ function ProfileBody({
 	const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 	const [saved, setSaved] = useState(false);
 
+	const [stage, setStage] = useState<OnboardingStage>(profile.onboardingStage);
+	const [stagePending, setStagePending] = useState(false);
+	const [stageErrorKey, setStageErrorKey] = useState<MessageKey | null>(null);
+	const [stageSaved, setStageSaved] = useState(false);
 	useEffect(() => {
 		setSelected(selectedFromProfile(profile.groups));
 		setErrorKey(null);
 		setSaved(false);
 	}, [profile.id, profile.groups]);
 
+	useEffect(() => {
+		setStage(profile.onboardingStage);
+		setStageErrorKey(null);
+		setStageSaved(false);
+	}, [profile.id, profile.onboardingStage]);
+
 	const initial = selectedFromProfile(profile.groups);
 	const dirty =
 		selected.size !== initial.size ||
 		[...selected].some((value) => !initial.has(value));
+	const stageDirty = stage !== profile.onboardingStage;
 
 	function toggle(value: string) {
 		setSaved(false);
@@ -261,117 +290,195 @@ function ProfileBody({
 		}
 	}
 
+	async function onSaveStage() {
+		setStagePending(true);
+		setStageErrorKey(null);
+		setStageSaved(false);
+		try {
+			const result = await updateMemberOnboardingStageFn({
+				data: { id: profile.id, stage },
+			});
+			if (!result.success) {
+				setStageErrorKey(STAGE_ERROR_KEYS[result.error]);
+				return;
+			}
+			onProfileUpdate(result.profile);
+			setStage(result.profile.onboardingStage);
+			setStageSaved(true);
+		} catch (err) {
+			console.error("[members] update onboarding stage failed", err);
+			setStageErrorKey("profile.errorOnboardingFailed");
+		} finally {
+			setStagePending(false);
+		}
+	}
+
 	return (
 		<>
-			<div className="flex items-center gap-3">
+			{/* Identity header */}
+			<section className="flex items-start gap-4">
 				<span
 					aria-hidden
-					className="flex size-12 shrink-0 items-center justify-center border border-border bg-muted font-mono text-sm font-semibold tracking-wide text-muted-foreground"
+					className="flex size-14 shrink-0 items-center justify-center border border-border bg-muted font-mono text-base font-semibold tracking-wide text-muted-foreground"
 				>
 					{initials(profile.name)}
 				</span>
-				<div className="min-w-0 space-y-0.5">
-					<p className="truncate text-lg font-semibold tracking-tight">
-						{profile.name}
-					</p>
-					{profile.username ? (
-						<p className="truncate font-mono text-xs text-muted-foreground">
-							@{profile.username}
+				<div className="min-w-0 flex-1 space-y-3">
+					<div className="min-w-0 space-y-0.5">
+						<p className="truncate text-xl font-semibold tracking-tight">
+							{profile.name}
 						</p>
-					) : null}
-				</div>
-			</div>
-
-			<dl className="grid gap-4">
-				<Field label={t("profile.fieldName")} value={profile.name} />
-				<Field
-					label={t("profile.fieldUsername")}
-					value={profile.username ?? t("profile.empty")}
-					mono={Boolean(profile.username)}
-				/>
-				{profile.email ? (
-					<Field label={t("profile.fieldEmail")} value={profile.email} />
-				) : null}
-			</dl>
-
-			{canEditGroups ? (
-				<section className="space-y-3 border-t border-border pt-5">
-					<div className="space-y-1">
-						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-							{t("profile.editRoles")}
-						</p>
-						<p className="text-sm text-muted-foreground">
-							{t("profile.editRolesHint")}
-						</p>
-					</div>
-					<ul className="flex flex-col gap-2">
-						{RESSORTS.map((ressort) => {
-							const labelKey = ressortLabelKey(ressort);
-							return (
-								<GroupCheckbox
-									key={ressort}
-									checked={selected.has(ressort)}
-									disabled={pending}
-									label={labelKey ? t(labelKey) : ressort}
-									onChange={() => toggle(ressort)}
-								/>
-							);
-						})}
-					</ul>
-					<div className="flex flex-wrap items-center gap-3">
-						<Button
-							type="button"
-							size="sm"
-							disabled={!dirty || pending}
-							onClick={() => void onSave()}
-						>
-							{pending ? (
-								<>
-									<Loader2 className="size-3.5 animate-spin" aria-hidden />
-									{t("profile.savingGroups")}
-								</>
-							) : (
-								t("profile.saveGroups")
-							)}
-						</Button>
-						{saved ? (
-							<p className="text-sm text-primary">{t("profile.groupsSaved")}</p>
-						) : null}
-						{errorKey ? (
-							<p className="text-sm text-destructive" role="alert">
-								{t(errorKey)}
+						{profile.username ? (
+							<p className="truncate font-mono text-xs text-muted-foreground">
+								@{profile.username}
 							</p>
 						) : null}
 					</div>
-				</section>
-			) : (
-				<section className="space-y-3 border-t border-border pt-5">
+					<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+						{profile.email ? (
+							<Field label={t("profile.fieldEmail")} value={profile.email} />
+						) : null}
+						<Field
+							label={t("profile.fieldUsername")}
+							value={profile.username ?? t("profile.empty")}
+							mono={Boolean(profile.username)}
+						/>
+					</dl>
+				</div>
+			</section>
+
+			{/* Onboarding — stepped slider */}
+			<section className="space-y-4 border-t border-border pt-6">
+				<div className="space-y-1">
 					<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						{t("profile.ressorts")}
+						{t("profile.onboarding")}
 					</p>
-					{ressorts.length > 0 ? (
-						<ul className="flex flex-wrap gap-1.5">
-							{ressorts.map((group) => {
-								const labelKey = ressortLabelKey(group);
+					<p className="text-sm text-muted-foreground">
+						{t("profile.onboardingHint")}
+					</p>
+				</div>
+				<OnboardingStageSlider
+					value={stage}
+					disabled={stagePending}
+					onChange={(next) => {
+						setStageSaved(false);
+						setStageErrorKey(null);
+						setStage(next);
+					}}
+				/>
+				<div className="flex flex-wrap items-center gap-3">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled={!stageDirty || stagePending}
+						onClick={() => void onSaveStage()}
+					>
+						{stagePending ? (
+							<>
+								<Loader2 className="size-3.5 animate-spin" aria-hidden />
+								{t("profile.onboardingSaving")}
+							</>
+						) : (
+							t("profile.onboardingSave")
+						)}
+					</Button>
+					{stageSaved ? (
+						<p className="text-sm text-primary">
+							{t("profile.onboardingSaved")}
+						</p>
+					) : null}
+					{stageErrorKey ? (
+						<p className="text-sm text-destructive" role="alert">
+							{t(stageErrorKey)}
+						</p>
+					) : null}
+				</div>
+			</section>
+			{/* Ressorts — full width, checkboxes in a comfortable grid */}
+			<section className="space-y-3 border-t border-border pt-6">
+				{canEditGroups ? (
+					<>
+						<div className="space-y-1">
+							<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+								{t("profile.editRoles")}
+							</p>
+							<p className="text-sm text-muted-foreground">
+								{t("profile.editRolesHint")}
+							</p>
+						</div>
+						<ul className="grid gap-2 sm:grid-cols-2">
+							{RESSORTS.map((ressort) => {
+								const labelKey = ressortLabelKey(ressort);
 								return (
-									<li key={group}>
-										<Badge variant="ressort">
-											{labelKey ? t(labelKey) : group}
-										</Badge>
-									</li>
+									<GroupCheckbox
+										key={ressort}
+										checked={selected.has(ressort)}
+										disabled={pending}
+										label={labelKey ? t(labelKey) : ressort}
+										onChange={() => toggle(ressort)}
+									/>
 								);
 							})}
 						</ul>
-					) : (
-						<p className="text-sm text-muted-foreground">
-							{t("profile.noRessorts")}
+						<div className="flex flex-wrap items-center gap-3">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								disabled={!dirty || pending}
+								onClick={() => void onSave()}
+							>
+								{pending ? (
+									<>
+										<Loader2 className="size-3.5 animate-spin" aria-hidden />
+										{t("profile.savingGroups")}
+									</>
+								) : (
+									t("profile.saveGroups")
+								)}
+							</Button>
+							{saved ? (
+								<p className="text-sm text-primary">
+									{t("profile.groupsSaved")}
+								</p>
+							) : null}
+							{errorKey ? (
+								<p className="text-sm text-destructive" role="alert">
+									{t(errorKey)}
+								</p>
+							) : null}
+						</div>
+					</>
+				) : (
+					<>
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							{t("profile.ressorts")}
 						</p>
-					)}
-				</section>
-			)}
+						{ressorts.length > 0 ? (
+							<ul className="flex flex-wrap gap-1.5">
+								{ressorts.map((group) => {
+									const labelKey = ressortLabelKey(group);
+									return (
+										<li key={group}>
+											<Badge variant="ressort">
+												{labelKey ? t(labelKey) : group}
+											</Badge>
+										</li>
+									);
+								})}
+							</ul>
+						) : (
+							<p className="text-sm text-muted-foreground">
+								{t("profile.noRessorts")}
+							</p>
+						)}
+					</>
+				)}
+			</section>
 
 			{readOnlyGroups.length > 0 ? (
-				<section className="space-y-3 border-t border-border pt-5">
+				<section className="space-y-3 border-t border-border pt-6">
 					<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 						{t("profile.groups")}
 					</p>
@@ -385,11 +492,12 @@ function ProfileBody({
 				</section>
 			) : null}
 
-			<section className="space-y-3 border-t border-border pt-5">
+			{/* Integrations */}
+			<section className="space-y-3 border-t border-border pt-6">
 				<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 					{t("profile.integrations")}
 				</p>
-				<ul className="flex flex-col gap-2">
+				<ul className="grid gap-2 sm:grid-cols-2">
 					<IntegrationRow
 						icon={<GitHubGlyph className="size-4" />}
 						label={t("profile.github")}
@@ -450,13 +558,15 @@ function Field({
 	label,
 	value,
 	mono,
+	className,
 }: {
 	label: string;
 	value: string;
 	mono?: boolean;
+	className?: string;
 }) {
 	return (
-		<div className="space-y-1">
+		<div className={cn("space-y-1", className)}>
 			<dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 				{label}
 			</dt>

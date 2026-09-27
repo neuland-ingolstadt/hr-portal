@@ -6,6 +6,7 @@ import {
 	getMemberProfileByUuid,
 	listMembersFromAuthentik,
 	listNonMitgliederAccountsFromAuthentik,
+	updateMemberOnboardingStage,
 } from "#/lib/authentik-members.server";
 import {
 	type UpdateMemberGroupsResult,
@@ -17,6 +18,10 @@ import type {
 	MembersResult,
 	OffboardingCandidatesResult,
 } from "#/lib/members";
+import {
+	isOnboardingStage,
+	type UpdateMemberOnboardingStageResult,
+} from "#/lib/onboarding";
 
 export const listMembersFn = createServerFn({ method: "GET" }).handler(
 	async (): Promise<MembersResult> => {
@@ -71,5 +76,22 @@ export const updateMemberGroupsFn = createServerFn({ method: "POST" })
 		await requireElevatedAccess();
 		return updateMemberAssignableGroups(data.id, data.groups, {
 			includeEmail: true,
+		});
+	});
+
+export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
+	.validator((data: { id: string; stage: number }) => {
+		if (!data?.id || typeof data.id !== "string" || !data.id.trim()) {
+			throw new Error("invalid_id");
+		}
+		if (!isOnboardingStage(data.stage)) {
+			throw new Error("invalid_stage");
+		}
+		return { id: data.id.trim(), stage: data.stage };
+	})
+	.handler(async ({ data }): Promise<UpdateMemberOnboardingStageResult> => {
+		const user = await requireAppAccess();
+		return updateMemberOnboardingStage(data.id, data.stage, {
+			includeEmail: hasElevatedAccess(user.roles),
 		});
 	});

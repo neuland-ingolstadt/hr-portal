@@ -16,9 +16,13 @@ import type {
 } from "#/lib/members";
 import { MEMBERSHIP_REVOKED_AT_ATTR } from "#/lib/offboarding";
 import {
+	ONBOARDING_STAGE_ATTR,
+	parseOnboardingStage,
 	RECENT_ONBOARDING_WEEKS,
+	type OnboardingStage,
 	type RecentOnboardingMember,
 	type RecentOnboardingMembersResult,
+	type UpdateMemberOnboardingStageResult,
 } from "#/lib/onboarding";
 
 type AuthentikPaginated<T> = {
@@ -60,6 +64,7 @@ const ATTR = {
 	discordId: "discord_id",
 	easyVereinMemberId: "easyVereinMemberId",
 	membershipRevokedAt: MEMBERSHIP_REVOKED_AT_ATTR,
+	onboardingStage: ONBOARDING_STAGE_ATTR,
 } as const;
 
 function daysAgoIso(days: number): string {
@@ -130,6 +135,7 @@ const MOCK_PROFILES: Record<
 		groups: ["HR", "Mitglieder", "management"],
 		githubConnected: true,
 		discordConnected: true,
+		onboardingStage: 4,
 		source: "mock",
 	},
 	"mock-2": {
@@ -140,6 +146,7 @@ const MOCK_PROFILES: Record<
 		groups: ["Vorstand", "Mitglieder", "engineering"],
 		githubConnected: true,
 		discordConnected: false,
+		onboardingStage: 2,
 		source: "mock",
 	},
 	"mock-3": {
@@ -150,6 +157,7 @@ const MOCK_PROFILES: Record<
 		groups: ["Mitglieder", "events"],
 		githubConnected: false,
 		discordConnected: true,
+		onboardingStage: 1,
 		source: "mock",
 	},
 	"mock-4": {
@@ -160,6 +168,7 @@ const MOCK_PROFILES: Record<
 		groups: ["HR", "design-marketing"],
 		githubConnected: false,
 		discordConnected: false,
+		onboardingStage: 0,
 		source: "mock",
 	},
 	"mock-5": {
@@ -170,6 +179,7 @@ const MOCK_PROFILES: Record<
 		groups: ["Mitglieder", "events", "engineering"],
 		githubConnected: true,
 		discordConnected: true,
+		onboardingStage: 3,
 		source: "mock",
 	},
 };
@@ -237,6 +247,19 @@ export function mockDeleteAccount(memberId: string): boolean {
 	if (!MOCK_MEMBERS.some((entry) => entry.id === memberId)) return false;
 	mockDeletedIds.add(memberId);
 	invalidateDirectoryCache();
+	return true;
+}
+
+/**
+ * AUTH_MOCK helper: set human onboarding stage on mock profile.
+ */
+export function mockUpdateMemberOnboardingStage(
+	memberId: string,
+	stage: OnboardingStage,
+): boolean {
+	const profile = MOCK_PROFILES[memberId];
+	if (!profile) return false;
+	profile.onboardingStage = stage;
 	return true;
 }
 
@@ -868,6 +891,9 @@ function toMemberProfile(
 		groups,
 		githubConnected: isGitHubConnected(user.attributes),
 		discordConnected: isDiscordConnected(user.attributes),
+		onboardingStage: parseOnboardingStage(
+			user.attributes?.[ATTR.onboardingStage],
+		),
 		source,
 	};
 }
@@ -1120,6 +1146,7 @@ export async function listRecentOnboardingMembersFromAuthentik(
 							name: member.name,
 							username: profile?.username ?? null,
 							dateJoined,
+							onboardingStage: profile?.onboardingStage ?? 0,
 						},
 					];
 				})
@@ -1188,9 +1215,125 @@ export async function listRecentOnboardingMembersFromAuthentik(
 			name: displayName(detail.name ? detail : groupUser),
 			username: (detail.username ?? groupUser.username)?.trim() || null,
 			dateJoined: joined.toISOString(),
+			onboardingStage: parseOnboardingStage(
+				(detail.attributes ?? groupUser.attributes)?.[ATTR.onboardingStage],
+			),
 		});
 	}
 
 	members.sort((a, b) => b.dateJoined.localeCompare(a.dateJoined));
 	return { members, weeks: lookback, source: "authentik" };
+}
+
+async function resolveUserForMutation(
+	id: string,
+): Promise<AuthentikUser | null> {
+	const sub = id.trim();
+	if (!sub) return null;
+	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+
+	if (UUID_RE.test(sub)) {
+		const url = new URL(`${base}/api/v3/core/users/`);
+		url.searchParams.set("uuid", sub);
+		url.searchParams.set("page_size", "5");
+		const res = await fetch(url, { headers: authHeaders() });
+		if (!res.ok) {
+			throw new Error(`Authentik user lookup failed (${res.status})`);
+		}
+		const body = (await res.json()) as AuthentikPaginated<AuthentikUser>;
+		return (
+			body.results?.find((entry) => entry.uuid === sub) ??
+			body.results?.[0] ??
+			null
+		);
+	}
+
+	const res = await fetch(`${base}/api/v3/core/users/${encodeURIComponent(sub)}/`, {
+		headers: authHeaders(),
+	});
+	if (res.status === 404) return null;
+	if (!res.ok) {
+		throw new Error(`Authentik user lookup failed (${res.status})`);
+	}
+	return (await res.json()) as AuthentikUser;
+}
+
+/**
+ * Set Authentik `attributes.onboardingStage` (0–4 human ladder).
+ * Merges existing attributes so Connect/HR fields are preserved.
+ */
+export async function updateMemberOnboardingStage(
+	memberId: string,
+	stage: OnboardingStage,
+	options: { includeEmail: boolean },
+): Promise<UpdateMemberOnboardingStageResult> {
+	const id = memberId.trim();
+	if (!id) return { success: false, error: "invalid_id" };
+
+	if (!isAuthentikApiConfigured()) {
+		if (serverConfig.authMock) {
+			const ok = mockUpdateMemberOnboardingStage(id, stage);
+			if (!ok) return { success: false, error: "user_not_found" };
+			const result = await getMemberProfileByUuid(id, options);
+			if (result.status !== "found") {
+				return { success: false, error: "user_not_found" };
+			}
+			return { success: true, profile: result.profile };
+		}
+		return { success: false, error: "authentik_api_missing" };
+	}
+
+	try {
+		const user = await resolveUserForMutation(id);
+		if (!user || user.pk == null) {
+			return { success: false, error: "user_not_found" };
+		}
+
+		const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+		const currentRes = await fetch(
+			`${base}/api/v3/core/users/${user.pk}/`,
+			{ headers: authHeaders() },
+		);
+		if (currentRes.status === 404) {
+			return { success: false, error: "user_not_found" };
+		}
+		if (!currentRes.ok) {
+			console.error(
+				`[authentik] onboarding stage read failed: ${currentRes.status}`,
+			);
+			return { success: false, error: "update_failed" };
+		}
+		const current = (await currentRes.json()) as AuthentikUser;
+
+		const patchRes = await fetch(`${base}/api/v3/core/users/${user.pk}/`, {
+			method: "PATCH",
+			headers: {
+				...authHeaders(),
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				attributes: {
+					...(current.attributes ?? {}),
+					[ATTR.onboardingStage]: stage,
+				},
+			}),
+		});
+		if (!patchRes.ok) {
+			const detail = await patchRes.text().catch(() => "");
+			console.error(
+				`[authentik] onboarding stage patch failed: ${patchRes.status}`,
+				detail.slice(0, 300),
+			);
+			return { success: false, error: "update_failed" };
+		}
+
+		const result = await getMemberProfileByUuid(id, options);
+		if (result.status !== "found") {
+			return { success: false, error: "update_failed" };
+		}
+		return { success: true, profile: result.profile };
+	} catch (err) {
+		console.error("[authentik] onboarding stage update error", err);
+		return { success: false, error: "update_failed" };
+	}
 }

@@ -1,5 +1,7 @@
 /** Client-safe member types (no email or other PII in list payloads). */
 
+import type { OnboardingStage } from "#/lib/onboarding";
+
 export type Member = {
 	id: string;
 	name: string;
@@ -101,6 +103,11 @@ export type MemberProfile = {
 	groups: string[];
 	githubConnected: boolean;
 	discordConnected: boolean;
+	/**
+	 * Human onboarding stage from Authentik `attributes.onboardingStage`
+	 * (0 = new … 4 = done).
+	 */
+	onboardingStage: OnboardingStage;
 	source: "authentik" | "mock";
 };
 
