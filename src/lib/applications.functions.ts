@@ -5,7 +5,7 @@ import type {
 	ApplicationsResult,
 } from "#/lib/applications";
 import { acceptApplication, listApplications } from "#/lib/applications.server";
-import { requireAppAccess } from "#/lib/auth.server";
+import { requireElevatedAccess } from "#/lib/auth.server";
 
 function validateAcceptInput(
 	data: AcceptApplicationInput,
@@ -25,7 +25,7 @@ function validateAcceptInput(
 
 export const listApplicationsFn = createServerFn({ method: "GET" }).handler(
 	async (): Promise<ApplicationsResult> => {
-		await requireAppAccess();
+		await requireElevatedAccess();
 		return listApplications();
 	},
 );
@@ -33,6 +33,6 @@ export const listApplicationsFn = createServerFn({ method: "GET" }).handler(
 export const acceptApplicationFn = createServerFn({ method: "POST" })
 	.validator(validateAcceptInput)
 	.handler(async ({ data }): Promise<AcceptApplicationResult> => {
-		await requireAppAccess();
+		await requireElevatedAccess();
 		return acceptApplication(data);
 	});

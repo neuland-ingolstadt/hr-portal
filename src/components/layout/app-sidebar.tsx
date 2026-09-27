@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { getRouteApi, Link, useRouterState } from "@tanstack/react-router";
 import { LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import {
 	type ReactNode,
@@ -14,6 +14,7 @@ import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortc
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
 	type NavItem,
+	navItemsForRoles,
 	overviewItems,
 	workflowItems,
 } from "#/components/layout/nav-items";
@@ -22,6 +23,8 @@ import { Button } from "#/components/ui/button";
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
+
+const appRouteApi = getRouteApi("/_app");
 
 type AppSidebarProps = {
 	collapsed?: boolean;
@@ -195,8 +198,10 @@ export function AppSidebar({
 	onOpenShortcuts,
 }: AppSidebarProps) {
 	const { t } = useI18n();
+	const { user } = appRouteApi.useRouteContext();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const canCollapse = typeof onCollapsedChange === "function";
+	const visibleWorkflows = navItemsForRoles(workflowItems, user.roles);
 
 	return (
 		<aside
@@ -282,7 +287,7 @@ export function AppSidebar({
 				/>
 				<NavSection
 					title={t("nav.sectionWorkflows")}
-					items={workflowItems}
+					items={visibleWorkflows}
 					pathname={pathname}
 					collapsed={collapsed}
 				/>

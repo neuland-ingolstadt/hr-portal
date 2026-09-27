@@ -18,8 +18,12 @@ import type {
 import { listApplicationsFn } from "#/lib/applications.functions";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
+import { requireElevatedUser } from "#/lib/require-app-user";
 
 export const Route = createFileRoute("/_app/applications")({
+	beforeLoad: ({ context }) => {
+		requireElevatedUser(context.user);
+	},
 	loader: () => ({
 		applicationsPromise: listApplicationsFn(),
 	}),

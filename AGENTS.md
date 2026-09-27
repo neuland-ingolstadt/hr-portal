@@ -6,6 +6,8 @@
 - Roles (`hr`, `vorstand`, `admin`) are derived from Authentik group membership (env-configurable names). `admin` has the same app permissions as `vorstand`.
 - Prefer the OIDC `groups` claim (ID token / UserInfo). REST API group lookup is optional fallback only (`sub` UUID is not a valid Authentik user path id).
 - Do not add a local user/member table or sync users into Postgres/SQLite for identity.
+- **App access** (`requireAppAccess`): `hr` | `vorstand` | `admin`.
+- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory. HR must not see or act on applications.
 
 ## Layout
 
@@ -19,16 +21,18 @@
 
 ## Security
 
-- Every `createServerFn` / API route that exposes private data must call `requireAppAccess` (or equivalent). Route `beforeLoad` is UX only.
+- Every `createServerFn` / API route that exposes private data must call `requireAppAccess` or `requireElevatedAccess`. Route `beforeLoad` is UX only.
+- Applications + member create use `requireElevatedAccess` (not HR).
 - Separate Authentik application from Connect (own client id/secret, redirect `…/api/auth/callback`).
 
 ## Applications (EasyVerein)
 
-- `/applications` lists members with `is_application=true` from EasyVerein.
+- `/applications` is Vorstand/Admin only. Lists members with `is_application=true` from EasyVerein.
 - Accept dialog: create Authentik user + welcome mail, then PATCH EasyVerein (`is_application=false`, set `join_date` if missing).
 - Authentik user gets `attributes.easyVereinMemberId` for later linkage.
 - Manual Authentik create is a header action on `/applications` (edge cases without an EV application).
 - Env: `EASYVEREIN_API_TOKEN`, optional `EASYVEREIN_API_BASE` (default `https://easyverein.com/api/v3.0`).
+- Local backfill of missing `easyVereinMemberId`: `bun run backfill:easyverein` (dry-run; `--apply` for email matches, `--apply-name` after reviewing name-only matches).
 
 ## Onboarding
 

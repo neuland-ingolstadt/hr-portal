@@ -357,6 +357,26 @@ export async function requireAppAccess(options?: {
 	return user;
 }
 
+/**
+ * Vorstand/Admin-only gate (applications accept, manual create, etc.).
+ * HR may use the app but not these elevated actions.
+ */
+export async function requireElevatedAccess(options?: {
+	asJson?: boolean;
+}): Promise<SessionUser> {
+	const user = await requireAppAccess(options);
+
+	if (!hasElevatedAccess(user.roles)) {
+		if (options?.asJson) {
+			setResponseStatus(403);
+			throw new Error("Kein Zugang");
+		}
+		throw redirect({ to: "/" });
+	}
+
+	return user;
+}
+
 export async function createMockSession(
 	role: AppRole | "none",
 ): Promise<SessionUser> {

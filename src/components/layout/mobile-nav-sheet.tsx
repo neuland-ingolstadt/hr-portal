@@ -1,10 +1,11 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { getRouteApi, Link, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { NeulandPalm } from "#/components/brand/neuland-palm";
 import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortcuts";
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
 	type NavItem,
+	navItemsForRoles,
 	overviewItems,
 	workflowItems,
 } from "#/components/layout/nav-items";
@@ -19,6 +20,8 @@ import {
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
+
+const appRouteApi = getRouteApi("/_app");
 
 type MobileNavSheetProps = {
 	open: boolean;
@@ -82,7 +85,9 @@ export function MobileNavSheet({
 	onOpenShortcuts,
 }: MobileNavSheetProps) {
 	const { t } = useI18n();
+	const { user } = appRouteApi.useRouteContext();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const visibleWorkflows = navItemsForRoles(workflowItems, user.roles);
 
 	function close() {
 		onOpenChange(false);
@@ -120,7 +125,7 @@ export function MobileNavSheet({
 					/>
 					<MobileNavSection
 						title={t("nav.sectionWorkflows")}
-						items={workflowItems}
+						items={visibleWorkflows}
 						pathname={pathname}
 						onNavigate={close}
 					/>

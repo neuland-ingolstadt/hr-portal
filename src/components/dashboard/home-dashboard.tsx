@@ -9,7 +9,7 @@ import {
 import { type ReactNode, useEffect, useState } from "react";
 import { Badge } from "#/components/ui/badge";
 import type { SessionUser } from "#/lib/auth";
-import { primaryRole, roleBadgeVariant } from "#/lib/auth";
+import { hasElevatedAccess, primaryRole, roleBadgeVariant } from "#/lib/auth";
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
@@ -289,6 +289,7 @@ function StatsGrid({
 export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 	const { t } = useI18n();
 	const role = primaryRole(user.roles);
+	const elevated = hasElevatedAccess(user.roles);
 	const firstName = user.name.trim().split(/\s+/)[0] || user.name;
 	const accessLabel =
 		role === "admin"
@@ -342,13 +343,15 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						description={t("home.actionMembersDesc")}
 						cta={t("home.openMembers")}
 					/>
-					<ActionCard
-						to={ROUTES.APPLICATIONS}
-						icon={<FileCheck2 className="size-5" aria-hidden />}
-						title={t("home.moduleApplicationsTitle")}
-						description={t("home.moduleApplicationsDesc")}
-						cta={t("home.openApplications")}
-					/>
+					{elevated ? (
+						<ActionCard
+							to={ROUTES.APPLICATIONS}
+							icon={<FileCheck2 className="size-5" aria-hidden />}
+							title={t("home.moduleApplicationsTitle")}
+							description={t("home.moduleApplicationsDesc")}
+							cta={t("home.openApplications")}
+						/>
+					) : null}
 					<PlaceholderCard
 						to={ROUTES.ONBOARDING}
 						icon={<ClipboardList className="size-5" aria-hidden />}

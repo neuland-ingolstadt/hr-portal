@@ -6,6 +6,7 @@ import {
 	UserMinus,
 	Users,
 } from "lucide-react";
+import { type AppRole, hasElevatedAccess } from "#/lib/auth";
 import { ROUTES } from "#/lib/constants";
 import type { MessageKey } from "#/lib/i18n/messages";
 
@@ -14,6 +15,8 @@ export type NavItem = {
 	labelKey: MessageKey;
 	icon: typeof Home;
 	match: (pathname: string) => boolean;
+	/** Vorstand/Admin only (hidden from HR in nav). */
+	elevatedOnly?: boolean;
 };
 
 export const overviewItems: NavItem[] = [
@@ -43,6 +46,7 @@ export const workflowItems: NavItem[] = [
 		labelKey: "nav.applications",
 		icon: FileCheck2,
 		match: (pathname) => pathname.startsWith(ROUTES.APPLICATIONS),
+		elevatedOnly: true,
 	},
 	{
 		to: ROUTES.ONBOARDING,
@@ -57,3 +61,11 @@ export const workflowItems: NavItem[] = [
 		match: (pathname) => pathname.startsWith(ROUTES.OFFBOARDING),
 	},
 ];
+
+export function navItemsForRoles(
+	items: NavItem[],
+	roles: AppRole[],
+): NavItem[] {
+	const elevated = hasElevatedAccess(roles);
+	return items.filter((item) => !item.elevatedOnly || elevated);
+}
