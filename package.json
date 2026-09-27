@@ -18,7 +18,6 @@
     "check": "biome check .",
 		"typecheck": "tsc --noEmit",
 		"backfill:easyverein": "bun run scripts/backfill-easyverein-ids.ts",
-		"check:easyverein-billing": "bun run scripts/check-easyverein-billing.ts",
 		"dev:email": "email dev --dir src/emails --port 3001",
 		"docker:build": "docker build --build-arg BUN_VERSION=$(tr -d '[:space:]' < .bun-version) -t neuland-hr ."
 	},
