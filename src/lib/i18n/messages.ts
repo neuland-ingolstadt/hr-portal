@@ -232,10 +232,7 @@ const de = {
 	"scanner.enrichInactive": "Inaktiv",
 	"scanner.enrichMember": "Mitglied",
 	"scanner.enrichNotMember": "Kein Mitglied",
-	"scanner.enrichGroups": "Gruppen",
-	"scanner.enrichNoGroups": "Keine Gruppen",
 	"scanner.openProfile": "Profil anzeigen",
-	"scanner.openMembers": "Mitglieder öffnen",
 	"scanner.publicKeyLoading": "Öffentlicher Schlüssel wird geladen…",
 	"scanner.publicKeyUnavailable":
 		"Scanner nicht verfügbar — öffentlicher Schlüssel konnte nicht geladen werden.",
@@ -471,10 +468,7 @@ const en: Record<MessageKey, string> = {
 	"scanner.enrichInactive": "Inactive",
 	"scanner.enrichMember": "Member",
 	"scanner.enrichNotMember": "Not a member",
-	"scanner.enrichGroups": "Groups",
-	"scanner.enrichNoGroups": "No groups",
 	"scanner.openProfile": "View profile",
-	"scanner.openMembers": "Open members",
 	"scanner.publicKeyLoading": "Loading public key…",
 	"scanner.publicKeyUnavailable":
 		"Scanner unavailable — could not load the public key.",

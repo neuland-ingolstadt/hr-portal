@@ -1,15 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Info, Link2, ShieldX, User } from "lucide-react";
+import { CheckCircle2, Info, ShieldX, User } from "lucide-react";
 import { useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { ROUTES } from "#/lib/constants";
-import {
-	groupBadgeVariant,
-	ressortLabelKey,
-	sortGroupsForDisplay,
-} from "#/lib/groups";
+import { partitionGroups, ressortLabelKey } from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import {
@@ -111,6 +105,9 @@ export function ScannerResult({
 	const duplicate = success && isDuplicate;
 	const foundMember =
 		!lookupLoading && lookup?.status === "found" ? lookup.member : null;
+	const previewRessorts = foundMember
+		? partitionGroups(foundMember.groups).ressorts
+		: [];
 
 	return (
 		<>
@@ -212,25 +209,17 @@ export function ScannerResult({
 							<h3 className="text-sm font-semibold tracking-tight">
 								{t("scanner.enrichTitle")}
 							</h3>
-							<div className="flex flex-wrap items-center gap-2">
-								{foundMember ? (
-									<Button
-										type="button"
-										variant="outline"
-										size="sm"
-										onClick={() => openProfile(foundMember.id)}
-									>
-										<User />
-										{t("scanner.openProfile")}
-									</Button>
-								) : null}
-								<Button variant="outline" size="sm" asChild>
-									<Link to={ROUTES.MEMBERS}>
-										<Link2 />
-										{t("scanner.openMembers")}
-									</Link>
+							{foundMember ? (
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => openProfile(foundMember.id)}
+								>
+									<User />
+									{t("scanner.openProfile")}
 								</Button>
-							</div>
+							) : null}
 						</div>
 
 						{lookupLoading ? (
@@ -244,7 +233,7 @@ export function ScannerResult({
 								type="button"
 								onClick={() => openProfile(foundMember.id)}
 								aria-label={`${t("scanner.openProfile")}: ${foundMember.name}`}
-								className="w-full space-y-3 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+								className="w-full space-y-2.5 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 							>
 								<div className="flex flex-wrap items-center gap-2">
 									<p className="text-base font-semibold">{foundMember.name}</p>
@@ -261,32 +250,22 @@ export function ScannerResult({
 											: t("scanner.enrichNotMember")}
 									</Badge>
 								</div>
-								<div className="space-y-2">
-									<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-										{t("scanner.enrichGroups")}
+								{previewRessorts.length > 0 ? (
+									<div className="flex flex-wrap gap-1.5">
+										{previewRessorts.map((group) => {
+											const labelKey = ressortLabelKey(group);
+											return (
+												<Badge key={group} variant="ressort">
+													{labelKey ? t(labelKey) : group}
+												</Badge>
+											);
+										})}
+									</div>
+								) : (
+									<p className="text-sm text-muted-foreground">
+										{t("profile.noRessorts")}
 									</p>
-									{foundMember.groups.length === 0 ? (
-										<p className="text-sm text-muted-foreground">
-											{t("scanner.enrichNoGroups")}
-										</p>
-									) : (
-										<div className="flex flex-wrap gap-1.5">
-											{sortGroupsForDisplay(foundMember.groups).map(
-												(group) => {
-													const labelKey = ressortLabelKey(group);
-													return (
-														<Badge
-															key={group}
-															variant={groupBadgeVariant(group)}
-														>
-															{labelKey ? t(labelKey) : group}
-														</Badge>
-													);
-												},
-											)}
-										</div>
-									)}
-								</div>
+								)}
 							</button>
 						) : null}
 
