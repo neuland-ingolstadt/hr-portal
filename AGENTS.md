@@ -3,7 +3,7 @@
 ## Source of truth
 
 - **Authentik is the SoT for users, groups, and access.** This app does **not** store members in an application database.
-- Roles (`hr`, `vorstand`) are derived from Authentik group membership (env-configurable names).
+- Roles (`hr`, `vorstand`, `admin`) are derived from Authentik group membership (env-configurable names). `admin` has the same app permissions as `vorstand`.
 - Prefer the OIDC `groups` claim (ID token / UserInfo). REST API group lookup is optional fallback only (`sub` UUID is not a valid Authentik user path id).
 - Do not add a local user/member table or sync users into Postgres/SQLite for identity.
 

@@ -17,9 +17,11 @@ export const Route = createFileRoute("/api/auth/mock")({
 				const role =
 					roleParam === "vorstand"
 						? "vorstand"
-						: roleParam === "none"
-							? "none"
-							: "hr";
+						: roleParam === "admin"
+							? "admin"
+							: roleParam === "none"
+								? "none"
+								: "hr";
 
 				const user = await createMockSession(role);
 				const target = hasAppAccess(user.roles) ? "/" : "/kein-zugang";

@@ -88,6 +88,9 @@ function LoginPage() {
 										{t("login.mockVorstand")}
 									</a>
 								</Button>
+								<Button asChild variant="outline" className="w-full">
+									<a href="/api/auth/mock?role=admin">{t("login.mockAdmin")}</a>
+								</Button>
 								<Button asChild variant="ghost" className="w-full">
 									<a href="/api/auth/mock?role=none">{t("login.mockGuest")}</a>
 								</Button>
