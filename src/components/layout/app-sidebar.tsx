@@ -141,9 +141,7 @@ export function AppSidebar({
 					onClick={onNavigate}
 					className="flex min-w-0 items-center gap-3 no-underline"
 				>
-					<div className="flex size-9 shrink-0 items-center justify-center border border-border bg-background text-foreground">
-						<NeulandPalm className="h-5 w-auto" />
-					</div>
+					<NeulandPalm className="h-7 w-auto shrink-0 text-foreground" />
 					<div className="min-w-0 font-mono leading-tight">
 						<span className="block truncate text-sm font-semibold tracking-wide">
 							Neuland
@@ -173,12 +171,17 @@ export function AppSidebar({
 				/>
 			</nav>
 
-			<div className="mt-auto space-y-3 border-t border-border p-3">
-				<div className="flex items-center justify-center gap-2">
-					<LanguageToggle />
-					<ThemeToggle />
+			<div className="mt-auto space-y-2 border-t border-border p-3">
+				<div className="grid grid-cols-2 gap-2">
+					<LanguageToggle size="sm" className="w-full justify-center" />
+					<ThemeToggle size="sm" className="w-full justify-center" />
 				</div>
-				<Button variant="outline" size="sm" className="w-full" asChild>
+				<Button
+					variant="outline"
+					size="sm"
+					className="w-full justify-center"
+					asChild
+				>
 					<a href={ROUTES.AUTH_LOGOUT}>
 						<LogOut />
 						{t("header.logout")}

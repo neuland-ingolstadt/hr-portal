@@ -42,18 +42,13 @@ function StatCard({
 	label,
 	value,
 	hint,
-	delay,
 }: {
 	label: string;
 	value: string;
 	hint?: string;
-	delay: string;
 }) {
 	return (
-		<div
-			className="surface-panel surface-panel--interactive relative overflow-hidden p-5"
-			style={{ animationDelay: delay }}
-		>
+		<div className="surface-panel surface-panel--interactive relative overflow-hidden p-5 [animation:none]">
 			<span
 				aria-hidden
 				className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary via-primary/40 to-transparent"
@@ -164,19 +159,16 @@ function StatsSkeleton({ roleLabel }: { roleLabel: string }) {
 				label={t("home.statMembers")}
 				value="…"
 				hint={t("home.statMembersHint")}
-				delay="60ms"
 			/>
 			<StatCard
 				label={t("home.statGroups")}
 				value="…"
 				hint={t("home.statGroupsHint")}
-				delay="110ms"
 			/>
 			<StatCard
 				label={t("home.statAccess")}
 				value={roleLabel}
 				hint={t("home.statAccessHint")}
-				delay="160ms"
 			/>
 		</section>
 	);
@@ -202,7 +194,6 @@ function StatsGrid({
 							? t("home.statUnavailable")
 							: t("home.statMembersHint")
 				}
-				delay="60ms"
 			/>
 			<StatCard
 				label={t("home.statGroups")}
@@ -212,7 +203,6 @@ function StatsGrid({
 						? t("home.statUnavailable")
 						: t("home.statGroupsHint")
 				}
-				delay="110ms"
 			/>
 			<StatCard
 				label={t("home.statAccess")}
@@ -226,7 +216,6 @@ function StatsGrid({
 								: t("home.empty")
 				}
 				hint={t("home.statAccessHint")}
-				delay="160ms"
 			/>
 		</section>
 	);
