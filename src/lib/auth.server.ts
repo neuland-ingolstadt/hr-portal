@@ -2,7 +2,7 @@ import { redirect } from "@tanstack/react-router";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import * as client from "openid-client";
 import type { AppRole, SessionUser } from "#/lib/auth";
-import { hasAppAccess, primaryRole } from "#/lib/auth";
+import { hasAppAccess, hasElevatedAccess, primaryRole } from "#/lib/auth";
 import { getCallbackUrl, serverConfig } from "#/lib/config";
 import { getAppSession } from "#/lib/session";
 
@@ -37,11 +37,13 @@ export function mapGroupsToRoles(groups: string[]): AppRole[] {
 	const roles = new Set<AppRole>();
 	const hrName = serverConfig.groups.hr.toLowerCase();
 	const vorstandName = serverConfig.groups.vorstand.toLowerCase();
+	const adminName = serverConfig.groups.admin.toLowerCase();
 
 	for (const group of groups) {
 		const normalized = group.trim().toLowerCase();
 		if (normalized === hrName) roles.add("hr");
 		if (normalized === vorstandName) roles.add("vorstand");
+		if (normalized === adminName) roles.add("admin");
 	}
 
 	return [...roles];
@@ -317,7 +319,7 @@ export async function requireSessionUser(): Promise<SessionUser> {
 
 /**
  * RBAC gate for server functions and API handlers.
- * hr / vorstand may use the app; everyone else → kein Zugang / 403.
+ * hr / vorstand / admin may use the app; everyone else → kein Zugang / 403.
  */
 export async function requireAppAccess(options?: {
 	asJson?: boolean;
@@ -351,28 +353,39 @@ export async function createMockSession(
 	}
 
 	const roles: AppRole[] =
-		role === "vorstand" ? ["vorstand", "hr"] : role === "hr" ? ["hr"] : [];
+		role === "admin"
+			? ["admin", "hr"]
+			: role === "vorstand"
+				? ["vorstand", "hr"]
+				: role === "hr"
+					? ["hr"]
+					: [];
 
 	const user: SessionUser = {
 		sub: `mock-${role}`,
 		email:
-			role === "vorstand"
-				? "vorstand@neuland.local"
-				: role === "hr"
-					? "hr@neuland.local"
-					: "gast@neuland.local",
+			role === "admin"
+				? "admin@neuland.local"
+				: role === "vorstand"
+					? "vorstand@neuland.local"
+					: role === "hr"
+						? "hr@neuland.local"
+						: "gast@neuland.local",
 		name:
-			role === "vorstand"
-				? "Mock Vorstand"
-				: role === "hr"
-					? "Mock HR"
-					: "Mock Gast",
+			role === "admin"
+				? "Mock Admin"
+				: role === "vorstand"
+					? "Mock Vorstand"
+					: role === "hr"
+						? "Mock HR"
+						: "Mock Gast",
 		groups:
 			role === "none"
 				? []
 				: [
 						serverConfig.groups.hr,
 						...(role === "vorstand" ? [serverConfig.groups.vorstand] : []),
+						...(role === "admin" ? [serverConfig.groups.admin] : []),
 					],
 		roles,
 	};
@@ -382,4 +395,4 @@ export async function createMockSession(
 	return user;
 }
 
-export { primaryRole, hasAppAccess };
+export { primaryRole, hasAppAccess, hasElevatedAccess };

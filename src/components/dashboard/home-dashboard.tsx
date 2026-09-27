@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import type { SessionUser } from "#/lib/auth";
-import { primaryRole } from "#/lib/auth";
+import { primaryRole, roleBadgeVariant } from "#/lib/auth";
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
@@ -217,11 +217,13 @@ function StatsGrid({
 			<StatCard
 				label={t("home.statAccess")}
 				value={
-					role === "vorstand"
-						? t("role.vorstand")
-						: role === "hr"
-							? t("role.hr")
-							: t("home.empty")
+					role === "admin"
+						? t("role.admin")
+						: role === "vorstand"
+							? t("role.vorstand")
+							: role === "hr"
+								? t("role.hr")
+								: t("home.empty")
 				}
 				hint={t("home.statAccessHint")}
 				delay="160ms"
@@ -235,11 +237,13 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 	const role = primaryRole(user.roles);
 	const firstName = user.name.trim().split(/\s+/)[0] || user.name;
 	const accessLabel =
-		role === "vorstand"
-			? t("role.vorstand")
-			: role === "hr"
-				? t("role.hr")
-				: t("home.empty");
+		role === "admin"
+			? t("role.admin")
+			: role === "vorstand"
+				? t("role.vorstand")
+				: role === "hr"
+					? t("role.hr")
+					: t("home.empty");
 
 	return (
 		<div className="flex w-full min-w-0 flex-col gap-6 sm:gap-8">
@@ -264,8 +268,12 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						<p className="page-lead max-w-xl">{t("home.lead")}</p>
 						<div className="flex flex-wrap items-center gap-2 pt-1">
 							{role ? (
-								<Badge variant={role === "vorstand" ? "vorstand" : "hr"}>
-									{role === "vorstand" ? t("role.vorstand") : t("role.hr")}
+								<Badge variant={roleBadgeVariant(role)}>
+									{role === "admin"
+										? t("role.admin")
+										: role === "vorstand"
+											? t("role.vorstand")
+											: t("role.hr")}
 								</Badge>
 							) : null}
 							<span className="text-xs text-muted-foreground">
@@ -357,11 +365,12 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						<div className="grid gap-1">
 							<span className="meta-label">{t("home.role")}</span>
 							{role ? (
-								<Badge
-									variant={role === "vorstand" ? "vorstand" : "hr"}
-									className="w-fit"
-								>
-									{role === "vorstand" ? t("role.vorstand") : t("role.hr")}
+								<Badge variant={roleBadgeVariant(role)} className="w-fit">
+									{role === "admin"
+										? t("role.admin")
+										: role === "vorstand"
+											? t("role.vorstand")
+											: t("role.hr")}
 								</Badge>
 							) : (
 								<span className="meta-value text-sm">{t("home.empty")}</span>

@@ -32,6 +32,8 @@ export const serverConfig = {
 	groups: {
 		hr: optional("HR_GROUP_NAME", "HR"),
 		vorstand: optional("VORSTAND_GROUP_NAME", "Vorstand"),
+		/** Same app permissions as Vorstand; separate Authentik group. */
+		admin: optional("ADMIN_GROUP_NAME", "Admin"),
 		/** Authentik group counted as Verein-Mitglieder on the dashboard. */
 		mitglieder: optional("MITGLIEDER_GROUP_NAME", "mitglieder"),
 	},

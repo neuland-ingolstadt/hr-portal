@@ -40,7 +40,7 @@ function initials(name: string): string {
 
 function groupBadgeVariant(group: string) {
 	const key = group.toLowerCase();
-	if (key === "vorstand") return "vorstand" as const;
+	if (key === "vorstand" || key === "admin") return "vorstand" as const;
 	if (key === "hr") return "hr" as const;
 	return "muted" as const;
 }
