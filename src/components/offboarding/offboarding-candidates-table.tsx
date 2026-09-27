@@ -9,6 +9,7 @@ import {
 import { useDeferredValue, useMemo, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import { Tooltip } from "#/components/ui/tooltip";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import type { OffboardingCandidate } from "#/lib/members";
@@ -138,18 +139,20 @@ export function OffboardingStageTable({
 					{filteredCandidates.length}
 				</span>
 				{hasFilters ? (
-					<Button
-						type="button"
-						variant="ghost"
-						size="icon-sm"
-						onClick={() => {
-							setNameFilter("");
-							setPage(0);
-						}}
-						aria-label={t("members.clearFilters")}
-					>
-						<X className="size-3.5" aria-hidden />
-					</Button>
+					<Tooltip label={t("members.clearFilters")}>
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon-sm"
+							onClick={() => {
+								setNameFilter("");
+								setPage(0);
+							}}
+							aria-label={t("members.clearFilters")}
+						>
+							<X className="size-3.5" aria-hidden />
+						</Button>
+					</Tooltip>
 				) : null}
 			</div>
 
@@ -195,24 +198,31 @@ export function OffboardingStageTable({
 										</span>
 									) : null}
 								</button>
-								<Button
-									type="button"
-									size="icon-sm"
-									variant={
-										stage === "revoke_membership" ? "outline" : "destructive"
+								<Tooltip
+									label={
+										watchlist
+											? t("offboarding.action.revokeWatchlist")
+											: actionLabel
 									}
-									disabled={watchlist}
-									title={actionLabel}
-									aria-label={`${actionLabel}: ${candidate.name}`}
-									onClick={() => onAction(candidate)}
-									className="shrink-0 opacity-70 transition-opacity group-hover:opacity-100"
 								>
-									{stage === "revoke_membership" ? (
-										<ShieldOff className="size-3.5" aria-hidden />
-									) : (
-										<Trash2 className="size-3.5" aria-hidden />
-									)}
-								</Button>
+									<Button
+										type="button"
+										size="icon-sm"
+										variant={
+											stage === "revoke_membership" ? "outline" : "destructive"
+										}
+										disabled={watchlist}
+										aria-label={`${actionLabel}: ${candidate.name}`}
+										onClick={() => onAction(candidate)}
+										className="shrink-0 opacity-70 transition-opacity group-hover:opacity-100"
+									>
+										{stage === "revoke_membership" ? (
+											<ShieldOff className="size-3.5" aria-hidden />
+										) : (
+											<Trash2 className="size-3.5" aria-hidden />
+										)}
+									</Button>
+								</Tooltip>
 							</li>
 						);
 					})
@@ -225,28 +235,32 @@ export function OffboardingStageTable({
 						{safePage + 1}/{pageCount}
 					</span>
 					<div className="flex items-center gap-1">
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon-sm"
-							disabled={safePage <= 0}
-							onClick={() => setPage((current) => Math.max(0, current - 1))}
-							aria-label={t("offboarding.candidatesPrev")}
-						>
-							<ChevronLeft className="size-4" aria-hidden />
-						</Button>
-						<Button
-							type="button"
-							variant="ghost"
-							size="icon-sm"
-							disabled={safePage >= pageCount - 1}
-							onClick={() =>
-								setPage((current) => Math.min(pageCount - 1, current + 1))
-							}
-							aria-label={t("offboarding.candidatesNext")}
-						>
-							<ChevronRight className="size-4" aria-hidden />
-						</Button>
+						<Tooltip label={t("offboarding.candidatesPrev")}>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon-sm"
+								disabled={safePage <= 0}
+								onClick={() => setPage((current) => Math.max(0, current - 1))}
+								aria-label={t("offboarding.candidatesPrev")}
+							>
+								<ChevronLeft className="size-4" aria-hidden />
+							</Button>
+						</Tooltip>
+						<Tooltip label={t("offboarding.candidatesNext")}>
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon-sm"
+								disabled={safePage >= pageCount - 1}
+								onClick={() =>
+									setPage((current) => Math.min(pageCount - 1, current + 1))
+								}
+								aria-label={t("offboarding.candidatesNext")}
+							>
+								<ChevronRight className="size-4" aria-hidden />
+							</Button>
+						</Tooltip>
 					</div>
 				</div>
 			) : null}

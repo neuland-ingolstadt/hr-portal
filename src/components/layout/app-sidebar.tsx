@@ -1,14 +1,5 @@
 import { getRouteApi, Link, useRouterState } from "@tanstack/react-router";
 import { LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import {
-	type ReactNode,
-	useCallback,
-	useEffect,
-	useId,
-	useRef,
-	useState,
-} from "react";
-import { createPortal } from "react-dom";
 import { NeulandPalm } from "#/components/brand/neuland-palm";
 import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortcuts";
 import { LanguageToggle } from "#/components/layout/language-toggle";
@@ -20,6 +11,7 @@ import {
 } from "#/components/layout/nav-items";
 import { ThemeToggle } from "#/components/layout/theme-toggle";
 import { Button } from "#/components/ui/button";
+import { Tooltip } from "#/components/ui/tooltip";
 import { ROUTES } from "#/lib/constants";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
@@ -33,95 +25,6 @@ type AppSidebarProps = {
 	animateWidth?: boolean;
 	onOpenShortcuts?: () => void;
 };
-
-function SidebarHoverLabel({
-	label,
-	enabled,
-	className,
-	children,
-}: {
-	label: string;
-	enabled: boolean;
-	className?: string;
-	children: ReactNode;
-}) {
-	const triggerRef = useRef<HTMLSpanElement>(null);
-	const tooltipId = useId();
-	const [open, setOpen] = useState(false);
-	const [coords, setCoords] = useState<{ top: number; left: number } | null>(
-		null,
-	);
-
-	const updatePosition = useCallback(() => {
-		const el = triggerRef.current;
-		if (!el) return;
-		const target = (el.firstElementChild as HTMLElement | null) ?? el;
-		const rect = target.getBoundingClientRect();
-		setCoords({
-			top: rect.top + rect.height / 2,
-			left: rect.right + 10,
-		});
-	}, []);
-
-	const show = useCallback(() => {
-		if (!enabled) return;
-		updatePosition();
-		setOpen(true);
-	}, [enabled, updatePosition]);
-
-	const hide = useCallback(() => {
-		setOpen(false);
-	}, []);
-
-	useEffect(() => {
-		if (!open) return;
-		const onScroll = () => updatePosition();
-		window.addEventListener("scroll", onScroll, true);
-		window.addEventListener("resize", onScroll);
-		return () => {
-			window.removeEventListener("scroll", onScroll, true);
-			window.removeEventListener("resize", onScroll);
-		};
-	}, [open, updatePosition]);
-
-	useEffect(() => {
-		if (!enabled) setOpen(false);
-	}, [enabled]);
-
-	if (!enabled) {
-		return children;
-	}
-
-	return (
-		<>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: tooltip trigger wraps interactive children */}
-			<span
-				ref={triggerRef}
-				className={cn("inline-flex max-w-full", className)}
-				onMouseEnter={show}
-				onMouseLeave={hide}
-				onFocus={show}
-				onBlur={hide}
-				aria-describedby={open ? tooltipId : undefined}
-			>
-				{children}
-			</span>
-			{open && coords
-				? createPortal(
-						<span
-							id={tooltipId}
-							role="tooltip"
-							className="pointer-events-none fixed z-[100] -translate-y-1/2 whitespace-nowrap border border-border bg-card px-2.5 py-1.5 font-mono text-xs font-medium text-card-foreground shadow-sm"
-							style={{ top: coords.top, left: coords.left }}
-						>
-							{label}
-						</span>,
-						document.body,
-					)
-				: null}
-		</>
-	);
-}
 
 function NavSection({
 	title,
@@ -153,9 +56,10 @@ function NavSection({
 				const active = item.match(pathname);
 				const label = t(item.labelKey);
 				return (
-					<SidebarHoverLabel
+					<Tooltip
 						key={item.to}
 						label={label}
+						side="right"
 						enabled={collapsed}
 						className="w-full"
 					>
@@ -184,7 +88,7 @@ function NavSection({
 								</span>
 							)}
 						</Link>
-					</SidebarHoverLabel>
+					</Tooltip>
 				);
 			})}
 		</div>
@@ -218,7 +122,7 @@ export function AppSidebar({
 					collapsed ? "flex-col gap-2 px-2 py-3" : "gap-2 px-3 py-3",
 				)}
 			>
-				<SidebarHoverLabel label="Neuland HR" enabled={collapsed}>
+				<Tooltip label="Neuland HR" side="right" enabled={collapsed}>
 					<Link
 						to={ROUTES.HOME}
 						data-sidebar-brand
@@ -243,12 +147,13 @@ export function AppSidebar({
 							</div>
 						)}
 					</Link>
-				</SidebarHoverLabel>
+				</Tooltip>
 				{canCollapse ? (
-					<SidebarHoverLabel
+					<Tooltip
 						label={
 							collapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")
 						}
+						side="right"
 						enabled
 					>
 						<Button
@@ -268,7 +173,7 @@ export function AppSidebar({
 								<PanelLeftClose aria-hidden />
 							)}
 						</Button>
-					</SidebarHoverLabel>
+					</Tooltip>
 				) : null}
 			</div>
 
@@ -305,27 +210,32 @@ export function AppSidebar({
 						collapsed ? "flex-col gap-0.5" : "gap-0.5 px-1",
 					)}
 				>
-					<SidebarHoverLabel label={t("header.language")} enabled={collapsed}>
+					<Tooltip
+						label={t("header.language")}
+						side="right"
+						enabled={collapsed}
+					>
 						<LanguageToggle
 							variant="ghost"
 							size="icon-sm"
 							className="text-muted-foreground"
 						/>
-					</SidebarHoverLabel>
-					<SidebarHoverLabel label="Theme" enabled={collapsed}>
+					</Tooltip>
+					<Tooltip label="Theme" side="right" enabled={collapsed}>
 						<ThemeToggle
 							variant="ghost"
 							size="icon-sm"
 							className="text-muted-foreground"
 						/>
-					</SidebarHoverLabel>
+					</Tooltip>
 					{onOpenShortcuts ? (
-						<SidebarHoverLabel
+						<Tooltip
 							label={t("shortcuts.showHelp")}
+							side="right"
 							enabled={collapsed}
 						>
 							<KeyboardShortcutsHelpButton onOpen={onOpenShortcuts} />
-						</SidebarHoverLabel>
+						</Tooltip>
 					) : null}
 					{collapsed ? null : (
 						<a
@@ -339,7 +249,7 @@ export function AppSidebar({
 					)}
 				</div>
 				{collapsed ? (
-					<SidebarHoverLabel label={t("header.logout")} enabled>
+					<Tooltip label={t("header.logout")} side="right" enabled>
 						<a
 							href={ROUTES.AUTH_LOGOUT}
 							aria-label={t("header.logout")}
@@ -347,7 +257,7 @@ export function AppSidebar({
 						>
 							<LogOut className="size-4" aria-hidden />
 						</a>
-					</SidebarHoverLabel>
+					</Tooltip>
 				) : null}
 			</div>
 		</aside>

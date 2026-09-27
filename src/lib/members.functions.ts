@@ -7,6 +7,10 @@ import {
 	listMembersFromAuthentik,
 	listNonMitgliederAccountsFromAuthentik,
 } from "#/lib/authentik-members.server";
+import {
+	type UpdateMemberGroupsResult,
+	updateMemberAssignableGroups,
+} from "#/lib/member-groups.server";
 import type {
 	DirectoryStats,
 	MemberProfileResult,
@@ -46,5 +50,26 @@ export const getMemberProfileFn = createServerFn({ method: "GET" })
 		const user = await requireAppAccess();
 		return getMemberProfileByUuid(data.id, {
 			includeEmail: hasElevatedAccess(user.roles),
+		});
+	});
+
+export const updateMemberGroupsFn = createServerFn({ method: "POST" })
+	.validator((data: { id: string; groups: string[] }) => {
+		if (!data?.id || typeof data.id !== "string" || !data.id.trim()) {
+			throw new Error("invalid_id");
+		}
+		if (!Array.isArray(data.groups)) {
+			throw new Error("invalid_groups");
+		}
+		const groups = data.groups.filter(
+			(group): group is string =>
+				typeof group === "string" && group.trim().length > 0,
+		);
+		return { id: data.id.trim(), groups };
+	})
+	.handler(async ({ data }): Promise<UpdateMemberGroupsResult> => {
+		await requireElevatedAccess();
+		return updateMemberAssignableGroups(data.id, data.groups, {
+			includeEmail: true,
 		});
 	});

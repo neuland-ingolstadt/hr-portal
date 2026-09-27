@@ -7,7 +7,8 @@
 - Prefer the OIDC `groups` claim (ID token / UserInfo). REST API group lookup is optional fallback only (`sub` UUID is not a valid Authentik user path id).
 - Do not add a local user/member table or sync users into Postgres/SQLite for identity.
 - **App access** (`requireAppAccess`): `hr` | `vorstand` | `admin`.
-- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory, offboarding list/actions. HR must not see or act on applications or offboarding.
+- **Elevated** (`requireElevatedAccess` / `hasElevatedAccess`): `vorstand` | `admin` only — applications list/accept, manual member create, member email in directory, offboarding list/actions, **member profile group edit** (ressorts only). HR must not see or act on applications or offboarding.
+- Profile group edit never mutates protected Authentik groups: HR, Vorstand, Admin, Ehrenmitglied, technical-users, mitglieder.
 
 ## Layout
 
@@ -36,7 +37,7 @@
 
 ## Onboarding
 
-- `/onboarding` is planned (coming soon). Prefer accepting via `/applications`.
+- `/onboarding` MVP: lists Mitglieder with Authentik accounts created in the last 8 weeks (`date_joined`) as profile cards. Prefer accepting via `/applications`.
 - Shared create helpers live in `src/lib/onboarding*.ts` and the welcome email in `src/emails/welcome.tsx`.
 - Env: `AUTHENTIK_API_*` (write users), optional `AUTHENTIK_DEFAULT_GROUP` / `AUTHENTIK_USER_PATH`, `AZURE_COMMUNICATION_SERVICE_CONNECTION_STRING`, `FROM_EMAIL`.
 

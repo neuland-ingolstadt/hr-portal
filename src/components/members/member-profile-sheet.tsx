@@ -1,6 +1,8 @@
-import { CheckCircle2, CircleDashed } from "lucide-react";
-import { type ReactNode, useEffect, useState } from "react";
+import { getRouteApi } from "@tanstack/react-router";
+import { CheckCircle2, CircleDashed, Loader2 } from "lucide-react";
+import { type ReactNode, useEffect, useId, useState } from "react";
 import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
@@ -8,15 +10,36 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "#/components/ui/sheet";
+import { hasElevatedAccess } from "#/lib/auth";
 import {
 	groupBadgeVariant,
+	matchRessort,
+	partitionEditableGroups,
 	partitionGroups,
+	RESSORTS,
 	ressortLabelKey,
 } from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
+import type { MessageKey } from "#/lib/i18n/messages";
+import type { UpdateMemberGroupsError } from "#/lib/member-groups";
 import type { MemberProfile, MemberProfileResult } from "#/lib/members";
-import { getMemberProfileFn } from "#/lib/members.functions";
+import {
+	getMemberProfileFn,
+	updateMemberGroupsFn,
+} from "#/lib/members.functions";
 import { cn } from "#/lib/utils";
+
+const appRouteApi = getRouteApi("/_app");
+
+const GROUP_ERROR_KEYS: Record<UpdateMemberGroupsError, MessageKey> = {
+	invalid_id: "profile.errorGroupsNotFound",
+	invalid_groups: "profile.errorGroupsInvalid",
+	protected_group: "profile.errorGroupsProtected",
+	user_not_found: "profile.errorGroupsNotFound",
+	group_not_found: "profile.errorGroupsNotFound",
+	authentik_api_missing: "profile.errorGroupsApi",
+	update_failed: "profile.errorGroupsFailed",
+};
 
 type MemberProfileSheetProps = {
 	memberId: string | null;
@@ -65,6 +88,8 @@ export function MemberProfileSheet({
 	onOpenChange,
 }: MemberProfileSheetProps) {
 	const { t } = useI18n();
+	const { user } = appRouteApi.useRouteContext();
+	const canEditGroups = hasElevatedAccess(user.roles);
 	const [result, setResult] = useState<MemberProfileResult | null>(null);
 	const [loading, setLoading] = useState(false);
 	const sheetOpen = open && Boolean(memberId);
@@ -144,16 +169,97 @@ export function MemberProfileSheet({
 						</p>
 					) : null}
 
-					{!loading && profile ? <ProfileBody profile={profile} /> : null}
+					{!loading && profile ? (
+						<ProfileBody
+							profile={profile}
+							canEditGroups={canEditGroups}
+							onProfileUpdate={(next) =>
+								setResult({ status: "found", profile: next })
+							}
+						/>
+					) : null}
 				</div>
 			</SheetContent>
 		</Sheet>
 	);
 }
 
-function ProfileBody({ profile }: { profile: MemberProfile }) {
+function selectedFromProfile(groups: string[]): Set<string> {
+	const selected = new Set<string>();
+	for (const group of groups) {
+		const ressort = matchRessort(group);
+		if (ressort) selected.add(ressort);
+	}
+	return selected;
+}
+
+function ProfileBody({
+	profile,
+	canEditGroups,
+	onProfileUpdate,
+}: {
+	profile: MemberProfile;
+	canEditGroups: boolean;
+	onProfileUpdate: (profile: MemberProfile) => void;
+}) {
 	const { t } = useI18n();
 	const { ressorts, other } = partitionGroups(profile.groups);
+	const { readonly } = partitionEditableGroups(profile.groups);
+	const readOnlyGroups = canEditGroups ? readonly : other;
+	const [selected, setSelected] = useState(() =>
+		selectedFromProfile(profile.groups),
+	);
+	const [pending, setPending] = useState(false);
+	const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+	const [saved, setSaved] = useState(false);
+
+	useEffect(() => {
+		setSelected(selectedFromProfile(profile.groups));
+		setErrorKey(null);
+		setSaved(false);
+	}, [profile.id, profile.groups]);
+
+	const initial = selectedFromProfile(profile.groups);
+	const dirty =
+		selected.size !== initial.size ||
+		[...selected].some((value) => !initial.has(value));
+
+	function toggle(value: string) {
+		setSaved(false);
+		setErrorKey(null);
+		setSelected((current) => {
+			const next = new Set(current);
+			if (next.has(value)) next.delete(value);
+			else next.add(value);
+			return next;
+		});
+	}
+
+	async function onSave() {
+		setPending(true);
+		setErrorKey(null);
+		setSaved(false);
+		try {
+			const result = await updateMemberGroupsFn({
+				data: {
+					id: profile.id,
+					groups: [...selected],
+				},
+			});
+			if (!result.success) {
+				setErrorKey(GROUP_ERROR_KEYS[result.error]);
+				return;
+			}
+			onProfileUpdate(result.profile);
+			setSelected(selectedFromProfile(result.profile.groups));
+			setSaved(true);
+		} catch (err) {
+			console.error("[members] update groups failed", err);
+			setErrorKey("profile.errorGroupsFailed");
+		} finally {
+			setPending(false);
+		}
+	}
 
 	return (
 		<>
@@ -188,37 +294,89 @@ function ProfileBody({ profile }: { profile: MemberProfile }) {
 				) : null}
 			</dl>
 
-			<section className="space-y-3 border-t border-border pt-5">
-				<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-					{t("profile.ressorts")}
-				</p>
-				{ressorts.length > 0 ? (
-					<ul className="flex flex-wrap gap-1.5">
-						{ressorts.map((group) => {
-							const labelKey = ressortLabelKey(group);
+			{canEditGroups ? (
+				<section className="space-y-3 border-t border-border pt-5">
+					<div className="space-y-1">
+						<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+							{t("profile.editRoles")}
+						</p>
+						<p className="text-sm text-muted-foreground">
+							{t("profile.editRolesHint")}
+						</p>
+					</div>
+					<ul className="flex flex-col gap-2">
+						{RESSORTS.map((ressort) => {
+							const labelKey = ressortLabelKey(ressort);
 							return (
-								<li key={group}>
-									<Badge variant="ressort">
-										{labelKey ? t(labelKey) : group}
-									</Badge>
-								</li>
+								<GroupCheckbox
+									key={ressort}
+									checked={selected.has(ressort)}
+									disabled={pending}
+									label={labelKey ? t(labelKey) : ressort}
+									onChange={() => toggle(ressort)}
+								/>
 							);
 						})}
 					</ul>
-				) : (
-					<p className="text-sm text-muted-foreground">
-						{t("profile.noRessorts")}
+					<div className="flex flex-wrap items-center gap-3">
+						<Button
+							type="button"
+							size="sm"
+							disabled={!dirty || pending}
+							onClick={() => void onSave()}
+						>
+							{pending ? (
+								<>
+									<Loader2 className="size-3.5 animate-spin" aria-hidden />
+									{t("profile.savingGroups")}
+								</>
+							) : (
+								t("profile.saveGroups")
+							)}
+						</Button>
+						{saved ? (
+							<p className="text-sm text-primary">{t("profile.groupsSaved")}</p>
+						) : null}
+						{errorKey ? (
+							<p className="text-sm text-destructive" role="alert">
+								{t(errorKey)}
+							</p>
+						) : null}
+					</div>
+				</section>
+			) : (
+				<section className="space-y-3 border-t border-border pt-5">
+					<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+						{t("profile.ressorts")}
 					</p>
-				)}
-			</section>
+					{ressorts.length > 0 ? (
+						<ul className="flex flex-wrap gap-1.5">
+							{ressorts.map((group) => {
+								const labelKey = ressortLabelKey(group);
+								return (
+									<li key={group}>
+										<Badge variant="ressort">
+											{labelKey ? t(labelKey) : group}
+										</Badge>
+									</li>
+								);
+							})}
+						</ul>
+					) : (
+						<p className="text-sm text-muted-foreground">
+							{t("profile.noRessorts")}
+						</p>
+					)}
+				</section>
+			)}
 
-			{other.length > 0 ? (
+			{readOnlyGroups.length > 0 ? (
 				<section className="space-y-3 border-t border-border pt-5">
 					<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 						{t("profile.groups")}
 					</p>
 					<ul className="flex flex-wrap gap-1.5">
-						{other.map((group) => (
+						{readOnlyGroups.map((group) => (
 							<li key={group}>
 								<Badge variant={groupBadgeVariant(group)}>{group}</Badge>
 							</li>
@@ -249,6 +407,42 @@ function ProfileBody({ profile }: { profile: MemberProfile }) {
 				</ul>
 			</section>
 		</>
+	);
+}
+
+function GroupCheckbox({
+	checked,
+	disabled,
+	label,
+	onChange,
+}: {
+	checked: boolean;
+	disabled?: boolean;
+	label: string;
+	onChange: () => void;
+}) {
+	const id = useId();
+	return (
+		<li>
+			<label
+				htmlFor={id}
+				className={cn(
+					"flex cursor-pointer items-center gap-3 border border-border bg-muted/20 px-3 py-2.5 text-sm transition-colors",
+					checked && "border-primary/40 bg-primary/5",
+					disabled && "cursor-not-allowed opacity-60",
+				)}
+			>
+				<input
+					id={id}
+					type="checkbox"
+					checked={checked}
+					disabled={disabled}
+					onChange={onChange}
+					className="size-4 shrink-0 accent-primary"
+				/>
+				<span className="font-medium">{label}</span>
+			</label>
+		</li>
 	);
 }
 

@@ -172,50 +172,6 @@ function ActionCard({
 	);
 }
 
-function PlaceholderCard({
-	to,
-	icon,
-	title,
-	description,
-}: {
-	to: string;
-	icon: ReactNode;
-	title: string;
-	description: string;
-}) {
-	const { t } = useI18n();
-	return (
-		<Link
-			to={to}
-			className={cn(
-				"surface-panel surface-panel--interactive relative flex h-full flex-col gap-4 p-5 no-underline opacity-[0.96]",
-				PANEL_STATIC,
-			)}
-		>
-			<div className="flex items-start justify-between gap-3">
-				<span className="flex size-10 items-center justify-center border border-dashed border-border bg-muted/50 text-muted-foreground">
-					{icon}
-				</span>
-				<span className="border border-border bg-muted px-2 py-0.5 font-mono text-[0.65rem] font-semibold tracking-[0.08em] text-muted-foreground uppercase">
-					{t("home.soon")}
-				</span>
-			</div>
-			<div className="space-y-1.5">
-				<h2 className="text-base font-semibold tracking-tight text-foreground/90">
-					{title}
-				</h2>
-				<p className="text-sm leading-relaxed text-muted-foreground">
-					{description}
-				</p>
-			</div>
-			<div className="mt-auto space-y-2 pt-1" aria-hidden>
-				<div className="h-2 w-3/4 bg-muted" />
-				<div className="h-2 w-1/2 bg-muted/70" />
-			</div>
-		</Link>
-	);
-}
-
 function StatsSkeleton({ roleLabel }: { roleLabel: string }) {
 	const { t } = useI18n();
 	return (
@@ -352,11 +308,12 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 							cta={t("home.openApplications")}
 						/>
 					) : null}
-					<PlaceholderCard
+					<ActionCard
 						to={ROUTES.ONBOARDING}
 						icon={<ClipboardList className="size-5" aria-hidden />}
 						title={t("home.moduleOnboardingTitle")}
 						description={t("home.moduleOnboardingDesc")}
+						cta={t("home.openOnboarding")}
 					/>
 					{elevated ? (
 						<ActionCard

@@ -1,8 +1,13 @@
 import { render } from "@react-email/render";
 import { createServerFn } from "@tanstack/react-start";
 import { WelcomeEmail, welcomeEmailPreviewProps } from "#/emails/welcome";
-import { requireElevatedAccess } from "#/lib/auth.server";
-import type { CreateMemberResult, NewMemberInput } from "#/lib/onboarding";
+import { listRecentOnboardingMembersFromAuthentik } from "#/lib/authentik-members.server";
+import { requireAppAccess, requireElevatedAccess } from "#/lib/auth.server";
+import type {
+	CreateMemberResult,
+	NewMemberInput,
+	RecentOnboardingMembersResult,
+} from "#/lib/onboarding";
 import { createMemberAccount } from "#/lib/onboarding.server";
 
 function validateNewMember(data: NewMemberInput): NewMemberInput {
@@ -35,3 +40,11 @@ export const previewWelcomeEmailFn = createServerFn({ method: "GET" }).handler(
 		return { html };
 	},
 );
+
+/** Mitglieder with Authentik accounts created in the last four months. */
+export const listRecentOnboardingMembersFn = createServerFn({
+	method: "GET",
+}).handler(async (): Promise<RecentOnboardingMembersResult> => {
+	await requireAppAccess();
+	return listRecentOnboardingMembersFromAuthentik();
+});

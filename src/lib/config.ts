@@ -34,6 +34,8 @@ export const serverConfig = {
 		vorstand: optional("VORSTAND_GROUP_NAME", "Vorstand"),
 		/** Same app permissions as Vorstand; separate Authentik group. */
 		admin: optional("ADMIN_GROUP_NAME", "Admin"),
+		/** Honorary members — never assignable via profile editor. */
+		ehrenmitglied: optional("EHRENMITGLIED_GROUP_NAME", "Ehrenmitglied"),
 		/** Authentik group counted as Verein-Mitglieder on the dashboard. */
 		mitglieder: optional("MITGLIEDER_GROUP_NAME", "mitglieder"),
 		/** Technical/service accounts — excluded from offboarding candidates. */

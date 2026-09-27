@@ -88,6 +88,37 @@ function ProcessPanel({
 		progress && progress.total > 0
 			? Math.round((progress.done / progress.total) * 100)
 			: 0;
+	const leaving = plan.skippedLeaving;
+	const grace = plan.waitingGrace;
+	const nothingDue =
+		leaving > 0 && grace > 0
+			? {
+					text: t("offboarding.process.nothingDue.both", {
+						leaving: String(leaving),
+						grace: String(grace),
+						days: String(graceDays),
+					}),
+					tone: "waiting" as const,
+				}
+			: leaving > 0
+				? {
+						text: t("offboarding.process.nothingDue.leaving", {
+							count: String(leaving),
+						}),
+						tone: "waiting" as const,
+					}
+				: grace > 0
+					? {
+							text: t("offboarding.process.nothingDue.grace", {
+								count: String(grace),
+								days: String(graceDays),
+							}),
+							tone: "waiting" as const,
+						}
+					: {
+							text: t("offboarding.process.nothingDue.empty"),
+							tone: "empty" as const,
+						};
 
 	return (
 		<section className="surface-panel flex flex-col gap-4 p-5 sm:p-6">
@@ -100,8 +131,14 @@ function ProcessPanel({
 						{t("offboarding.process.lead", { days: String(graceDays) })}
 					</p>
 					{!running && dueTotal === 0 ? (
-						<p className="text-sm text-muted-foreground">
-							{t("offboarding.process.nothingDue")}
+						<p
+							className={
+								nothingDue.tone === "waiting"
+									? "text-sm font-medium text-foreground"
+									: "text-sm text-muted-foreground"
+							}
+						>
+							{nothingDue.text}
 						</p>
 					) : null}
 				</div>

@@ -34,6 +34,11 @@ export function isRessortGroup(group: string): boolean {
 	return matchRessort(group) !== null;
 }
 
+/** Groups Vorstand/Admin may assign via the member profile editor (ressorts only). */
+export function isAssignableGroupName(group: string): boolean {
+	return isRessortGroup(group);
+}
+
 export function ressortLabelKey(group: string): MessageKey | null {
 	const ressort = matchRessort(group);
 	return ressort ? RESSORT_LABEL_KEYS[ressort] : null;
@@ -59,6 +64,29 @@ export function partitionGroups(groups: string[]): {
 	});
 	other.sort((a, b) => a.localeCompare(b, "de"));
 	return { ressorts, other };
+}
+
+/** Non-assignable groups for read-only profile badges (excludes ressorts). */
+export function partitionEditableGroups(groups: string[]): {
+	assignable: string[];
+	readonly: string[];
+} {
+	const assignable: string[] = [];
+	const readonly: string[] = [];
+	for (const group of groups) {
+		if (isAssignableGroupName(group)) assignable.push(group);
+		else readonly.push(group);
+	}
+	assignable.sort((a, b) => {
+		const aIdx = matchRessort(a);
+		const bIdx = matchRessort(b);
+		return (
+			(aIdx ? RESSORTS.indexOf(aIdx) : Number.POSITIVE_INFINITY) -
+			(bIdx ? RESSORTS.indexOf(bIdx) : Number.POSITIVE_INFINITY)
+		);
+	});
+	readonly.sort((a, b) => a.localeCompare(b, "de"));
+	return { assignable, readonly };
 }
 
 /** Ressorts first (canonical order), then remaining groups A–Z. */

@@ -22,11 +22,18 @@ function cameraErrorKey(err: unknown): MessageKey {
 	return "scanner.cameraErrorGeneric";
 }
 
+function stopMediaStream(stream: MediaStream | null | undefined) {
+	if (!stream) return;
+	for (const track of stream.getTracks()) track.stop();
+}
+
 export function QrCamera({ onScan, paused = false, className }: QrCameraProps) {
 	const { t } = useI18n();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const streamRef = useRef<MediaStream | null>(null);
+	const startIdRef = useRef(0);
 	const lastScanTime = useRef(0);
 	const [isScanning, setIsScanning] = useState(false);
 	const [isVisible, setIsVisible] = useState(false);
@@ -34,15 +41,19 @@ export function QrCamera({ onScan, paused = false, className }: QrCameraProps) {
 	const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
 	const stopCamera = useCallback(() => {
-		if (videoRef.current?.srcObject) {
-			const stream = videoRef.current.srcObject as MediaStream;
-			for (const track of stream.getTracks()) track.stop();
+		stopMediaStream(streamRef.current);
+		streamRef.current = null;
+		if (videoRef.current) {
 			videoRef.current.srcObject = null;
 		}
 		setIsScanning(false);
 	}, []);
 
 	const startCamera = useCallback(async () => {
+		const startId = ++startIdRef.current;
+		stopCamera();
+		setErrorKey(null);
+
 		try {
 			if (!navigator.mediaDevices?.getUserMedia) {
 				throw new Error("Camera API not supported");
@@ -66,23 +77,42 @@ export function QrCamera({ onScan, paused = false, className }: QrCameraProps) {
 				stream = await navigator.mediaDevices.getUserMedia(constraints);
 			}
 
+			// Unmounted or a newer start superseded this request — release immediately.
+			if (startId !== startIdRef.current) {
+				stopMediaStream(stream);
+				return;
+			}
+
+			streamRef.current = stream;
 			if (videoRef.current) {
 				videoRef.current.srcObject = stream;
-				setIsScanning(true);
-				setErrorKey(null);
 			}
+			setIsScanning(true);
+			setErrorKey(null);
 		} catch (err) {
+			if (startId !== startIdRef.current) return;
+			stopCamera();
 			setErrorKey(cameraErrorKey(err));
 			console.error("Camera error:", err);
 		}
-	}, []);
+	}, [stopCamera]);
 
 	useEffect(() => {
 		void startCamera();
 		return () => {
+			// Invalidate any in-flight getUserMedia so its stream is stopped on resolve.
+			startIdRef.current += 1;
 			stopCamera();
 		};
 	}, [startCamera, stopCamera]);
+
+	// Re-attach if the <video> remounts (e.g. after clearing an error state).
+	useEffect(() => {
+		if (errorKey) return;
+		if (videoRef.current && streamRef.current) {
+			videoRef.current.srcObject = streamRef.current;
+		}
+	}, [errorKey, isScanning]);
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(

@@ -91,6 +91,8 @@ export type OffboardingProcessPlan = {
 	toRevoke: { id: string; name: string }[];
 	toDelete: { id: string; name: string }[];
 	skippedLeaving: number;
+	/** Stage-2 accounts still inside the delete grace window. */
+	waitingGrace: number;
 };
 
 /** Who the “Prozess starten” button will touch (client-side plan). */
@@ -118,11 +120,17 @@ export function planOffboardingProcess(
 		toRevoke.push({ id: candidate.id, name: candidate.name });
 	}
 
-	const toDelete = deleteAccount
-		.filter((candidate) =>
-			isPastOffboardingDeleteGrace(candidate.membershipRevokedAt, graceDays),
-		)
-		.map((candidate) => ({ id: candidate.id, name: candidate.name }));
+	const toDelete: OffboardingProcessPlan["toDelete"] = [];
+	let waitingGrace = 0;
+	for (const candidate of deleteAccount) {
+		if (
+			isPastOffboardingDeleteGrace(candidate.membershipRevokedAt, graceDays)
+		) {
+			toDelete.push({ id: candidate.id, name: candidate.name });
+		} else {
+			waitingGrace += 1;
+		}
+	}
 
-	return { toRevoke, toDelete, skippedLeaving };
+	return { toRevoke, toDelete, skippedLeaving, waitingGrace };
 }

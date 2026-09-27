@@ -61,6 +61,7 @@ const de = {
 	"home.openMembers": "Mitglieder öffnen",
 	"home.openApplications": "Bewerbungen öffnen",
 	"home.openOffboarding": "Offboarding öffnen",
+	"home.openOnboarding": "Onboarding öffnen",
 	"home.signedInAs": "Angemeldet als {email}",
 	"home.statMembers": "Mitglieder",
 	"home.statGroups": "Gruppen",
@@ -75,7 +76,8 @@ const de = {
 		"Mitgliederverzeichnis durchsuchen, filtern und sortieren.",
 	"home.soon": "Bald",
 	"home.moduleOnboardingTitle": "Onboarding",
-	"home.moduleOnboardingDesc": "Checklisten und Abläufe für neue Mitglieder.",
+	"home.moduleOnboardingDesc":
+		"Neue Authentik-Konten der letzten Wochen.",
 	"home.moduleApplicationsTitle": "Bewerbungen",
 	"home.moduleApplicationsDesc":
 		"Eingehende Mitgliedsanträge prüfen und freigeben.",
@@ -143,11 +145,26 @@ const de = {
 	"onboarding.lead":
 		"Neue Mitglieder strukturiert einarbeiten — von Zugang bis Willkommen.",
 	"onboarding.leadLive":
-		"Neue Mitglieder strukturiert einarbeiten — von Zugang bis Willkommen.",
+		"Neue Authentik-Konten der letzten Wochen — Einstiegspunkt fürs Onboarding.",
 	"onboarding.bulletChecklist": "Aufgabenlisten pro Rolle",
 	"onboarding.bulletAccess": "Zugänge und Gruppen vorbereiten",
 	"onboarding.bulletWelcome": "Willkommensschritte und Termine",
 	"onboarding.bulletTrack": "Fortschritt für HR & Vorstand",
+	"onboarding.recent.title": "Neu in den letzten {weeks} Wochen",
+	"onboarding.recent.lead":
+		"Mitglieder nach Authentik-Kontoanlage (date_joined). Klicke eine Karte fürs Profil.",
+	"onboarding.recent.joined": "Konto seit {date}",
+	"onboarding.recent.count": "{count} neu",
+	"onboarding.recent.empty":
+		"Keine neuen Mitgliederkonten in den letzten {weeks} Wochen.",
+	"onboarding.recent.loading": "Neue Mitglieder werden geladen…",
+	"onboarding.recent.mockHint":
+		"Lokale Mock-Daten — Authentik-API ist nicht konfiguriert.",
+	"onboarding.recent.errorApiMissing":
+		"Authentik-API ist nicht konfiguriert. Neue Mitglieder können nicht geladen werden.",
+	"onboarding.recent.errorLoad":
+		"Neue Mitglieder konnten nicht geladen werden.",
+	"onboarding.recent.retry": "Erneut versuchen",
 	"onboarding.create.title": "Konto anlegen",
 	"onboarding.create.lead":
 		"Erstellt einen Authentik-Benutzer (Vorname.Nachname), setzt ein Passwort und sendet die Willkommensmail.",
@@ -182,20 +199,26 @@ const de = {
 	"offboarding.lead":
 		"Austritte sauber abwickeln: Zugänge, Übergaben und Dokumentation.",
 	"offboarding.leadLive":
-		"Zwei Schritte: Mitglieder-Rolle entfernen, danach Konten nach Karenz löschen. Start über „Prozess starten“.",
-	"offboarding.process.title": "Automatischen Prozess starten",
+		"Zwei Authentik-Schritte: Mitglieder-Gruppe entfernen, danach Konto nach Karenzfrist löschen. EasyVerein bleibt unverändert.",
+	"offboarding.process.title": "Fällige Aktionen ausführen",
 	"offboarding.process.lead":
-		"Entzieht fällige Austritte (nicht künftige) und löscht Konten nach {days} Tagen Karenz. Watchlist bleibt unberührt.",
+		"Entfernt die Mitglieder-Gruppe bei Konten mit wirksamem Austritt oder fehlender EasyVerein-ID. Löscht Konten, deren Zugang seit mindestens {days} Tagen entzogen ist. Zukünftige Austrittsdaten werden übersprungen.",
 	"offboarding.process.button": "Prozess starten",
 	"offboarding.process.running": "Prozess läuft…",
 	"offboarding.process.confirm":
-		"Fällige Mitglieder-Rollen entfernen und Konten nach Karenz löschen?",
+		"Mitglieder-Rollen bei fälligen Konten entfernen und Konten nach abgelaufener Karenz löschen?",
 	"offboarding.process.result":
-		"Erledigt: {revoked} Rollen entfernt, {deleted} Konten gelöscht. Watchlist: {skipped}. Fehler: {errors}.",
+		"{revoked} Rollen entfernt, {deleted} Konten gelöscht. Übersprungen (zukünftiger Austritt): {skipped}. Fehler: {errors}.",
 	"offboarding.process.error":
 		"Prozess fehlgeschlagen. Bitte erneut versuchen.",
-	"offboarding.process.nothingDue":
-		"Nichts fällig — Watchlist bleibt unberührt.",
+	"offboarding.process.nothingDue.empty":
+		"Keine Offboarding-Kandidaten — derzeit nichts zu tun.",
+	"offboarding.process.nothingDue.leaving":
+		"{count} mit zukünftigem Austritt — Prozess greift erst am Austrittstag.",
+	"offboarding.process.nothingDue.grace":
+		"{count} warten noch auf die {days}-Tage-Karenz nach Entzug des Zugangs.",
+	"offboarding.process.nothingDue.both":
+		"{leaving} mit zukünftigem Austritt, {grace} noch in der {days}-Tage-Karenz — derzeit nichts fällig.",
 	"offboarding.process.phaseRevoke": "Mitglieder-Rolle entfernen",
 	"offboarding.process.phaseDelete": "Konto löschen",
 	"offboarding.process.progressCount": "{done} von {total}",
@@ -235,7 +258,7 @@ const de = {
 	"offboarding.stage1.title": "Mitglieder-Rolle entfernen",
 	"offboarding.stage1.lead":
 		"Noch in der Mitglieder-Gruppe: fehlende EV-ID, Austritt, oder künftiger Austritt (Watchlist).",
-	"offboarding.stage1.listTitle": "Noch Mitglieds-Accounts",
+	"offboarding.stage1.listTitle": "Zugänge entziehen",
 	"offboarding.stage1.listLead":
 		"Fällige Austritte und fehlende EV-IDs werden per Prozess entzogen. Künftige Austrittsdaten bleiben Watchlist.",
 	"offboarding.stage1.empty": "Keine Einträge.",
@@ -244,11 +267,12 @@ const de = {
 	"offboarding.stage2.lead":
 		"Nur Konten mit entzogenem Zugang. Löschung nach Karenz oder manuell.",
 	"offboarding.stage2.irreversible": "Unwiderruflich: Konto wird gelöscht.",
-	"offboarding.stage2.listTitle": "Zugang entzogen",
+	"offboarding.stage2.listTitle": "Authentik-Konto löschen",
 	"offboarding.stage2.listLead":
 		"Nach Schritt 1. Prozess löscht erst nach Karenz; Einzelaktion jederzeit möglich.",
 	"offboarding.stage2.empty": "Keine Einträge.",
 	"offboarding.action.revoke": "Rolle entfernen",
+	"offboarding.action.revokeWatchlist": "Erst nach Austrittsdatum möglich",
 	"offboarding.action.delete": "Löschen",
 	"offboarding.dialogCancel": "Abbrechen",
 	"offboarding.dialogDone": "Fertig",
@@ -340,6 +364,18 @@ const de = {
 	"profile.discord": "Discord",
 	"profile.connected": "Einrichtung abgeschlossen",
 	"profile.notConnected": "Nicht eingerichtet",
+	"profile.editRoles": "Ressorts",
+	"profile.editRolesHint": "Ressorts zuweisen.",
+	"profile.saveGroups": "Speichern",
+	"profile.savingGroups": "Wird gespeichert…",
+	"profile.groupsSaved": "Gruppen aktualisiert.",
+	"profile.errorGroupsUnauthorized": "Keine Berechtigung zum Bearbeiten.",
+	"profile.errorGroupsInvalid": "Ungültige Gruppenauswahl.",
+	"profile.errorGroupsProtected":
+		"Geschützte Gruppen können hier nicht geändert werden.",
+	"profile.errorGroupsNotFound": "Benutzer oder Gruppe nicht gefunden.",
+	"profile.errorGroupsApi": "Authentik-API ist nicht konfiguriert.",
+	"profile.errorGroupsFailed": "Gruppen konnten nicht gespeichert werden.",
 	"ressort.management": "Management",
 	"ressort.designMarketing": "Design & Marketing",
 	"ressort.engineering": "Engineering",
@@ -410,6 +446,12 @@ const de = {
 		"Anmeldung unvollständig. Bitte erneut versuchen.",
 	"error.login_failed": "Anmeldung fehlgeschlagen.",
 	"error.generic": "Etwas ist schiefgelaufen.",
+	"spinner.fun.1": "Geduld…",
+	"spinner.fun.2": "Noch einen Moment.",
+	"spinner.fun.3": "Die Daten sind unterwegs.",
+	"spinner.fun.4": "Gleich soweit.",
+	"spinner.fun.5": "Bitte kurz warten.",
+	"spinner.fun.6": "Noch nicht weg.",
 } as const;
 
 export type MessageKey = keyof typeof de;
@@ -470,6 +512,7 @@ const en: Record<MessageKey, string> = {
 	"home.openMembers": "Open members",
 	"home.openApplications": "Open applications",
 	"home.openOffboarding": "Open offboarding",
+	"home.openOnboarding": "Open onboarding",
 	"home.signedInAs": "Signed in as {email}",
 	"home.statMembers": "Members",
 	"home.statGroups": "Groups",
@@ -483,7 +526,7 @@ const en: Record<MessageKey, string> = {
 	"home.actionMembersDesc": "Search, filter, and sort the members directory.",
 	"home.soon": "Soon",
 	"home.moduleOnboardingTitle": "Onboarding",
-	"home.moduleOnboardingDesc": "Checklists and flows for new members.",
+	"home.moduleOnboardingDesc": "New Authentik accounts from the last weeks.",
 	"home.moduleApplicationsTitle": "Applications",
 	"home.moduleApplicationsDesc":
 		"Review and approve incoming membership applications.",
@@ -551,11 +594,25 @@ const en: Record<MessageKey, string> = {
 	"onboarding.lead":
 		"Bring new members up to speed — from access to welcome steps.",
 	"onboarding.leadLive":
-		"Bring new members up to speed — from access to welcome steps.",
+		"New Authentik accounts from the last weeks — starting point for onboarding.",
 	"onboarding.bulletChecklist": "Role-based task lists",
 	"onboarding.bulletAccess": "Prepare access and groups",
 	"onboarding.bulletWelcome": "Welcome steps and appointments",
 	"onboarding.bulletTrack": "Progress for HR & board",
+	"onboarding.recent.title": "New in the last {weeks} weeks",
+	"onboarding.recent.lead":
+		"Members by Authentik account creation (date_joined). Click a card for the profile.",
+	"onboarding.recent.joined": "Account since {date}",
+	"onboarding.recent.count": "{count} new",
+	"onboarding.recent.empty":
+		"No new member accounts in the last {weeks} weeks.",
+	"onboarding.recent.loading": "Loading new members…",
+	"onboarding.recent.mockHint":
+		"Local mock data — Authentik API is not configured.",
+	"onboarding.recent.errorApiMissing":
+		"Authentik API is not configured. Cannot load new members.",
+	"onboarding.recent.errorLoad": "Could not load new members.",
+	"onboarding.recent.retry": "Try again",
 	"onboarding.create.title": "Create account",
 	"onboarding.create.lead":
 		"Creates an Authentik user (firstname.lastname), sets a password, and sends the welcome email.",
@@ -590,18 +647,25 @@ const en: Record<MessageKey, string> = {
 	"offboarding.lead":
 		"Handle departures cleanly: access, handovers, and documentation.",
 	"offboarding.leadLive":
-		"Two steps: revoke Mitglieder, then delete accounts after grace. Start via “Run process”.",
-	"offboarding.process.title": "Run automatic process",
+		"Two Authentik steps: remove the Mitglieder group, then delete the account after a grace period. EasyVerein is left unchanged.",
+	"offboarding.process.title": "Run due actions",
 	"offboarding.process.lead":
-		"Revokes due departures (not future ones) and deletes accounts after {days} days of grace. Watchlist stays untouched.",
+		"Removes the Mitglieder group from accounts that have already left or have no EasyVerein ID. Deletes accounts whose access was revoked at least {days} days ago. Future resignation dates are skipped.",
 	"offboarding.process.button": "Run process",
 	"offboarding.process.running": "Running…",
 	"offboarding.process.confirm":
-		"Revoke due Mitglieder roles and delete accounts past grace?",
+		"Remove Mitglieder roles for due accounts and delete accounts past the grace period?",
 	"offboarding.process.result":
-		"Done: {revoked} roles revoked, {deleted} accounts deleted. Watchlist: {skipped}. Errors: {errors}.",
+		"{revoked} roles removed, {deleted} accounts deleted. Skipped (future resignation): {skipped}. Errors: {errors}.",
 	"offboarding.process.error": "Process failed. Please try again.",
-	"offboarding.process.nothingDue": "Nothing due — watchlist stays untouched.",
+	"offboarding.process.nothingDue.empty":
+		"No offboarding candidates — nothing to run.",
+	"offboarding.process.nothingDue.leaving":
+		"{count} with a future resignation date — process runs on that day.",
+	"offboarding.process.nothingDue.grace":
+		"{count} still in the {days}-day grace period after access was revoked.",
+	"offboarding.process.nothingDue.both":
+		"{leaving} with a future resignation, {grace} still in the {days}-day grace period — nothing due yet.",
 	"offboarding.process.phaseRevoke": "Removing Mitglieder role",
 	"offboarding.process.phaseDelete": "Deleting account",
 	"offboarding.process.progressCount": "{done} of {total}",
@@ -641,7 +705,7 @@ const en: Record<MessageKey, string> = {
 	"offboarding.stage1.title": "Remove Mitglieder role",
 	"offboarding.stage1.lead":
 		"Still in Mitglieder: missing EV ID, departed, or future departure (watchlist).",
-	"offboarding.stage1.listTitle": "Still member accounts",
+	"offboarding.stage1.listTitle": "Revoke access",
 	"offboarding.stage1.listLead":
 		"Due departures and missing EV IDs are revoked by the process. Future resignation dates stay on the watchlist.",
 	"offboarding.stage1.empty": "No entries.",
@@ -651,11 +715,12 @@ const en: Record<MessageKey, string> = {
 		"Only accounts with revoked access. Deleted after grace or manually.",
 	"offboarding.stage2.irreversible":
 		"Irreversible: the account will be deleted.",
-	"offboarding.stage2.listTitle": "Access revoked",
+	"offboarding.stage2.listTitle": "Delete Authentik account",
 	"offboarding.stage2.listLead":
 		"After step 1. Process deletes only after grace; per-row delete anytime.",
 	"offboarding.stage2.empty": "No entries.",
 	"offboarding.action.revoke": "Remove role",
+	"offboarding.action.revokeWatchlist": "Available after leave date",
 	"offboarding.action.delete": "Delete",
 	"offboarding.dialogCancel": "Cancel",
 	"offboarding.dialogDone": "Done",
@@ -743,6 +808,18 @@ const en: Record<MessageKey, string> = {
 	"profile.discord": "Discord",
 	"profile.connected": "Set up",
 	"profile.notConnected": "Not set up",
+	"profile.editRoles": "Ressorts",
+	"profile.editRolesHint": "Assign ressorts.",
+	"profile.saveGroups": "Save",
+	"profile.savingGroups": "Saving…",
+	"profile.groupsSaved": "Groups updated.",
+	"profile.errorGroupsUnauthorized": "You do not have permission to edit.",
+	"profile.errorGroupsInvalid": "Invalid group selection.",
+	"profile.errorGroupsProtected":
+		"Protected groups cannot be changed here.",
+	"profile.errorGroupsNotFound": "User or group not found.",
+	"profile.errorGroupsApi": "Authentik API is not configured.",
+	"profile.errorGroupsFailed": "Groups could not be saved.",
 	"ressort.management": "Management",
 	"ressort.designMarketing": "Design & Marketing",
 	"ressort.engineering": "Engineering",
@@ -807,6 +884,12 @@ const en: Record<MessageKey, string> = {
 	"error.id_token_missing_sub": "Sign-in incomplete. Please try again.",
 	"error.login_failed": "Sign-in failed.",
 	"error.generic": "Something went wrong.",
+	"spinner.fun.1": "Patience…",
+	"spinner.fun.2": "One moment.",
+	"spinner.fun.3": "Data's on its way.",
+	"spinner.fun.4": "Almost ready.",
+	"spinner.fun.5": "Just a sec.",
+	"spinner.fun.6": "Still here.",
 };
 
 export const messages: Record<Locale, Record<MessageKey, string>> = {

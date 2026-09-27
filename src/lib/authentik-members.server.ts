@@ -15,6 +15,11 @@ import type {
 	OffboardingReason,
 } from "#/lib/members";
 import { MEMBERSHIP_REVOKED_AT_ATTR } from "#/lib/offboarding";
+import {
+	RECENT_ONBOARDING_WEEKS,
+	type RecentOnboardingMember,
+	type RecentOnboardingMembersResult,
+} from "#/lib/onboarding";
 
 type AuthentikPaginated<T> = {
 	pagination?: { next?: number | null; count?: number };
@@ -40,6 +45,8 @@ type AuthentikUser = {
 	email?: string;
 	is_active?: boolean;
 	type?: string;
+	/** Account creation timestamp (Django / Authentik). */
+	date_joined?: string;
 	attributes?: Record<string, unknown>;
 	/** Group UUIDs or nested group objects, depending on Authentik version. */
 	groups?: Array<string | AuthentikGroup>;
@@ -232,6 +239,40 @@ export function mockDeleteAccount(memberId: string): boolean {
 	invalidateDirectoryCache();
 	return true;
 }
+
+/**
+ * AUTH_MOCK helper: replace assignable ressorts, keep other groups.
+ */
+export function mockUpdateMemberAssignableGroups(
+	memberId: string,
+	desiredAssignable: string[],
+): boolean {
+	const member = MOCK_MEMBERS.find((entry) => entry.id === memberId);
+	const profile = MOCK_PROFILES[memberId];
+	if (!member && !profile) return false;
+
+	const mergeGroups = (current: string[]): string[] => {
+		const kept = current.filter((group) => {
+			const key = group.trim().toLowerCase();
+			return !RESSORT_KEYS.has(key);
+		});
+		return [...kept, ...desiredAssignable.map((g) => g.trim()).filter(Boolean)];
+	};
+
+	if (member) member.groups = mergeGroups(member.groups);
+	if (profile) profile.groups = mergeGroups(profile.groups);
+
+	invalidateDirectoryCache();
+	return true;
+}
+
+const RESSORT_KEYS = new Set([
+	"management",
+	"design-marketing",
+	"engineering",
+	"events",
+]);
+
 
 async function loadCachedSnapshot(
 	cache: DirectoryCache,
@@ -979,4 +1020,177 @@ export async function getDirectoryStatsFromAuthentik(): Promise<{
 		console.error("[authentik] failed to load directory stats", err);
 		throw err;
 	}
+}
+
+function weeksAgoDate(weeks: number): Date {
+	return new Date(Date.now() - weeks * 7 * 86_400_000);
+}
+
+function parseDateJoined(value: string | undefined): Date | null {
+	if (!value?.trim()) return null;
+	const parsed = new Date(value);
+	if (Number.isNaN(parsed.getTime())) return null;
+	return parsed;
+}
+
+const MOCK_RECENT_JOINED: Record<string, string> = {
+	"mock-1": daysAgoIso(3),
+	"mock-3": daysAgoIso(14),
+	"mock-5": daysAgoIso(28),
+	"mock-2": daysAgoIso(45),
+};
+
+/**
+ * Page through `/core/users/?ordering=-date_joined` until past cutoff.
+ * Used when group `users_obj` omits `date_joined`.
+ */
+async function fetchUsersJoinedSince(
+	cutoff: Date,
+): Promise<Map<string, AuthentikUser>> {
+	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+	const headers = authHeaders();
+	const byPk = new Map<string, AuthentikUser>();
+	let page = 1;
+
+	for (;;) {
+		const url = new URL(`${base}/api/v3/core/users/`);
+		url.searchParams.set("page", String(page));
+		url.searchParams.set("page_size", "100");
+		url.searchParams.set("ordering", "-date_joined");
+		url.searchParams.set("is_active", "true");
+
+		const res = await fetch(url, { headers });
+		if (!res.ok) {
+			const detail = await res.text().catch(() => "");
+			console.error(
+				`[authentik] users date_joined page=${page} → ${res.status}`,
+				detail.slice(0, 300),
+			);
+			throw new Error(`Authentik request failed (${res.status}): /users/`);
+		}
+
+		const body = (await res.json()) as AuthentikPaginated<AuthentikUser>;
+		const results = body.results ?? [];
+		if (results.length === 0) break;
+
+		let reachedOlder = false;
+		for (const user of results) {
+			if (user.pk == null) continue;
+			const joined = parseDateJoined(user.date_joined);
+			if (!joined || joined < cutoff) {
+				reachedOlder = true;
+				continue;
+			}
+			byPk.set(String(user.pk), user);
+		}
+
+		if (reachedOlder) break;
+		const next = body.pagination?.next;
+		if (!next || next === page) break;
+		page = next;
+	}
+
+	return byPk;
+}
+
+/**
+ * Mitglieder whose Authentik account was created within the last N weeks.
+ * Prefer `date_joined` from group `users_obj`; fall back to users list ordered by join date.
+ */
+export async function listRecentOnboardingMembersFromAuthentik(
+	weeks: number = RECENT_ONBOARDING_WEEKS,
+): Promise<RecentOnboardingMembersResult> {
+	const lookback =
+		Number.isFinite(weeks) && weeks > 0 ? weeks : RECENT_ONBOARDING_WEEKS;
+	const cutoff = weeksAgoDate(lookback);
+
+	if (!isAuthentikApiConfigured()) {
+		if (serverConfig.authMock) {
+			const members: RecentOnboardingMember[] = activeMockMembers()
+				.filter((member) => hasMitgliederGroup(member.groups))
+				.flatMap((member) => {
+					const dateJoined = MOCK_RECENT_JOINED[member.id];
+					if (!dateJoined) return [];
+					const joined = parseDateJoined(dateJoined);
+					if (!joined || joined < cutoff) return [];
+					const profile = MOCK_PROFILES[member.id];
+					return [
+						{
+							id: member.id,
+							name: member.name,
+							username: profile?.username ?? null,
+							dateJoined,
+						},
+					];
+				})
+				.sort((a, b) => b.dateJoined.localeCompare(a.dateJoined));
+
+			return { members, weeks: lookback, source: "mock" };
+		}
+		throw new Error("authentik_api_missing");
+	}
+
+	const mitgliederName = serverConfig.groups.mitglieder.trim();
+	if (!mitgliederName) {
+		throw new Error("mitglieder_group_missing");
+	}
+
+	let groups: AuthentikGroup[];
+	try {
+		groups = await fetchAllPages<AuthentikGroup>(
+			"/api/v3/core/groups/?include_users=true",
+		);
+	} catch (err) {
+		console.error("[authentik] failed to list recent onboarding members", err);
+		throw err;
+	}
+
+	const mitgliederByPk = new Map<string, AuthentikUser>();
+	for (const group of groups) {
+		if (!matchesMitgliederGroup(group.name)) continue;
+		for (const user of group.users_obj ?? []) {
+			if (user.pk == null) continue;
+			mitgliederByPk.set(String(user.pk), user);
+		}
+	}
+
+	const missingJoinDate = [...mitgliederByPk.values()].some(
+		(user) => !parseDateJoined(user.date_joined),
+	);
+
+	let joinDatesByPk: Map<string, AuthentikUser> | null = null;
+	if (missingJoinDate) {
+		try {
+			joinDatesByPk = await fetchUsersJoinedSince(cutoff);
+		} catch (err) {
+			console.error(
+				"[authentik] date_joined fallback via /users/ failed",
+				err,
+			);
+			throw err;
+		}
+	}
+
+	const members: RecentOnboardingMember[] = [];
+	for (const [pk, groupUser] of mitgliederByPk) {
+		if (groupUser.is_active === false) continue;
+		if (groupUser.type === "service_account") continue;
+
+		const detail = joinDatesByPk?.get(pk) ?? groupUser;
+		if (detail.is_active === false) continue;
+		if (detail.type === "service_account") continue;
+
+		const joined = parseDateJoined(detail.date_joined);
+		if (!joined || joined < cutoff) continue;
+
+		members.push({
+			id: pk,
+			name: displayName(detail.name ? detail : groupUser),
+			username: (detail.username ?? groupUser.username)?.trim() || null,
+			dateJoined: joined.toISOString(),
+		});
+	}
+
+	members.sort((a, b) => b.dateJoined.localeCompare(a.dateJoined));
+	return { members, weeks: lookback, source: "authentik" };
 }
