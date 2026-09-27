@@ -6,10 +6,9 @@ import {
 	Loader2,
 	Pencil,
 } from "lucide-react";
-import { type ReactNode, useEffect, useId, useState } from "react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { OnboardingStageSlider } from "#/components/onboarding/onboarding-stage-slider";
 import { Badge } from "#/components/ui/badge";
-import { Button } from "#/components/ui/button";
 import {
 	Sheet,
 	SheetContent,
@@ -241,70 +240,31 @@ function ProfileBody({
 	const [stagePending, setStagePending] = useState(false);
 	const [stageErrorKey, setStageErrorKey] = useState<MessageKey | null>(null);
 	const [stageSaved, setStageSaved] = useState(false);
+
+	const stageRequestId = useRef(0);
+	const groupsRequestId = useRef(0);
+	const profileId = profile.id;
+
 	useEffect(() => {
 		setSelected(selectedFromProfile(profile.groups));
-		setErrorKey(null);
-		setSaved(false);
 	}, [profile.groups]);
 
 	useEffect(() => {
 		setStage(profile.onboardingStage);
-		setStageErrorKey(null);
-		setStageSaved(false);
 	}, [profile.onboardingStage]);
 
-	const initial = selectedFromProfile(profile.groups);
-	const dirty =
-		selected.size !== initial.size ||
-		[...selected].some((value) => !initial.has(value));
-	const stageDirty = stage !== profile.onboardingStage;
-
-	function toggle(value: string) {
-		setSaved(false);
-		setErrorKey(null);
-		setSelected((current) => {
-			const next = new Set(current);
-			if (next.has(value)) next.delete(value);
-			else next.add(value);
-			return next;
-		});
-	}
-
-	async function onSave() {
-		setPending(true);
-		setErrorKey(null);
-		setSaved(false);
-		try {
-			const result = await updateMemberGroupsFn({
-				data: {
-					id: profile.id,
-					groups: [...selected],
-				},
-			});
-			if (!result.success) {
-				setErrorKey(GROUP_ERROR_KEYS[result.error]);
-				return;
-			}
-			onProfileUpdate(result.profile);
-			setSelected(selectedFromProfile(result.profile.groups));
-			setSaved(true);
-		} catch (err) {
-			console.error("[members] update groups failed", err);
-			setErrorKey("profile.errorGroupsFailed");
-		} finally {
-			setPending(false);
-		}
-	}
-
-	async function onSaveStage() {
+	async function persistStage(next: OnboardingStage) {
+		const requestId = ++stageRequestId.current;
 		setStagePending(true);
 		setStageErrorKey(null);
 		setStageSaved(false);
 		try {
 			const result = await updateMemberOnboardingStageFn({
-				data: { id: profile.id, stage },
+				data: { id: profileId, stage: next },
 			});
+			if (requestId !== stageRequestId.current) return;
 			if (!result.success) {
+				setStage(profile.onboardingStage);
 				setStageErrorKey(STAGE_ERROR_KEYS[result.error]);
 				return;
 			}
@@ -313,10 +273,64 @@ function ProfileBody({
 			setStageSaved(true);
 		} catch (err) {
 			console.error("[members] update onboarding stage failed", err);
-			setStageErrorKey("profile.errorOnboardingFailed");
+			if (requestId === stageRequestId.current) {
+				setStage(profile.onboardingStage);
+				setStageErrorKey("profile.errorOnboardingFailed");
+			}
 		} finally {
-			setStagePending(false);
+			if (requestId === stageRequestId.current) setStagePending(false);
 		}
+	}
+
+	function handleStageChange(next: OnboardingStage) {
+		setStage(next);
+		setStageErrorKey(null);
+		setStageSaved(false);
+		if (next === profile.onboardingStage) return;
+		void persistStage(next);
+	}
+
+	async function persistGroups(next: Set<string>) {
+		const requestId = ++groupsRequestId.current;
+		setPending(true);
+		setErrorKey(null);
+		setSaved(false);
+		try {
+			const result = await updateMemberGroupsFn({
+				data: {
+					id: profileId,
+					groups: [...next],
+				},
+			});
+			if (requestId !== groupsRequestId.current) return;
+			if (!result.success) {
+				setSelected(selectedFromProfile(profile.groups));
+				setErrorKey(GROUP_ERROR_KEYS[result.error]);
+				return;
+			}
+			onProfileUpdate(result.profile);
+			setSelected(selectedFromProfile(result.profile.groups));
+			setSaved(true);
+		} catch (err) {
+			console.error("[members] update groups failed", err);
+			if (requestId === groupsRequestId.current) {
+				setSelected(selectedFromProfile(profile.groups));
+				setErrorKey("profile.errorGroupsFailed");
+			}
+		} finally {
+			if (requestId === groupsRequestId.current) setPending(false);
+		}
+	}
+
+	function toggle(value: string) {
+		if (pending) return;
+		setSaved(false);
+		setErrorKey(null);
+		const next = new Set(selected);
+		if (next.has(value)) next.delete(value);
+		else next.add(value);
+		setSelected(next);
+		void persistGroups(next);
 	}
 
 	return (
@@ -379,40 +393,28 @@ function ProfileBody({
 				<OnboardingStageSlider
 					value={stage}
 					disabled={stagePending}
-					onChange={(next) => {
-						setStageSaved(false);
-						setStageErrorKey(null);
-						setStage(next);
-					}}
+					onChange={handleStageChange}
 				/>
-				<div className="flex flex-wrap items-center gap-3">
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						disabled={!stageDirty || stagePending}
-						onClick={() => void onSaveStage()}
-					>
+				{(stagePending || stageSaved || stageErrorKey) && (
+					<div className="flex flex-wrap items-center gap-3">
 						{stagePending ? (
-							<>
+							<p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
 								<Loader2 className="size-3.5 animate-spin" aria-hidden />
 								{t("profile.onboardingSaving")}
-							</>
-						) : (
-							t("profile.onboardingSave")
-						)}
-					</Button>
-					{stageSaved ? (
-						<p className="text-sm text-primary">
-							{t("profile.onboardingSaved")}
-						</p>
-					) : null}
-					{stageErrorKey ? (
-						<p className="text-sm text-destructive" role="alert">
-							{t(stageErrorKey)}
-						</p>
-					) : null}
-				</div>
+							</p>
+						) : null}
+						{stageSaved && !stagePending ? (
+							<p className="text-sm text-primary">
+								{t("profile.onboardingSaved")}
+							</p>
+						) : null}
+						{stageErrorKey ? (
+							<p className="text-sm text-destructive" role="alert">
+								{t(stageErrorKey)}
+							</p>
+						) : null}
+					</div>
+				)}
 			</section>
 			{/* Ressorts — full width, checkboxes in a comfortable grid */}
 			<section className="space-y-3 border-t border-border pt-6">
@@ -440,34 +442,26 @@ function ProfileBody({
 								);
 							})}
 						</ul>
-						<div className="flex flex-wrap items-center gap-3">
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								disabled={!dirty || pending}
-								onClick={() => void onSave()}
-							>
+						{(pending || saved || errorKey) && (
+							<div className="flex flex-wrap items-center gap-3">
 								{pending ? (
-									<>
+									<p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
 										<Loader2 className="size-3.5 animate-spin" aria-hidden />
 										{t("profile.savingGroups")}
-									</>
-								) : (
-									t("profile.saveGroups")
-								)}
-							</Button>
-							{saved ? (
-								<p className="text-sm text-primary">
-									{t("profile.groupsSaved")}
-								</p>
-							) : null}
-							{errorKey ? (
-								<p className="text-sm text-destructive" role="alert">
-									{t(errorKey)}
-								</p>
-							) : null}
-						</div>
+									</p>
+								) : null}
+								{saved && !pending ? (
+									<p className="text-sm text-primary">
+										{t("profile.groupsSaved")}
+									</p>
+								) : null}
+								{errorKey ? (
+									<p className="text-sm text-destructive" role="alert">
+										{t(errorKey)}
+									</p>
+								) : null}
+							</div>
+						)}
 					</>
 				) : (
 					<>
