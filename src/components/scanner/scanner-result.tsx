@@ -233,39 +233,31 @@ export function ScannerResult({
 								type="button"
 								onClick={() => openProfile(foundMember.id)}
 								aria-label={`${t("scanner.openProfile")}: ${foundMember.name}`}
-								className="w-full space-y-2.5 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+								className="w-full space-y-1.5 border border-border bg-muted/20 p-3 text-left transition-colors hover:border-primary/35 hover:bg-primary/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 							>
 								<div className="flex flex-wrap items-center gap-2">
 									<p className="text-base font-semibold">{foundMember.name}</p>
-									<Badge
-										variant={foundMember.isActive ? "default" : "destructive"}
-									>
-										{foundMember.isActive
-											? t("scanner.enrichActive")
-											: t("scanner.enrichInactive")}
-									</Badge>
-									<Badge variant={foundMember.isMitglied ? "hr" : "muted"}>
-										{foundMember.isMitglied
-											? t("scanner.enrichMember")
-											: t("scanner.enrichNotMember")}
-									</Badge>
+									{!foundMember.isActive ? (
+										<Badge variant="destructive">
+											{t("scanner.enrichInactive")}
+										</Badge>
+									) : null}
+									{!foundMember.isMitglied ? (
+										<Badge variant="muted">
+											{t("scanner.enrichNotMember")}
+										</Badge>
+									) : null}
 								</div>
-								{previewRessorts.length > 0 ? (
-									<div className="flex flex-wrap gap-1.5">
-										{previewRessorts.map((group) => {
-											const labelKey = ressortLabelKey(group);
-											return (
-												<Badge key={group} variant="ressort">
-													{labelKey ? t(labelKey) : group}
-												</Badge>
-											);
-										})}
-									</div>
-								) : (
-									<p className="text-sm text-muted-foreground">
-										{t("profile.noRessorts")}
-									</p>
-								)}
+								<p className="text-sm text-muted-foreground">
+									{previewRessorts.length > 0
+										? previewRessorts
+												.map((group) => {
+													const labelKey = ressortLabelKey(group);
+													return labelKey ? t(labelKey) : group;
+												})
+												.join(" · ")
+										: t("profile.noRessorts")}
+								</p>
 							</button>
 						) : null}
 

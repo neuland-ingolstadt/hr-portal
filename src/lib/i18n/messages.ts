@@ -228,9 +228,7 @@ const de = {
 		"Verzeichnisabfrage fehlgeschlagen. Die kryptografische Prüfung bleibt gültig.",
 	"scanner.enrichErrorApi":
 		"Authentik-API ist nicht konfiguriert. Verzeichnisabfrage nicht möglich.",
-	"scanner.enrichActive": "Aktiv",
 	"scanner.enrichInactive": "Inaktiv",
-	"scanner.enrichMember": "Mitglied",
 	"scanner.enrichNotMember": "Kein Mitglied",
 	"scanner.openProfile": "Profil anzeigen",
 	"scanner.publicKeyLoading": "Öffentlicher Schlüssel wird geladen…",
@@ -464,9 +462,7 @@ const en: Record<MessageKey, string> = {
 		"Directory lookup failed. Cryptographic verification still stands.",
 	"scanner.enrichErrorApi":
 		"Authentik API is not configured. Directory lookup unavailable.",
-	"scanner.enrichActive": "Active",
 	"scanner.enrichInactive": "Inactive",
-	"scanner.enrichMember": "Member",
 	"scanner.enrichNotMember": "Not a member",
 	"scanner.openProfile": "View profile",
 	"scanner.publicKeyLoading": "Loading public key…",
