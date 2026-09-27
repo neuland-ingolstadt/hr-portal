@@ -98,4 +98,4 @@ export type UpdateMemberOnboardingStageResult =
 	| { success: false; error: UpdateMemberOnboardingStageError };
 
 /** Default onboarding MVP lookback. */
-export const RECENT_ONBOARDING_WEEKS = 8;
+export const RECENT_ONBOARDING_WEEKS = 12;

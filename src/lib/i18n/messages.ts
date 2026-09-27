@@ -75,8 +75,7 @@ const de = {
 	"home.actionMembersDesc":
 		"Mitgliederverzeichnis durchsuchen, filtern und sortieren.",
 	"home.moduleOnboardingTitle": "Onboarding",
-	"home.moduleOnboardingDesc":
-		"Neue Authentik-Konten der letzten Wochen.",
+	"home.moduleOnboardingDesc": "Neue Authentik-Konten der letzten Wochen.",
 	"home.moduleApplicationsTitle": "Bewerbungen",
 	"home.moduleApplicationsDesc":
 		"Eingehende Mitgliedsanträge prüfen und freigeben.",
@@ -374,8 +373,7 @@ const de = {
 	"profile.errorGroupsApi": "Authentik-API ist nicht konfiguriert.",
 	"profile.errorGroupsFailed": "Gruppen konnten nicht gespeichert werden.",
 	"profile.onboarding": "Onboarding",
-	"profile.onboardingHint":
-		"Gespräch → Projekt → Beitrag → fertig.",
+	"profile.onboardingHint": "Gespräch → Projekt → Beitrag → fertig.",
 	"profile.onboardingSave": "Stufe speichern",
 	"profile.onboardingSaving": "Wird gespeichert…",
 	"profile.onboardingSaved": "Onboarding-Stufe aktualisiert.",
@@ -818,14 +816,12 @@ const en: Record<MessageKey, string> = {
 	"profile.groupsSaved": "Groups updated.",
 	"profile.errorGroupsUnauthorized": "You do not have permission to edit.",
 	"profile.errorGroupsInvalid": "Invalid group selection.",
-	"profile.errorGroupsProtected":
-		"Protected groups cannot be changed here.",
+	"profile.errorGroupsProtected": "Protected groups cannot be changed here.",
 	"profile.errorGroupsNotFound": "User or group not found.",
 	"profile.errorGroupsApi": "Authentik API is not configured.",
 	"profile.errorGroupsFailed": "Groups could not be saved.",
 	"profile.onboarding": "Onboarding",
-	"profile.onboardingHint":
-		"Talk → project → contributing → done.",
+	"profile.onboardingHint": "Talk → project → contributing → done.",
 	"profile.onboardingSave": "Save stage",
 	"profile.onboardingSaving": "Saving…",
 	"profile.onboardingSaved": "Onboarding stage updated.",

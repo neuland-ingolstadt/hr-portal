@@ -37,8 +37,8 @@
 
 ## Onboarding
 
-- `/onboarding` MVP: lists Mitglieder with Authentik accounts created in the last 8 weeks (`date_joined`) as profile cards. Prefer accepting via `/applications`.
-- Human progress: Authentik `attributes.onboardingStage` (0–4: new → conversation → project → engaging → done). Shown as a progress bar on cards; editable from the member profile (`requireAppAccess`). Not a checklist/queue.
+- `/onboarding` MVP: lists Mitglieder with Authentik accounts created in the last 12 weeks (`date_joined`) as profile cards, grouped by `onboardingStage`. Prefer accepting via `/applications`.
+- Human progress: Authentik `attributes.onboardingStage` (0–4: new → conversation → project → engaging → done). Cards group by stage with a top-edge fill for progress; editable from the member profile (`requireAppAccess`). Not a checklist/queue.
 - Shared create helpers live in `src/lib/onboarding*.ts` and the welcome email in `src/emails/welcome.tsx`.
 - Env: `AUTHENTIK_API_*` (write users), optional `AUTHENTIK_DEFAULT_GROUP` / `AUTHENTIK_USER_PATH`, `AZURE_COMMUNICATION_SERVICE_CONNECTION_STRING`, `FROM_EMAIL`.
 

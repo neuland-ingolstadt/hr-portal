@@ -296,7 +296,6 @@ const RESSORT_KEYS = new Set([
 	"events",
 ]);
 
-
 async function loadCachedSnapshot(
 	cache: DirectoryCache,
 	fetchSnapshot: () => Promise<DirectorySnapshot>,
@@ -1190,10 +1189,7 @@ export async function listRecentOnboardingMembersFromAuthentik(
 		try {
 			joinDatesByPk = await fetchUsersJoinedSince(cutoff);
 		} catch (err) {
-			console.error(
-				"[authentik] date_joined fallback via /users/ failed",
-				err,
-			);
+			console.error("[authentik] date_joined fallback via /users/ failed", err);
 			throw err;
 		}
 	}
@@ -1248,9 +1244,12 @@ async function resolveUserForMutation(
 		);
 	}
 
-	const res = await fetch(`${base}/api/v3/core/users/${encodeURIComponent(sub)}/`, {
-		headers: authHeaders(),
-	});
+	const res = await fetch(
+		`${base}/api/v3/core/users/${encodeURIComponent(sub)}/`,
+		{
+			headers: authHeaders(),
+		},
+	);
 	if (res.status === 404) return null;
 	if (!res.ok) {
 		throw new Error(`Authentik user lookup failed (${res.status})`);
@@ -1290,10 +1289,9 @@ export async function updateMemberOnboardingStage(
 		}
 
 		const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
-		const currentRes = await fetch(
-			`${base}/api/v3/core/users/${user.pk}/`,
-			{ headers: authHeaders() },
-		);
+		const currentRes = await fetch(`${base}/api/v3/core/users/${user.pk}/`, {
+			headers: authHeaders(),
+		});
 		if (currentRes.status === 404) {
 			return { success: false, error: "user_not_found" };
 		}

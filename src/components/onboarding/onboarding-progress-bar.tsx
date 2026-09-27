@@ -48,10 +48,7 @@ export function OnboardingProgressBar({
 				aria-valuemax={ONBOARDING_STAGE_MAX}
 				aria-valuenow={stage}
 				aria-label={t("onboarding.stage.progress")}
-				className={cn(
-					"overflow-hidden bg-muted",
-					compact ? "h-1" : "h-1.5",
-				)}
+				className={cn("overflow-hidden bg-muted", compact ? "h-1" : "h-1.5")}
 			>
 				<div
 					className="h-full bg-primary transition-[width] duration-300 ease-out"

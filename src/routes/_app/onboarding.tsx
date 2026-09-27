@@ -5,7 +5,6 @@ import {
 } from "@tanstack/react-router";
 import { RecentMembersGrid } from "#/components/onboarding/recent-members-grid";
 import { Button } from "#/components/ui/button";
-import { Spinner } from "#/components/ui/spinner";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import type { RecentOnboardingMembersResult } from "#/lib/onboarding";
@@ -38,9 +37,33 @@ function OnboardingHeader({ lead, meta }: { lead: string; meta?: string }) {
 function OnboardingSkeleton() {
 	const { t } = useI18n();
 	return (
-		<div className="surface-panel flex min-h-72 items-center justify-center">
-			<Spinner label={t("onboarding.recent.loading")} />
-		</div>
+		<section
+			className="space-y-3"
+			aria-busy="true"
+			aria-label={t("onboarding.recent.loading")}
+		>
+			<div className="space-y-2" aria-hidden>
+				<div className="h-4 w-48 animate-pulse bg-muted" />
+				<div className="h-3 w-72 max-w-full animate-pulse bg-muted" />
+			</div>
+			<ul
+				className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+				aria-hidden
+			>
+				{Array.from({ length: 8 }, (_, i) => (
+					<li key={i} className="surface-panel flex flex-col gap-4 p-4">
+						<div className="flex items-start gap-3">
+							<div className="size-10 shrink-0 animate-pulse bg-muted" />
+							<div className="min-w-0 flex-1 space-y-2 pt-1">
+								<div className="h-3.5 w-3/4 animate-pulse bg-muted" />
+								<div className="h-3 w-1/2 animate-pulse bg-muted" />
+							</div>
+						</div>
+						<div className="mt-auto h-3 w-2/5 animate-pulse bg-muted" />
+					</li>
+				))}
+			</ul>
+		</section>
 	);
 }
 
@@ -109,7 +132,7 @@ function OnboardingPage() {
 			promise={recentPromise}
 			fallback={
 				<>
-					<OnboardingHeader lead={t("onboarding.recent.loading")} />
+					<OnboardingHeader lead={t("onboarding.leadLive")} />
 					<OnboardingSkeleton />
 				</>
 			}
