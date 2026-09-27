@@ -80,8 +80,7 @@ function ProcessPanel({
 }) {
 	const { t } = useI18n();
 	const plan = useMemo(
-		() =>
-			planOffboardingProcess(revokeCandidates, deleteCandidates, graceDays),
+		() => planOffboardingProcess(revokeCandidates, deleteCandidates, graceDays),
 		[revokeCandidates, deleteCandidates, graceDays],
 	);
 	const dueTotal = plan.toRevoke.length + plan.toDelete.length;
@@ -184,12 +183,10 @@ function ProcessPanel({
 function StageSection({
 	stage,
 	count,
-	emphasized,
 	children,
 }: {
 	stage: 1 | 2;
 	count: number;
-	emphasized?: boolean;
 	children: ReactNode;
 }) {
 	const { t } = useI18n();
@@ -201,14 +198,7 @@ function StageSection({
 	return (
 		<section className="min-w-0 space-y-2">
 			<div className="flex items-baseline justify-between gap-3">
-				<h2
-					className={cn(
-						"text-sm font-semibold tracking-tight",
-						emphasized
-							? "text-amber-900 dark:text-amber-100"
-							: "text-foreground",
-					)}
-				>
+				<h2 className="text-sm font-semibold tracking-tight text-foreground">
 					{t(titleKey)}
 				</h2>
 				<span className="font-mono text-xs tabular-nums text-muted-foreground">
@@ -255,10 +245,7 @@ function CandidatesSections({
 		if (!running) setMembers(data.members);
 	}, [data.members, running]);
 
-	const stages = useMemo(
-		() => partitionOffboardingStages(members),
-		[members],
-	);
+	const stages = useMemo(() => partitionOffboardingStages(members), [members]);
 
 	const markRevoked = useCallback((id: string) => {
 		setMembers((current) =>
@@ -388,11 +375,7 @@ function CandidatesSections({
 					running && "pointer-events-none opacity-70",
 				)}
 			>
-				<StageSection
-					stage={1}
-					count={stages.revokeMembership.length}
-					emphasized
-				>
+				<StageSection stage={1} count={stages.revokeMembership.length}>
 					<OffboardingStageTable
 						stage="revoke_membership"
 						candidates={stages.revokeMembership}

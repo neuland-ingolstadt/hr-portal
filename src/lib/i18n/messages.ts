@@ -60,6 +60,7 @@ const de = {
 	"home.empty": "-",
 	"home.openMembers": "Mitglieder öffnen",
 	"home.openApplications": "Bewerbungen öffnen",
+	"home.openOffboarding": "Offboarding öffnen",
 	"home.signedInAs": "Angemeldet als {email}",
 	"home.statMembers": "Mitglieder",
 	"home.statGroups": "Gruppen",
@@ -80,7 +81,7 @@ const de = {
 		"Eingehende Mitgliedsanträge prüfen und freigeben.",
 	"home.moduleOffboardingTitle": "Offboarding",
 	"home.moduleOffboardingDesc":
-		"Austritte strukturieren, Zugänge entziehen und Übergaben dokumentieren.",
+		"Mitglieder-Rollen entziehen und Authentik-Konten nach Austritt löschen.",
 	"home.moduleEasyVereinTitle": "EasyVerein",
 	"home.moduleEasyVereinDesc": "Offene Mitgliedsanträge prüfen und annehmen.",
 	"home.profileHint":
@@ -193,7 +194,8 @@ const de = {
 		"Erledigt: {revoked} Rollen entfernt, {deleted} Konten gelöscht. Watchlist: {skipped}. Fehler: {errors}.",
 	"offboarding.process.error":
 		"Prozess fehlgeschlagen. Bitte erneut versuchen.",
-	"offboarding.process.nothingDue": "Nichts fällig — Watchlist bleibt unberührt.",
+	"offboarding.process.nothingDue":
+		"Nichts fällig — Watchlist bleibt unberührt.",
 	"offboarding.process.phaseRevoke": "Mitglieder-Rolle entfernen",
 	"offboarding.process.phaseDelete": "Konto löschen",
 	"offboarding.process.progressCount": "{done} von {total}",
@@ -233,7 +235,7 @@ const de = {
 	"offboarding.stage1.title": "Mitglieder-Rolle entfernen",
 	"offboarding.stage1.lead":
 		"Noch in der Mitglieder-Gruppe: fehlende EV-ID, Austritt, oder künftiger Austritt (Watchlist).",
-	"offboarding.stage1.listTitle": "Rolle / Watchlist",
+	"offboarding.stage1.listTitle": "Noch Mitglieds-Accounts",
 	"offboarding.stage1.listLead":
 		"Fällige Austritte und fehlende EV-IDs werden per Prozess entzogen. Künftige Austrittsdaten bleiben Watchlist.",
 	"offboarding.stage1.empty": "Keine Einträge.",
@@ -467,6 +469,7 @@ const en: Record<MessageKey, string> = {
 	"home.empty": "-",
 	"home.openMembers": "Open members",
 	"home.openApplications": "Open applications",
+	"home.openOffboarding": "Open offboarding",
 	"home.signedInAs": "Signed in as {email}",
 	"home.statMembers": "Members",
 	"home.statGroups": "Groups",
@@ -486,7 +489,7 @@ const en: Record<MessageKey, string> = {
 		"Review and approve incoming membership applications.",
 	"home.moduleOffboardingTitle": "Offboarding",
 	"home.moduleOffboardingDesc":
-		"Structure departures, revoke access, and document handovers.",
+		"Revoke Mitglieder roles and delete Authentik accounts after departure.",
 	"home.moduleEasyVereinTitle": "EasyVerein",
 	"home.moduleEasyVereinDesc":
 		"Review and accept open membership applications.",
@@ -638,7 +641,7 @@ const en: Record<MessageKey, string> = {
 	"offboarding.stage1.title": "Remove Mitglieder role",
 	"offboarding.stage1.lead":
 		"Still in Mitglieder: missing EV ID, departed, or future departure (watchlist).",
-	"offboarding.stage1.listTitle": "Role / watchlist",
+	"offboarding.stage1.listTitle": "Still member accounts",
 	"offboarding.stage1.listLead":
 		"Due departures and missing EV IDs are revoked by the process. Future resignation dates stay on the watchlist.",
 	"offboarding.stage1.empty": "No entries.",

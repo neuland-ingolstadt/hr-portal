@@ -1,9 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import {
-	hasAppAccess,
-	hasElevatedAccess,
-	type SessionUser,
-} from "#/lib/auth";
+import { hasAppAccess, hasElevatedAccess, type SessionUser } from "#/lib/auth";
 
 /** Client-side UX gate using root auth context (server fns still call requireAppAccess). */
 export function requireAppUser(

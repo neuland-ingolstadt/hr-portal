@@ -1,9 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { hasElevatedAccess } from "#/lib/auth";
-import {
-	requireAppAccess,
-	requireElevatedAccess,
-} from "#/lib/auth.server";
+import { requireAppAccess, requireElevatedAccess } from "#/lib/auth.server";
 import {
 	getDirectoryStatsFromAuthentik,
 	getMemberProfileByUuid,

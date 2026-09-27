@@ -359,11 +359,12 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						description={t("home.moduleOnboardingDesc")}
 					/>
 					{elevated ? (
-						<PlaceholderCard
+						<ActionCard
 							to={ROUTES.OFFBOARDING}
 							icon={<UserMinus className="size-5" aria-hidden />}
 							title={t("home.moduleOffboardingTitle")}
 							description={t("home.moduleOffboardingDesc")}
+							cta={t("home.openOffboarding")}
 						/>
 					) : null}
 				</div>

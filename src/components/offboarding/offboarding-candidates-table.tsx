@@ -28,10 +28,7 @@ type OffboardingStageTableProps = {
 
 const PAGE_SIZE = 40;
 
-type Translate = (
-	key: MessageKey,
-	vars?: Record<string, string>,
-) => string;
+type Translate = (key: MessageKey, vars?: Record<string, string>) => string;
 
 function formatLeaveDate(isoDate: string, locale: string): string {
 	const date = new Date(`${isoDate}T12:00:00`);
