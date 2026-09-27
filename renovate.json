@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>neuland-ingolstadt/renovate-config:web"],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Group TanStack packages",
+      "groupName": "tanstack",
+      "groupSlug": "tanstack",
+      "matchPackageNames": ["@tanstack/**"]
+    }
+  ]
+}
