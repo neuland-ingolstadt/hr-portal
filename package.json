@@ -32,7 +32,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-router": "latest",
     "@tanstack/react-start": "latest",
-    "@tanstack/react-table": "8",
+    "@tanstack/react-table": "9",
     "cborg": "^6.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
