@@ -427,4 +427,4 @@ export async function createMockSession(
 	return user;
 }
 
-export { primaryRole, hasAppAccess, hasElevatedAccess };
+export { hasAppAccess, hasElevatedAccess, primaryRole };
