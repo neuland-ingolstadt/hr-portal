@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { QrCamera } from "#/components/scanner/qr-camera";
+import { ScanHistoryList } from "#/components/scanner/scan-history";
 import { ScannerResult } from "#/components/scanner/scanner-result";
 import { Button } from "#/components/ui/button";
 import { useI18n } from "#/lib/i18n/locale-context";
@@ -17,15 +18,22 @@ import type {
 	LookupMemberResult,
 	VerificationResult,
 } from "#/lib/member-id/types";
+import { useScanHistory } from "#/lib/member-id/use-scan-history";
+
+const RESCAN_COOLDOWN_MS = 2000;
 
 export function MemberIdScanner() {
 	const { t } = useI18n();
+	const { entries, addScan, clearHistory } = useScanHistory();
 	const [keyReady, setKeyReady] = useState(false);
 	const [keyLoading, setKeyLoading] = useState(true);
 	const [keyError, setKeyError] = useState(false);
 	const [result, setResult] = useState<VerificationResult | null>(null);
 	const [lookup, setLookup] = useState<LookupMemberResult | null>(null);
 	const [lookupLoading, setLookupLoading] = useState(false);
+	const [isDuplicate, setIsDuplicate] = useState(false);
+	const [cooldown, setCooldown] = useState(false);
+	const cooldownTimer = useRef<number | null>(null);
 
 	const loadPublicKey = useCallback(async () => {
 		setKeyLoading(true);
@@ -48,40 +56,70 @@ export function MemberIdScanner() {
 		void loadPublicKey();
 		return () => {
 			clearPublicKey();
+			if (cooldownTimer.current != null) {
+				window.clearTimeout(cooldownTimer.current);
+			}
 		};
 	}, [loadPublicKey]);
+
+	const startCooldown = useCallback(() => {
+		setCooldown(true);
+		if (cooldownTimer.current != null) {
+			window.clearTimeout(cooldownTimer.current);
+		}
+		cooldownTimer.current = window.setTimeout(() => {
+			setCooldown(false);
+			cooldownTimer.current = null;
+		}, RESCAN_COOLDOWN_MS);
+	}, []);
 
 	const clearResult = useCallback(() => {
 		setResult(null);
 		setLookup(null);
 		setLookupLoading(false);
+		setIsDuplicate(false);
 	}, []);
 
-	const handleScan = useCallback(async (data: string) => {
-		if (!isPublicKeyAvailable()) return;
+	const handleScan = useCallback(
+		async (data: string) => {
+			if (!isPublicKeyAvailable() || cooldown) return;
 
-		const verification = await verifyQRCode(data);
-		setResult(verification);
-		setLookup(null);
+			startCooldown();
 
-		if (!verification.success || !verification.payload?.sub) {
-			setLookupLoading(false);
-			return;
-		}
+			const verification = await verifyQRCode(data);
+			setResult(verification);
+			setLookup(null);
+			setIsDuplicate(false);
 
-		setLookupLoading(true);
-		try {
-			const enriched = await lookupScannedMemberFn({
-				data: { sub: verification.payload.sub },
-			});
-			setLookup(enriched);
-		} catch (err) {
-			console.error("[scanner] enrichment failed", err);
-			setLookup({ status: "error", error: "lookup_failed" });
-		} finally {
-			setLookupLoading(false);
-		}
-	}, []);
+			if (verification.payload?.sub) {
+				const { isDuplicate: duplicate } = addScan({
+					sub: verification.payload.sub,
+					name: verification.payload.name,
+					success: verification.success,
+				});
+				setIsDuplicate(duplicate && verification.success);
+			}
+
+			if (!verification.success || !verification.payload?.sub) {
+				setLookupLoading(false);
+				return;
+			}
+
+			setLookupLoading(true);
+			try {
+				const enriched = await lookupScannedMemberFn({
+					data: { sub: verification.payload.sub },
+				});
+				setLookup(enriched);
+			} catch (err) {
+				console.error("[scanner] enrichment failed", err);
+				setLookup({ status: "error", error: "lookup_failed" });
+			} finally {
+				setLookupLoading(false);
+			}
+		},
+		[addScan, cooldown, startCooldown],
+	);
 
 	if (keyLoading) {
 		return (
@@ -110,16 +148,20 @@ export function MemberIdScanner() {
 	}
 
 	return (
-		<div className="grid gap-4 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
-			<div className="surface-panel p-4 sm:p-5">
-				<QrCamera onScan={handleScan} paused={Boolean(result?.success)} />
+		<div className="space-y-4">
+			<div className="grid gap-4 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+				<div className="surface-panel p-4 sm:p-5">
+					<QrCamera onScan={handleScan} paused={cooldown} />
+				</div>
+				<ScannerResult
+					result={result}
+					lookup={lookup}
+					lookupLoading={lookupLoading}
+					isDuplicate={isDuplicate}
+					onClear={clearResult}
+				/>
 			</div>
-			<ScannerResult
-				result={result}
-				lookup={lookup}
-				lookupLoading={lookupLoading}
-				onClear={clearResult}
-			/>
+			<ScanHistoryList entries={entries} onClear={clearHistory} />
 		</div>
 	);
 }

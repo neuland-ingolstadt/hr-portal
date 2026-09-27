@@ -1,0 +1,96 @@
+import { useCallback, useEffect, useState } from "react";
+
+const STORAGE_KEY = "neuland-hr-scan-history-v1";
+const MAX_ENTRIES = 40;
+
+export type ScanHistoryEntry = {
+	id: string;
+	sub: string;
+	name: string;
+	success: boolean;
+	timestamp: number;
+};
+
+function loadHistory(): ScanHistoryEntry[] {
+	if (typeof window === "undefined") return [];
+	try {
+		const raw = window.localStorage.getItem(STORAGE_KEY);
+		if (!raw) return [];
+		const parsed = JSON.parse(raw) as ScanHistoryEntry[];
+		if (!Array.isArray(parsed)) return [];
+		return parsed.filter(
+			(entry) =>
+				entry &&
+				typeof entry.id === "string" &&
+				typeof entry.sub === "string" &&
+				typeof entry.name === "string" &&
+				typeof entry.timestamp === "number",
+		);
+	} catch {
+		return [];
+	}
+}
+
+function persistHistory(entries: ScanHistoryEntry[]) {
+	if (typeof window === "undefined") return;
+	try {
+		window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+	} catch {
+		/* quota / private mode */
+	}
+}
+
+export function useScanHistory() {
+	const [entries, setEntries] = useState<ScanHistoryEntry[]>([]);
+	const [hydrated, setHydrated] = useState(false);
+
+	useEffect(() => {
+		setEntries(loadHistory());
+		setHydrated(true);
+	}, []);
+
+	useEffect(() => {
+		if (!hydrated) return;
+		persistHistory(entries);
+	}, [entries, hydrated]);
+
+	const findBySub = useCallback(
+		(sub: string) =>
+			entries.find((entry) => entry.success && entry.sub === sub),
+		[entries],
+	);
+
+	const addScan = useCallback(
+		(input: {
+			sub: string;
+			name: string;
+			success: boolean;
+		}): { isDuplicate: boolean; previous: ScanHistoryEntry | null } => {
+			const previous = input.success
+				? (entries.find((e) => e.success && e.sub === input.sub) ?? null)
+				: null;
+			const isDuplicate = previous !== null;
+
+			const entry: ScanHistoryEntry = {
+				id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+				sub: input.sub,
+				name: input.name,
+				success: input.success,
+				timestamp: Date.now(),
+			};
+
+			setEntries((prev) => [entry, ...prev].slice(0, MAX_ENTRIES));
+			return { isDuplicate, previous };
+		},
+		[entries],
+	);
+
+	const clearHistory = useCallback(() => {
+		setEntries([]);
+		if (typeof window !== "undefined") {
+			window.localStorage.removeItem(STORAGE_KEY);
+		}
+	}, []);
+
+	return { entries, hydrated, addScan, clearHistory, findBySub };
+}

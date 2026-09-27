@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Link2, ShieldX, User } from "lucide-react";
+import { CheckCircle2, Info, Link2, ShieldX, User } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { ROUTES } from "#/lib/constants";
@@ -16,6 +16,7 @@ type ScannerResultProps = {
 	result: VerificationResult | null;
 	lookup: LookupMemberResult | null;
 	lookupLoading: boolean;
+	isDuplicate?: boolean;
 	onClear: () => void;
 };
 
@@ -66,6 +67,7 @@ export function ScannerResult({
 	result,
 	lookup,
 	lookupLoading,
+	isDuplicate = false,
 	onClear,
 }: ScannerResultProps) {
 	const { t, locale } = useI18n();
@@ -94,12 +96,17 @@ export function ScannerResult({
 	}
 
 	const success = result.success;
+	const duplicate = success && isDuplicate;
 
 	return (
 		<div
 			className={cn(
 				"surface-panel space-y-5 p-5 sm:p-6",
-				success ? "border-primary/30" : "border-destructive/40",
+				duplicate
+					? "border-sky-500/40"
+					: success
+						? "border-primary/30"
+						: "border-destructive/40",
 			)}
 		>
 			<div className="flex flex-wrap items-start justify-between gap-3">
@@ -107,32 +114,54 @@ export function ScannerResult({
 					<div
 						className={cn(
 							"border p-2",
-							success
-								? "border-primary/40 bg-primary/10 text-primary"
-								: "border-destructive/40 bg-destructive/10 text-destructive",
+							duplicate
+								? "border-sky-500/40 bg-sky-500/15 text-sky-700 dark:text-sky-300"
+								: success
+									? "border-primary/40 bg-primary/10 text-primary"
+									: "border-destructive/40 bg-destructive/10 text-destructive",
 						)}
 					>
-						{success ? (
+						{duplicate ? (
+							<Info className="size-5" aria-hidden />
+						) : success ? (
 							<CheckCircle2 className="size-5" aria-hidden />
 						) : (
 							<ShieldX className="size-5" aria-hidden />
 						)}
 					</div>
 					<div className="min-w-0 space-y-1">
-						<h2 className="text-base font-semibold tracking-tight">
-							{success ? t("scanner.resultValid") : t("scanner.resultInvalid")}
+						<h2
+							className={cn(
+								"text-base font-semibold tracking-tight",
+								duplicate && "text-sky-800 dark:text-sky-300",
+							)}
+						>
+							{duplicate
+								? t("scanner.resultDuplicate")
+								: success
+									? t("scanner.resultValid")
+									: t("scanner.resultInvalid")}
 						</h2>
-						<p className="text-sm text-muted-foreground">
-							{success
-								? t("scanner.resultValidLead")
-								: verifyErrorMessage(t, result.error)}
+						<p
+							className={cn(
+								"text-sm text-muted-foreground",
+								duplicate && "text-sky-700/80 dark:text-sky-300/80",
+							)}
+						>
+							{duplicate
+								? t("scanner.resultDuplicateLead")
+								: success
+									? t("scanner.resultValidLead")
+									: verifyErrorMessage(t, result.error)}
 						</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
-					<Badge variant={success ? "default" : "destructive"}>
-						{success ? t("scanner.badgeValid") : t("scanner.badgeInvalid")}
-					</Badge>
+					{duplicate ? null : (
+						<Badge variant={success ? "default" : "destructive"}>
+							{success ? t("scanner.badgeValid") : t("scanner.badgeInvalid")}
+						</Badge>
+					)}
 					<Button type="button" variant="outline" size="sm" onClick={onClear}>
 						{t("scanner.clearResult")}
 					</Button>

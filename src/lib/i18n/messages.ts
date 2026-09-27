@@ -175,7 +175,10 @@ const de = {
 		"In Neuland Next den QR-Code antippen, um ihn im Vollbild anzuzeigen.",
 	"scanner.resultValid": "Verifizierung erfolgreich",
 	"scanner.resultInvalid": "Verifizierung fehlgeschlagen",
+	"scanner.resultDuplicate": "Bereits verifiziert",
 	"scanner.resultValidLead": "Signatur der Member-ID ist gültig.",
+	"scanner.resultDuplicateLead":
+		"Diese Person wurde in dieser Sitzung bereits gescannt.",
 	"scanner.badgeValid": "Gültig",
 	"scanner.badgeInvalid": "Ungültig",
 	"scanner.errorInvalidSignature": "Ungültige Signatur",
@@ -208,6 +211,9 @@ const de = {
 		"Scanner nicht verfügbar — öffentlicher Schlüssel konnte nicht geladen werden.",
 	"scanner.publicKeyRetry": "Schlüssel erneut laden",
 	"scanner.clearResult": "Scan zurücksetzen",
+	"scanner.historyTitle": "Lokale Historie",
+	"scanner.historyHint": "Nur auf diesem Gerät gespeichert.",
+	"scanner.historyClear": "Leeren",
 	"error.oauth_session_missing":
 		"Sitzung abgelaufen. Bitte melde dich erneut an.",
 	"error.id_token_missing_sub":
@@ -379,7 +385,10 @@ const en: Record<MessageKey, string> = {
 		"In Neuland Next, tap the QR code to view it full-screen.",
 	"scanner.resultValid": "Verification successful",
 	"scanner.resultInvalid": "Verification failed",
+	"scanner.resultDuplicate": "Already verified",
 	"scanner.resultValidLead": "Member ID signature is valid.",
+	"scanner.resultDuplicateLead":
+		"This person was already scanned in this session.",
 	"scanner.badgeValid": "Valid",
 	"scanner.badgeInvalid": "Invalid",
 	"scanner.errorInvalidSignature": "Invalid signature",
@@ -411,6 +420,9 @@ const en: Record<MessageKey, string> = {
 		"Scanner unavailable — could not load the public key.",
 	"scanner.publicKeyRetry": "Reload key",
 	"scanner.clearResult": "Clear scan",
+	"scanner.historyTitle": "Local history",
+	"scanner.historyHint": "Stored only on this device.",
+	"scanner.historyClear": "Clear",
 	"error.oauth_session_missing": "Session expired. Please sign in again.",
 	"error.id_token_missing_sub": "Sign-in incomplete. Please try again.",
 	"error.login_failed": "Sign-in failed.",
