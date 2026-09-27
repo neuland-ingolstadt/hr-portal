@@ -74,7 +74,6 @@ const de = {
 	"home.actionMembersTitle": "Mitglieder",
 	"home.actionMembersDesc":
 		"Mitgliederverzeichnis durchsuchen, filtern und sortieren.",
-	"home.soon": "Bald",
 	"home.moduleOnboardingTitle": "Onboarding",
 	"home.moduleOnboardingDesc":
 		"Neue Authentik-Konten der letzten Wochen.",
@@ -84,16 +83,8 @@ const de = {
 	"home.moduleOffboardingTitle": "Offboarding",
 	"home.moduleOffboardingDesc":
 		"Mitglieder-Rollen entziehen und Authentik-Konten nach Austritt löschen.",
-	"home.moduleEasyVereinTitle": "EasyVerein",
-	"home.moduleEasyVereinDesc": "Offene Mitgliedsanträge prüfen und annehmen.",
 	"home.profileHint":
 		"Profil und Rollen werden zentral über dein Neuland-Konto gesteuert.",
-	"comingSoon.workspaceTitle": "In Vorbereitung",
-	"comingSoon.workspaceLead":
-		"Dieses Modul ist geplant und steht demnächst zur Verfügung.",
-	"comingSoon.preview": "Vorschau",
-	"comingSoon.hint":
-		"Noch keine Aktionen möglich — die Funktionen folgen in Kürze.",
 	"applications.eyebrow": "Abläufe",
 	"applications.title": "Bewerbungen",
 	"applications.lead":
@@ -524,7 +515,6 @@ const en: Record<MessageKey, string> = {
 	"home.statMembersHint": "Active club members",
 	"home.actionMembersTitle": "Members",
 	"home.actionMembersDesc": "Search, filter, and sort the members directory.",
-	"home.soon": "Soon",
 	"home.moduleOnboardingTitle": "Onboarding",
 	"home.moduleOnboardingDesc": "New Authentik accounts from the last weeks.",
 	"home.moduleApplicationsTitle": "Applications",
@@ -533,16 +523,8 @@ const en: Record<MessageKey, string> = {
 	"home.moduleOffboardingTitle": "Offboarding",
 	"home.moduleOffboardingDesc":
 		"Revoke Mitglieder roles and delete Authentik accounts after departure.",
-	"home.moduleEasyVereinTitle": "EasyVerein",
-	"home.moduleEasyVereinDesc":
-		"Review and accept open membership applications.",
 	"home.profileHint":
 		"Profile and roles are managed centrally through your Neuland account.",
-	"comingSoon.workspaceTitle": "Coming soon",
-	"comingSoon.workspaceLead":
-		"This module is planned and will be available soon.",
-	"comingSoon.preview": "Preview",
-	"comingSoon.hint": "No actions available yet — features will follow shortly.",
 	"applications.eyebrow": "Workflows",
 	"applications.title": "Applications",
 	"applications.lead":
