@@ -16,11 +16,11 @@
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check .",
-		"typecheck": "tsc --noEmit",
-		"backfill:easyverein": "bun run scripts/backfill-easyverein-ids.ts",
-		"dev:email": "email dev --dir src/emails --port 3001",
-		"docker:build": "docker build --build-arg BUN_VERSION=$(tr -d '[:space:]' < .bun-version) -t neuland-hr ."
-	},
+    "typecheck": "tsc --noEmit",
+    "backfill:easyverein": "bun run scripts/backfill-easyverein-ids.ts",
+    "dev:email": "email dev --dir src/emails --port 3001",
+    "docker:build": "docker build --build-arg BUN_VERSION=$(tr -d '[:space:]' < .bun-version) -t neuland-hr ."
+  },
   "dependencies": {
     "@azure/communication-email": "^1.1.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
@@ -32,7 +32,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-router": "latest",
     "@tanstack/react-start": "latest",
-    "@tanstack/react-table": "8",
+    "@tanstack/react-table": "9",
     "cborg": "^6.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

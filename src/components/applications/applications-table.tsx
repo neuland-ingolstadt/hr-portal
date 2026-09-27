@@ -1,11 +1,17 @@
 import {
 	type ColumnDef,
+	columnFilteringFeature,
+	createFilteredRowModel,
+	createSortedRowModel,
+	filterFn_includesString,
 	flexRender,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
+	globalFilteringFeature,
+	rowSortingFeature,
 	type SortingState,
-	useReactTable,
+	sortFn_alphanumeric,
+	sortFn_text,
+	tableFeatures,
+	useTable,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -14,6 +20,21 @@ import { Input } from "#/components/ui/input";
 import type { PendingApplication } from "#/lib/applications";
 import { useI18n } from "#/lib/i18n/locale-context";
 import { cn } from "#/lib/utils";
+
+const features = tableFeatures({
+	rowSortingFeature,
+	columnFilteringFeature,
+	globalFilteringFeature,
+	filteredRowModel: createFilteredRowModel(),
+	sortedRowModel: createSortedRowModel(),
+	filterFns: {
+		includesString: filterFn_includesString,
+	},
+	sortFns: {
+		alphanumeric: sortFn_alphanumeric,
+		text: sortFn_text,
+	},
+});
 
 type ApplicationsTableProps = {
 	applications: PendingApplication[];
@@ -48,7 +69,7 @@ export function ApplicationsTable({
 	]);
 	const [nameFilter, setNameFilter] = useState("");
 
-	const columns = useMemo<ColumnDef<PendingApplication>[]>(
+	const columns = useMemo<ColumnDef<typeof features, PendingApplication>[]>(
 		() => [
 			{
 				accessorKey: "displayName",
@@ -108,7 +129,8 @@ export function ApplicationsTable({
 		[locale, onAccept, t],
 	);
 
-	const table = useReactTable({
+	const table = useTable({
+		features,
 		data: applications,
 		columns,
 		state: {
@@ -117,9 +139,6 @@ export function ApplicationsTable({
 		},
 		onSortingChange: setSorting,
 		onGlobalFilterChange: setNameFilter,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 		globalFilterFn: (row, _columnId, filterValue) => {
 			const query = String(filterValue ?? "")
 				.trim()
@@ -233,7 +252,7 @@ export function ApplicationsTable({
 										"hover:bg-muted/30",
 									)}
 								>
-									{row.getVisibleCells().map((cell) => (
+									{row.getAllCells().map((cell) => (
 										<td key={cell.id} className="px-4 py-3 align-middle">
 											{flexRender(
 												cell.column.columnDef.cell,

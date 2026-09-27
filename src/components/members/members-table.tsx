@@ -1,12 +1,18 @@
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
+	columnFilteringFeature,
+	createFilteredRowModel,
+	createSortedRowModel,
+	filterFn_includesString,
 	flexRender,
-	getCoreRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
+	type Row,
+	rowSortingFeature,
 	type SortingState,
-	useReactTable,
+	sortFn_alphanumeric,
+	sortFn_text,
+	tableFeatures,
+	useTable,
 } from "@tanstack/react-table";
 import {
 	ArrowDown,
@@ -30,6 +36,20 @@ import {
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { Member } from "#/lib/members";
 import { cn } from "#/lib/utils";
+
+const features = tableFeatures({
+	rowSortingFeature,
+	columnFilteringFeature,
+	filteredRowModel: createFilteredRowModel(),
+	sortedRowModel: createSortedRowModel(),
+	filterFns: {
+		includesString: filterFn_includesString,
+	},
+	sortFns: {
+		alphanumeric: sortFn_alphanumeric,
+		text: sortFn_text,
+	},
+});
 
 type MembersTableProps = {
 	members: Member[];
@@ -85,7 +105,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 		return sortGroupsForDisplay(base);
 	}, [availableGroups, groupQuery]);
 
-	const columns = useMemo<ColumnDef<Member>[]>(
+	const columns = useMemo<ColumnDef<typeof features, Member>[]>(
 		() => [
 			{
 				accessorKey: "name",
@@ -139,13 +159,16 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 						</div>
 					);
 				},
-				sortingFn: (a, b) =>
+				sortingFn: (
+					a: Row<typeof features, Member>,
+					b: Row<typeof features, Member>,
+				) =>
 					a.original.groups
 						.join(",")
 						.localeCompare(b.original.groups.join(","), "de"),
 				filterFn: (
-					row,
-					_id,
+					row: Row<typeof features, Member>,
+					_id: string,
 					filterValue: { groups: string[]; mode: GroupMatchMode },
 				) => {
 					const groups = filterValue?.groups ?? [];
@@ -161,15 +184,13 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 		[t, openProfile],
 	);
 
-	const table = useReactTable({
+	const table = useTable({
+		features,
 		data: members,
 		columns,
 		state: { sorting, columnFilters },
 		onSortingChange: setSorting,
 		onColumnFiltersChange: setColumnFilters,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
 	});
 
 	const nameFilter =
@@ -467,7 +488,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 												index % 2 === 1 && "bg-muted/20",
 											)}
 										>
-											{row.getVisibleCells().map((cell) => (
+											{row.getAllCells().map((cell) => (
 												<td
 													key={cell.id}
 													className="px-4 py-3.5 align-middle text-sm sm:px-5"
