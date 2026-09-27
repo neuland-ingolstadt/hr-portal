@@ -4,6 +4,7 @@ import {
 	FileCheck2,
 	Home,
 	LogOut,
+	ScanQrCode,
 	UserMinus,
 	Users,
 } from "lucide-react";
@@ -41,6 +42,12 @@ const overviewItems: NavItem[] = [
 		labelKey: "nav.members",
 		icon: Users,
 		match: (pathname) => pathname.startsWith(ROUTES.MITGLIEDER),
+	},
+	{
+		to: ROUTES.SCANNER,
+		labelKey: "nav.scanner",
+		icon: ScanQrCode,
+		match: (pathname) => pathname.startsWith(ROUTES.SCANNER),
 	},
 ];
 

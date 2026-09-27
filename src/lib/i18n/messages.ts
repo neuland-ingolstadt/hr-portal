@@ -15,6 +15,7 @@ const de = {
 	"nav.sectionWorkflows": "Abläufe",
 	"nav.home": "Home",
 	"nav.members": "Mitglieder",
+	"nav.scanner": "Scanner",
 	"nav.applications": "Bewerbungen",
 	"nav.onboarding": "Onboarding",
 	"nav.offboarding": "Offboarding",
@@ -149,6 +150,64 @@ const de = {
 	"members.retry": "Erneut versuchen",
 	"members.mockHint":
 		"Lokale Beispieldaten — in Produktion siehst du echte Mitglieder.",
+	"scanner.eyebrow": "Verifizierung",
+	"scanner.title": "Member-ID Scanner",
+	"scanner.lead":
+		"Neuland Member-ID scannen, Signatur prüfen und Mitglied im Verzeichnis nachschlagen.",
+	"scanner.cameraHint": "Halte die Member-ID vor die Kamera.",
+	"scanner.cameraHintFrame":
+		"Positioniere den QR-Code im Rahmen zur automatischen Erkennung.",
+	"scanner.cameraStarting": "Kamera wird gestartet…",
+	"scanner.cameraRetry": "Erneut versuchen",
+	"scanner.cameraErrorGeneric":
+		"Kamerazugriff verweigert oder nicht verfügbar.",
+	"scanner.cameraErrorUnsupported":
+		"Kamera-API wird nicht unterstützt. Bitte HTTPS und einen modernen Browser verwenden.",
+	"scanner.cameraErrorDenied":
+		"Kamerazugriff verweigert. Bitte Berechtigung erteilen und erneut versuchen.",
+	"scanner.cameraErrorNotFound": "Keine Kamera auf diesem Gerät gefunden.",
+	"scanner.cameraErrorBusy":
+		"Die Kamera wird bereits von einer anderen Anwendung verwendet.",
+	"scanner.awaitingTitle": "Warte auf Scan",
+	"scanner.awaitingLead":
+		"Scanne die digitale Member-ID eines Mitglieds zur Verifizierung.",
+	"scanner.awaitingHint":
+		"In Neuland Next den QR-Code antippen, um ihn im Vollbild anzuzeigen.",
+	"scanner.resultValid": "Verifizierung erfolgreich",
+	"scanner.resultInvalid": "Verifizierung fehlgeschlagen",
+	"scanner.resultValidLead": "Signatur der Member-ID ist gültig.",
+	"scanner.badgeValid": "Gültig",
+	"scanner.badgeInvalid": "Ungültig",
+	"scanner.errorInvalidSignature": "Ungültige Signatur",
+	"scanner.errorExpired": "Member-ID ist abgelaufen",
+	"scanner.fieldName": "Name",
+	"scanner.fieldSub": "User-ID",
+	"scanner.fieldIssued": "Ausgestellt",
+	"scanner.fieldExpires": "Gültig bis",
+	"scanner.fieldType": "QR-Typ",
+	"scanner.typeApp": "App Member-ID",
+	"scanner.typeApple": "Apple Wallet",
+	"scanner.typeAndroid": "Google Wallet",
+	"scanner.enrichTitle": "Verzeichnis",
+	"scanner.enrichLoading": "Mitglied wird nachgeschlagen…",
+	"scanner.enrichMissing":
+		"Kein Eintrag im Authentik-Verzeichnis für diese User-ID.",
+	"scanner.enrichError":
+		"Verzeichnisabfrage fehlgeschlagen. Die kryptografische Prüfung bleibt gültig.",
+	"scanner.enrichErrorApi":
+		"Authentik-API ist nicht konfiguriert. Verzeichnisabfrage nicht möglich.",
+	"scanner.enrichActive": "Aktiv",
+	"scanner.enrichInactive": "Inaktiv",
+	"scanner.enrichMember": "Mitglied",
+	"scanner.enrichNotMember": "Kein Mitglied",
+	"scanner.enrichGroups": "Gruppen",
+	"scanner.enrichNoGroups": "Keine Gruppen",
+	"scanner.openMembers": "Mitglieder öffnen",
+	"scanner.publicKeyLoading": "Öffentlicher Schlüssel wird geladen…",
+	"scanner.publicKeyUnavailable":
+		"Scanner nicht verfügbar — öffentlicher Schlüssel konnte nicht geladen werden.",
+	"scanner.publicKeyRetry": "Schlüssel erneut laden",
+	"scanner.clearResult": "Scan zurücksetzen",
 	"error.oauth_session_missing":
 		"Sitzung abgelaufen. Bitte melde dich erneut an.",
 	"error.id_token_missing_sub":
@@ -170,6 +229,7 @@ const en: Record<MessageKey, string> = {
 	"nav.sectionWorkflows": "Workflows",
 	"nav.home": "Home",
 	"nav.members": "Members",
+	"nav.scanner": "Scanner",
 	"nav.applications": "Applications",
 	"nav.onboarding": "Onboarding",
 	"nav.offboarding": "Offboarding",
@@ -297,6 +357,60 @@ const en: Record<MessageKey, string> = {
 	"members.retry": "Try again",
 	"members.mockHint":
 		"Local sample data — in production you will see real members.",
+	"scanner.eyebrow": "Verification",
+	"scanner.title": "Member ID Scanner",
+	"scanner.lead":
+		"Scan a Neuland Member ID, verify the signature, and look up the member in the directory.",
+	"scanner.cameraHint": "Hold the Member ID up to the camera.",
+	"scanner.cameraHintFrame":
+		"Position the QR code within the frame for automatic detection.",
+	"scanner.cameraStarting": "Starting camera…",
+	"scanner.cameraRetry": "Try again",
+	"scanner.cameraErrorGeneric": "Camera access denied or not available.",
+	"scanner.cameraErrorUnsupported":
+		"Camera API not supported. Please use HTTPS and a modern browser.",
+	"scanner.cameraErrorDenied":
+		"Camera access denied. Please allow camera permissions and try again.",
+	"scanner.cameraErrorNotFound": "No camera found on this device.",
+	"scanner.cameraErrorBusy": "Camera is already in use by another application.",
+	"scanner.awaitingTitle": "Awaiting scan",
+	"scanner.awaitingLead": "Scan a member’s digital Member ID to verify it.",
+	"scanner.awaitingHint":
+		"In Neuland Next, tap the QR code to view it full-screen.",
+	"scanner.resultValid": "Verification successful",
+	"scanner.resultInvalid": "Verification failed",
+	"scanner.resultValidLead": "Member ID signature is valid.",
+	"scanner.badgeValid": "Valid",
+	"scanner.badgeInvalid": "Invalid",
+	"scanner.errorInvalidSignature": "Invalid signature",
+	"scanner.errorExpired": "Member ID has expired",
+	"scanner.fieldName": "Name",
+	"scanner.fieldSub": "User ID",
+	"scanner.fieldIssued": "Issued",
+	"scanner.fieldExpires": "Expires",
+	"scanner.fieldType": "QR type",
+	"scanner.typeApp": "App Member ID",
+	"scanner.typeApple": "Apple Wallet",
+	"scanner.typeAndroid": "Google Wallet",
+	"scanner.enrichTitle": "Directory",
+	"scanner.enrichLoading": "Looking up member…",
+	"scanner.enrichMissing": "No Authentik directory entry for this user ID.",
+	"scanner.enrichError":
+		"Directory lookup failed. Cryptographic verification still stands.",
+	"scanner.enrichErrorApi":
+		"Authentik API is not configured. Directory lookup unavailable.",
+	"scanner.enrichActive": "Active",
+	"scanner.enrichInactive": "Inactive",
+	"scanner.enrichMember": "Member",
+	"scanner.enrichNotMember": "Not a member",
+	"scanner.enrichGroups": "Groups",
+	"scanner.enrichNoGroups": "No groups",
+	"scanner.openMembers": "Open members",
+	"scanner.publicKeyLoading": "Loading public key…",
+	"scanner.publicKeyUnavailable":
+		"Scanner unavailable — could not load the public key.",
+	"scanner.publicKeyRetry": "Reload key",
+	"scanner.clearResult": "Clear scan",
 	"error.oauth_session_missing": "Session expired. Please sign in again.",
 	"error.id_token_missing_sub": "Sign-in incomplete. Please try again.",
 	"error.login_failed": "Sign-in failed.",

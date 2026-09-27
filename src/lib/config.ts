@@ -39,6 +39,14 @@ export const serverConfig = {
 	},
 	/** Local mock auth — only when AUTH_MOCK=true (never auto-enable). */
 	authMock: optional("AUTH_MOCK", "false") === "true",
+	/**
+	 * Member-ID API origin (no trailing slash) for QR public-key fetch.
+	 * Example: https://id.neuland-ingolstadt.de
+	 */
+	memberIdApiBase: optional(
+		"MEMBER_ID_API_BASE",
+		"https://id.neuland-ingolstadt.de",
+	),
 } as const;
 
 export function getCallbackUrl(): string {

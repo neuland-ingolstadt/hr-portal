@@ -13,6 +13,7 @@ export const ROUTES = {
 	LOGIN: "/login",
 	KEIN_ZUGANG: "/kein-zugang",
 	MITGLIEDER: "/mitglieder",
+	SCANNER: "/scanner",
 	BEWERBUNGEN: "/bewerbungen",
 	ONBOARDING: "/onboarding",
 	OFFBOARDING: "/offboarding",

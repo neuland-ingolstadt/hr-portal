@@ -17,6 +17,7 @@ import { Route as AppBewerbungenRouteImport } from './routes/_app/bewerbungen'
 import { Route as AppMitgliederRouteImport } from './routes/_app/mitglieder'
 import { Route as AppOffboardingRouteImport } from './routes/_app/offboarding'
 import { Route as AppOnboardingRouteImport } from './routes/_app/onboarding'
+import { Route as AppScannerRouteImport } from './routes/_app/scanner'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiAuthCallbackRouteImport } from './routes/api/auth/callback'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
@@ -62,6 +63,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
+const AppScannerRoute = AppScannerRouteImport.update({
+  id: '/scanner',
+  path: '/scanner',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/mitglieder': typeof AppMitgliederRoute
   '/offboarding': typeof AppOffboardingRoute
   '/onboarding': typeof AppOnboardingRoute
+  '/scanner': typeof AppScannerRoute
   '/api/health': typeof ApiHealthRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/mitglieder': typeof AppMitgliederRoute
   '/offboarding': typeof AppOffboardingRoute
   '/onboarding': typeof AppOnboardingRoute
+  '/scanner': typeof AppScannerRoute
   '/api/health': typeof ApiHealthRoute
   '/': typeof AppIndexRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/_app/mitglieder': typeof AppMitgliederRoute
   '/_app/offboarding': typeof AppOffboardingRoute
   '/_app/onboarding': typeof AppOnboardingRoute
+  '/_app/scanner': typeof AppScannerRoute
   '/api/health': typeof ApiHealthRoute
   '/_app/': typeof AppIndexRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -142,6 +151,7 @@ export interface FileRouteTypes {
     | '/mitglieder'
     | '/offboarding'
     | '/onboarding'
+    | '/scanner'
     | '/api/health'
     | '/api/auth/callback'
     | '/api/auth/login'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/mitglieder'
     | '/offboarding'
     | '/onboarding'
+    | '/scanner'
     | '/api/health'
     | '/'
     | '/api/auth/callback'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/_app/mitglieder'
     | '/_app/offboarding'
     | '/_app/onboarding'
+    | '/_app/scanner'
     | '/api/health'
     | '/_app/'
     | '/api/auth/callback'
@@ -247,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/scanner': {
+      id: '/_app/scanner'
+      path: '/scanner'
+      fullPath: '/scanner'
+      preLoaderRoute: typeof AppScannerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -290,6 +309,7 @@ interface AppRouteChildren {
   AppMitgliederRoute: typeof AppMitgliederRoute
   AppOffboardingRoute: typeof AppOffboardingRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
+  AppScannerRoute: typeof AppScannerRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -298,6 +318,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMitgliederRoute: AppMitgliederRoute,
   AppOffboardingRoute: AppOffboardingRoute,
   AppOnboardingRoute: AppOnboardingRoute,
+  AppScannerRoute: AppScannerRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

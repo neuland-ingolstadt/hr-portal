@@ -207,11 +207,21 @@ export async function handleOidcCallback(
 		throw new Error("oauth_session_missing");
 	}
 
-	const tokens = await client.authorizationCodeGrant(config, callbackUrl, {
-		pkceCodeVerifier: oauth.codeVerifier,
-		expectedState: oauth.state,
-		expectedNonce: oauth.nonce,
-	});
+	// Rebuild with APP_URL so redirect_uri matches authorize (HTTPS) when
+	// Traefik terminates TLS and the inbound request is http://…
+	const canonicalCallbackUrl = new URL(
+		`${callbackUrl.pathname}${callbackUrl.search}`,
+		serverConfig.appUrl,
+	);
+	const tokens = await client.authorizationCodeGrant(
+		config,
+		canonicalCallbackUrl,
+		{
+			pkceCodeVerifier: oauth.codeVerifier,
+			expectedState: oauth.state,
+			expectedNonce: oauth.nonce,
+		},
+	);
 
 	const claims = tokens.claims();
 	if (!claims?.sub) {
