@@ -180,6 +180,18 @@ export async function createMemberAccount(
 
 		const password = generatePassword(16);
 
+		const attributes: Record<string, string | number> = {
+			firstName: user.firstName,
+			lastName: user.lastName,
+		};
+		if (
+			typeof input.easyVereinMemberId === "number" &&
+			Number.isInteger(input.easyVereinMemberId) &&
+			input.easyVereinMemberId > 0
+		) {
+			attributes.easyVereinMemberId = input.easyVereinMemberId;
+		}
+
 		const created = await authentikFetch<AuthentikUser>("/api/v3/core/users/", {
 			method: "POST",
 			headers: authHeaders(true),
@@ -190,10 +202,7 @@ export async function createMemberAccount(
 				path: serverConfig.authentikUserPath,
 				type: "internal",
 				groups: groupId ? [groupId] : [],
-				attributes: {
-					firstName: user.firstName,
-					lastName: user.lastName,
-				},
+				attributes,
 			}),
 		});
 

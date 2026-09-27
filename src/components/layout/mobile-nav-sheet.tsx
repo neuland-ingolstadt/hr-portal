@@ -69,11 +69,6 @@ function MobileNavSection({
 						) : null}
 						<Icon className="size-4 shrink-0" aria-hidden />
 						<span className="min-w-0 flex-1 truncate">{label}</span>
-						{item.soon ? (
-							<span className="shrink-0 font-mono text-[0.6rem] font-semibold tracking-wide text-muted-foreground uppercase">
-								{t("home.soon")}
-							</span>
-						) : null}
 					</Link>
 				);
 			})}

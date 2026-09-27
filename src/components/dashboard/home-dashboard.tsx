@@ -342,11 +342,12 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						description={t("home.actionMembersDesc")}
 						cta={t("home.openMembers")}
 					/>
-					<PlaceholderCard
+					<ActionCard
 						to={ROUTES.APPLICATIONS}
 						icon={<FileCheck2 className="size-5" aria-hidden />}
 						title={t("home.moduleApplicationsTitle")}
 						description={t("home.moduleApplicationsDesc")}
+						cta={t("home.openApplications")}
 					/>
 					<PlaceholderCard
 						to={ROUTES.ONBOARDING}

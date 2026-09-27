@@ -14,7 +14,6 @@ export type NavItem = {
 	labelKey: MessageKey;
 	icon: typeof Home;
 	match: (pathname: string) => boolean;
-	soon?: boolean;
 };
 
 export const overviewItems: NavItem[] = [
@@ -44,7 +43,6 @@ export const workflowItems: NavItem[] = [
 		labelKey: "nav.applications",
 		icon: FileCheck2,
 		match: (pathname) => pathname.startsWith(ROUTES.APPLICATIONS),
-		soon: true,
 	},
 	{
 		to: ROUTES.ONBOARDING,

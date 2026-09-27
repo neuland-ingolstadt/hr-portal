@@ -62,6 +62,17 @@ export const serverConfig = {
 		"MEMBER_ID_API_BASE",
 		"https://id.neuland-ingolstadt.de",
 	),
+	/**
+	 * EasyVerein API (pending membership applications + accept).
+	 * Token from EasyVerein → Einstellungen → API.
+	 */
+	easyVerein: {
+		apiBase: optional(
+			"EASYVEREIN_API_BASE",
+			"https://easyverein.com/api/v3.0",
+		).replace(/\/$/, ""),
+		apiToken: optional("EASYVEREIN_API_TOKEN"),
+	},
 } as const;
 
 export function getCallbackUrl(): string {

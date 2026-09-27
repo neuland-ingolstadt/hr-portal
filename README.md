@@ -26,6 +26,10 @@ Access requires membership in `HR`, `Vorstand`, or `Admin` (names via `HR_GROUP_
 
 `/members` loads name + groups from the Authentik API (`AUTHENTIK_API_URL` / `AUTHENTIK_API_TOKEN`). No emails are shown.
 
+## EasyVerein
+
+Set `EASYVEREIN_API_TOKEN` (EasyVerein → Einstellungen → API). `/applications` lists pending membership applications (`is_application=true`). Accepting creates the Authentik account, sends the welcome email, then marks the application accepted in EasyVerein.
+
 ## Docker
 
 ```bash

@@ -44,6 +44,7 @@ const ATTR = {
 	githubId: "github_id",
 	discordUsername: "discord_username",
 	discordId: "discord_id",
+	easyVereinMemberId: "easyVereinMemberId",
 } as const;
 
 const MOCK_MEMBERS: Member[] = [
@@ -51,22 +52,37 @@ const MOCK_MEMBERS: Member[] = [
 		id: "mock-1",
 		name: "Alex Berger",
 		groups: ["HR", "Mitglieder", "management"],
+		easyVereinMemberId: 1001,
 	},
 	{
 		id: "mock-2",
 		name: "Sam Kovacs",
 		groups: ["Vorstand", "Mitglieder", "engineering"],
+		easyVereinMemberId: null,
 	},
-	{ id: "mock-3", name: "Jordan Weiss", groups: ["Mitglieder", "events"] },
+	{
+		id: "mock-3",
+		name: "Jordan Weiss",
+		groups: ["Mitglieder", "events"],
+		easyVereinMemberId: 1003,
+	},
 	{
 		id: "mock-4",
 		name: "Riley Hartmann",
 		groups: ["HR", "design-marketing"],
+		easyVereinMemberId: null,
 	},
 	{
 		id: "mock-5",
 		name: "Casey Vogel",
 		groups: ["Mitglieder", "events", "engineering"],
+		easyVereinMemberId: null,
+	},
+	{
+		id: "mock-6",
+		name: "Taylor Neumann",
+		groups: ["design-marketing"],
+		easyVereinMemberId: null,
 	},
 ];
 
@@ -350,6 +366,20 @@ function matchesMitgliederGroup(name: string | undefined): boolean {
 	return name.trim().toLowerCase() === expected;
 }
 
+function easyVereinMemberIdFromAttributes(
+	attributes: Record<string, unknown> | undefined,
+): number | null {
+	const value = attributes?.[ATTR.easyVereinMemberId];
+	if (typeof value === "number" && Number.isInteger(value) && value > 0) {
+		return value;
+	}
+	if (typeof value === "string" && /^\d+$/.test(value.trim())) {
+		const parsed = Number.parseInt(value.trim(), 10);
+		return parsed > 0 ? parsed : null;
+	}
+	return null;
+}
+
 function usersToMembers(
 	users: AuthentikUser[],
 	groupNamesById: Map<string, string>,
@@ -368,6 +398,7 @@ function usersToMembers(
 			id,
 			name: displayName(user),
 			groups: resolveUserGroups(user, groupNamesById),
+			easyVereinMemberId: easyVereinMemberIdFromAttributes(user.attributes),
 		});
 	}
 
@@ -523,14 +554,20 @@ function toOffboardingCandidatesResult(
 
 /**
  * Collect offboarding reasons for a directory member.
- * Extend this as new checks are added (EasyVerein, etc.).
+ * - missing_mitglieder: active account without the Mitglieder group
+ * - not_in_easyverein: Mitglieder without Authentik `easyVereinMemberId`
+ *   (only checked for members — non-Mitglieder are not expected to be linked)
  */
 function collectOffboardingReasons(member: Member): OffboardingReason[] {
 	const reasons: OffboardingReason[] = [];
-	if (!hasMitgliederGroup(member.groups)) {
+	const isMitglied = hasMitgliederGroup(member.groups);
+	if (!isMitglied) {
 		reasons.push("missing_mitglieder");
+		return reasons;
 	}
-	// later: if (!isInEasyVerein(member)) reasons.push("not_in_easyverein");
+	if (member.easyVereinMemberId == null) {
+		reasons.push("not_in_easyverein");
+	}
 	return reasons;
 }
 

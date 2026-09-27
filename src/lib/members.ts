@@ -4,6 +4,11 @@ export type Member = {
 	id: string;
 	name: string;
 	groups: string[];
+	/**
+	 * EasyVerein member pk from Authentik `attributes.easyVereinMemberId`.
+	 * `null` = known missing; `undefined` = not loaded (e.g. mitglieder-only list).
+	 */
+	easyVereinMemberId?: number | null;
 };
 
 export type MembersResult = {
@@ -15,9 +20,14 @@ export type MembersResult = {
 
 /**
  * Why a directory account appears on the offboarding list.
- * Add new codes here as more checks land (e.g. EasyVerein).
+ * Add new codes here as more checks land.
  */
 export type OffboardingReason = "missing_mitglieder" | "not_in_easyverein";
+
+export const OFFBOARDING_REASONS: OffboardingReason[] = [
+	"missing_mitglieder",
+	"not_in_easyverein",
+];
 
 export type OffboardingCandidate = Member & {
 	reasons: OffboardingReason[];

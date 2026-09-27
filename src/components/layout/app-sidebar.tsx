@@ -149,11 +149,10 @@ function NavSection({
 				const Icon = item.icon;
 				const active = item.match(pathname);
 				const label = t(item.labelKey);
-				const titleText = item.soon ? `${label} (${t("home.soon")})` : label;
 				return (
 					<SidebarHoverLabel
 						key={item.to}
-						label={titleText}
+						label={label}
 						enabled={collapsed}
 						className="w-full"
 					>
@@ -167,7 +166,7 @@ function NavSection({
 									: "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
 							)}
 							aria-current={active ? "page" : undefined}
-							aria-label={collapsed ? titleText : undefined}
+							aria-label={collapsed ? label : undefined}
 						>
 							{active ? (
 								<span
@@ -177,19 +176,9 @@ function NavSection({
 							) : null}
 							<Icon className="size-4 shrink-0" aria-hidden />
 							{collapsed ? null : (
-								<>
-									<span data-sidebar-label className="min-w-0 flex-1 truncate">
-										{label}
-									</span>
-									{item.soon ? (
-										<span
-											data-sidebar-label
-											className="shrink-0 font-mono text-[0.6rem] font-semibold tracking-wide text-muted-foreground uppercase"
-										>
-											{t("home.soon")}
-										</span>
-									) : null}
-								</>
+								<span data-sidebar-label className="min-w-0 flex-1 truncate">
+									{label}
+								</span>
 							)}
 						</Link>
 					</SidebarHoverLabel>

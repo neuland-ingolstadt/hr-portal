@@ -2,6 +2,8 @@ export type NewMemberInput = {
 	firstName: string;
 	lastName: string;
 	email: string;
+	/** EasyVerein member pk — stored on Authentik `attributes.easyVereinMemberId`. */
+	easyVereinMemberId?: number;
 };
 
 export type CreateMemberResult =

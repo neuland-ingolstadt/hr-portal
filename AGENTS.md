@@ -13,6 +13,7 @@
 - `src/lib/auth.ts` — client-safe types/helpers
 - `src/lib/auth.server.ts` — OIDC, Authentik API, RBAC helpers
 - `src/lib/session.ts` — encrypted httpOnly session cookie
+- `src/lib/easyverein.server.ts` — EasyVerein API (pending applications / accept)
 - `src/routes/api/auth/*` — login, callback, logout (+ mock for local)
 - `src/routes/` — UI routes (`/`, `/login`, `/no-access`)
 
@@ -21,11 +22,20 @@
 - Every `createServerFn` / API route that exposes private data must call `requireAppAccess` (or equivalent). Route `beforeLoad` is UX only.
 - Separate Authentik application from Connect (own client id/secret, redirect `…/api/auth/callback`).
 
+## Applications (EasyVerein)
+
+- `/applications` lists members with `is_application=true` from EasyVerein.
+- Accept dialog: create Authentik user + welcome mail, then PATCH EasyVerein (`is_application=false`, set `join_date` if missing).
+- Authentik user gets `attributes.easyVereinMemberId` for later linkage.
+- Manual Authentik create is a header action on `/applications` (edge cases without an EV application).
+- Env: `EASYVEREIN_API_TOKEN`, optional `EASYVEREIN_API_BASE` (default `https://easyverein.com/api/v3.0`).
+
 ## Onboarding
 
-- `/onboarding` creates Authentik users (`firstname.lastname`, path `neuland-ldap`) and sends the welcome mail via Azure Communication Services + React Email (`src/emails/welcome.tsx`).
+- `/onboarding` is planned (coming soon). Prefer accepting via `/applications`.
+- Shared create helpers live in `src/lib/onboarding*.ts` and the welcome email in `src/emails/welcome.tsx`.
 - Env: `AUTHENTIK_API_*` (write users), optional `AUTHENTIK_DEFAULT_GROUP` / `AUTHENTIK_USER_PATH`, `AZURE_COMMUNICATION_SERVICE_CONNECTION_STRING`, `FROM_EMAIL`.
 
 ## Out of scope for now
 
-EasyVerein API, queues / checklist workflows, shared package with Connect.
+Queues / checklist workflows, shared package with Connect, decline flow in EasyVerein.

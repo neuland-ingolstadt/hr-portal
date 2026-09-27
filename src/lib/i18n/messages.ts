@@ -59,6 +59,7 @@ const de = {
 	"home.role": "Rolle",
 	"home.empty": "-",
 	"home.openMembers": "Mitglieder öffnen",
+	"home.openApplications": "Bewerbungen öffnen",
 	"home.signedInAs": "Angemeldet als {email}",
 	"home.statMembers": "Mitglieder",
 	"home.statGroups": "Gruppen",
@@ -81,8 +82,7 @@ const de = {
 	"home.moduleOffboardingDesc":
 		"Austritte strukturieren, Zugänge entziehen und Übergaben dokumentieren.",
 	"home.moduleEasyVereinTitle": "EasyVerein",
-	"home.moduleEasyVereinDesc":
-		"Vereinsdaten anbinden, sobald die Integration freigegeben ist.",
+	"home.moduleEasyVereinDesc": "Offene Mitgliedsanträge prüfen und annehmen.",
 	"home.profileHint":
 		"Profil und Rollen werden zentral über dein Neuland-Konto gesteuert.",
 	"comingSoon.workspaceTitle": "In Vorbereitung",
@@ -95,16 +95,54 @@ const de = {
 	"applications.title": "Bewerbungen",
 	"applications.lead":
 		"Mitgliedsanträge sichten, entscheiden und Rückmeldungen nachverfolgen.",
+	"applications.leadLive":
+		"Offene EasyVerein-Anträge prüfen. Annehmen legt das Authentik-Konto an und sendet die Willkommensmail.",
 	"applications.bulletReview": "Anträge in einer Warteschlange prüfen",
 	"applications.bulletDecide": "Freigeben oder ablehnen mit Begründung",
 	"applications.bulletNotify": "Bewerber:innen automatisch benachrichtigen",
 	"applications.bulletHistory": "Entscheidungen nachvollziehbar speichern",
+	"applications.colName": "Name",
+	"applications.colEmail": "E-Mail",
+	"applications.colDate": "Antrag vom",
+	"applications.colActions": "Aktionen",
+	"applications.searchPlaceholder": "Name oder E-Mail suchen…",
+	"applications.count": "{count} Anträge",
+	"applications.showing": "{filtered} von {total}",
+	"applications.loading": "Anträge werden geladen…",
+	"applications.empty": "Keine offenen Mitgliedsanträge.",
+	"applications.emptyFiltered": "Keine Treffer für die aktuelle Suche.",
+	"applications.retry": "Erneut versuchen",
+	"applications.errorLoad":
+		"Anträge konnten nicht geladen werden. Bitte versuche es erneut.",
+	"applications.errorApiMissing":
+		"EasyVerein-API ist nicht konfiguriert (EASYVEREIN_API_TOKEN).",
+	"applications.errorNotFound": "Antrag wurde nicht gefunden.",
+	"applications.errorNotPending":
+		"Dieser Antrag ist nicht mehr offen — bitte Liste aktualisieren.",
+	"applications.errorAcceptFailed": "Annahme ist fehlgeschlagen.",
+	"applications.errorAcceptPartial":
+		"Authentik-Konto „{username}“ wurde angelegt, aber EasyVerein konnte nicht aktualisiert werden. Bitte manuell nachziehen.",
+	"applications.accept": "Annehmen",
+	"applications.acceptTitle": "Antrag annehmen?",
+	"applications.acceptLead":
+		"EasyVerein-Antrag annehmen, Authentik-Konto anlegen und Willkommensmail senden.",
+	"applications.acceptConfirm": "Ja, annehmen",
+	"applications.acceptCancel": "Abbrechen",
+	"applications.acceptDone": "Schließen",
+	"applications.acceptSubmitting": "Wird angenommen…",
+	"applications.acceptSuccess":
+		"Antrag angenommen. Konto „{username}“ wurde angelegt.",
+	"applications.manualCreate": "Konto manuell anlegen",
+	"applications.manualCreateTitle": "Konto manuell anlegen",
+	"applications.manualCreateLead":
+		"Nur für Sonderfälle ohne EasyVerein-Antrag. Legt ein Authentik-Konto an und sendet die Willkommensmail.",
+	"applications.manualCreateDone": "Schließen",
 	"onboarding.eyebrow": "Abläufe",
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Neue Mitglieder strukturiert einarbeiten — von Zugang bis Willkommen.",
 	"onboarding.leadLive":
-		"Authentik-Konto anlegen und Willkommensmail mit Zugangsdaten versenden.",
+		"Neue Mitglieder strukturiert einarbeiten — von Zugang bis Willkommen.",
 	"onboarding.bulletChecklist": "Aufgabenlisten pro Rolle",
 	"onboarding.bulletAccess": "Zugänge und Gruppen vorbereiten",
 	"onboarding.bulletWelcome": "Willkommensschritte und Termine",
@@ -143,21 +181,24 @@ const de = {
 	"offboarding.lead":
 		"Austritte sauber abwickeln — Zugänge, Übergaben und Dokumentation.",
 	"offboarding.leadLive":
-		"Aktive Konten ohne Mitgliedschaft erkennen. Weitere Schritte folgen.",
-	"offboarding.candidatesTitle": "Konten ohne Mitgliedschaft",
+		"Aktive Konten ohne Mitglieder-Rolle, sowie Mitglieder nicht im EasyVerein.",
+	"offboarding.candidatesTitle": "Offboarding-Kandidaten",
 	"offboarding.candidatesLead":
-		"Aktive Nutzerkonten ohne Mitgliedschaft — mögliche Offboarding-Kandidaten.",
+		"Aktive Konten ohne Mitglieder-Rolle, sowie Mitglieder ohne EasyVerein-Verknüpfung.",
 	"offboarding.candidatesCount": "{count} Kandidaten",
 	"offboarding.candidatesShowing": "{filtered} von {total}",
+	"offboarding.candidatesPage": "{from}–{to} von {total}",
+	"offboarding.candidatesPrev": "Vorherige Seite",
+	"offboarding.candidatesNext": "Nächste Seite",
 	"offboarding.candidatesLoading": "Kandidaten werden geladen…",
-	"offboarding.candidatesEmpty":
-		"Keine aktiven Konten ohne Mitgliedschaft gefunden.",
+	"offboarding.candidatesEmpty": "Keine Offboarding-Kandidaten gefunden.",
 	"offboarding.candidatesError":
 		"Kandidaten konnten nicht geladen werden. Bitte versuche es erneut.",
 	"offboarding.noGroups": "Keine Gruppen",
 	"offboarding.colReason": "Grund",
+	"offboarding.filterReasons": "Grund filtern",
 	"offboarding.reason.missing_mitglieder": "Keine Mitglieder-Rolle",
-	"offboarding.reason.not_in_easyverein": "Nicht in EasyVerein",
+	"offboarding.reason.not_in_easyverein": "Nicht im EasyVerein",
 	"offboarding.bulletChecklist": "Austritts-Checkliste",
 	"offboarding.bulletAccess": "Zugänge und Geräte zurücknehmen",
 	"offboarding.bulletHandover": "Wissen und Aufgaben übergeben",
@@ -341,6 +382,7 @@ const en: Record<MessageKey, string> = {
 	"home.role": "Role",
 	"home.empty": "-",
 	"home.openMembers": "Open members",
+	"home.openApplications": "Open applications",
 	"home.signedInAs": "Signed in as {email}",
 	"home.statMembers": "Members",
 	"home.statGroups": "Groups",
@@ -363,7 +405,7 @@ const en: Record<MessageKey, string> = {
 		"Structure departures, revoke access, and document handovers.",
 	"home.moduleEasyVereinTitle": "EasyVerein",
 	"home.moduleEasyVereinDesc":
-		"Connect club data once the integration is ready.",
+		"Review and accept open membership applications.",
 	"home.profileHint":
 		"Profile and roles are managed centrally through your Neuland account.",
 	"comingSoon.workspaceTitle": "Coming soon",
@@ -375,16 +417,54 @@ const en: Record<MessageKey, string> = {
 	"applications.title": "Applications",
 	"applications.lead":
 		"Review membership applications, decide, and track follow-ups.",
+	"applications.leadLive":
+		"Review open EasyVerein applications. Accepting creates the Authentik account and sends the welcome email.",
 	"applications.bulletReview": "Review applications in a queue",
 	"applications.bulletDecide": "Approve or decline with a reason",
 	"applications.bulletNotify": "Notify applicants automatically",
 	"applications.bulletHistory": "Keep decisions auditable",
+	"applications.colName": "Name",
+	"applications.colEmail": "Email",
+	"applications.colDate": "Applied",
+	"applications.colActions": "Actions",
+	"applications.searchPlaceholder": "Search name or email…",
+	"applications.count": "{count} applications",
+	"applications.showing": "{filtered} of {total}",
+	"applications.loading": "Loading applications…",
+	"applications.empty": "No open membership applications.",
+	"applications.emptyFiltered": "No matches for the current search.",
+	"applications.retry": "Try again",
+	"applications.errorLoad":
+		"Applications could not be loaded. Please try again.",
+	"applications.errorApiMissing":
+		"EasyVerein API is not configured (EASYVEREIN_API_TOKEN).",
+	"applications.errorNotFound": "Application was not found.",
+	"applications.errorNotPending":
+		"This application is no longer pending — please refresh the list.",
+	"applications.errorAcceptFailed": "Accept failed.",
+	"applications.errorAcceptPartial":
+		"Authentik account “{username}” was created, but EasyVerein could not be updated. Please finish that step manually.",
+	"applications.accept": "Accept",
+	"applications.acceptTitle": "Accept application?",
+	"applications.acceptLead":
+		"Accept the EasyVerein application, create the Authentik account, and send the welcome email.",
+	"applications.acceptConfirm": "Yes, accept",
+	"applications.acceptCancel": "Cancel",
+	"applications.acceptDone": "Close",
+	"applications.acceptSubmitting": "Accepting…",
+	"applications.acceptSuccess":
+		"Application accepted. Account “{username}” was created.",
+	"applications.manualCreate": "Create account manually",
+	"applications.manualCreateTitle": "Create account manually",
+	"applications.manualCreateLead":
+		"Only for edge cases without an EasyVerein application. Creates an Authentik account and sends the welcome email.",
+	"applications.manualCreateDone": "Close",
 	"onboarding.eyebrow": "Workflows",
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Bring new members up to speed — from access to welcome steps.",
 	"onboarding.leadLive":
-		"Create an Authentik account and send the welcome email with credentials.",
+		"Bring new members up to speed — from access to welcome steps.",
 	"onboarding.bulletChecklist": "Role-based task lists",
 	"onboarding.bulletAccess": "Prepare access and groups",
 	"onboarding.bulletWelcome": "Welcome steps and appointments",
@@ -423,18 +503,22 @@ const en: Record<MessageKey, string> = {
 	"offboarding.lead":
 		"Handle departures cleanly — access, handovers, and documentation.",
 	"offboarding.leadLive":
-		"Identify active accounts without membership. More steps will follow.",
-	"offboarding.candidatesTitle": "Accounts without membership",
+		"Active accounts without the membership role, plus members not in EasyVerein.",
+	"offboarding.candidatesTitle": "Offboarding candidates",
 	"offboarding.candidatesLead":
-		"Active user accounts without membership — possible offboarding candidates.",
+		"Active accounts without the membership role, plus members missing EasyVerein linkage.",
 	"offboarding.candidatesCount": "{count} candidates",
 	"offboarding.candidatesShowing": "{filtered} of {total}",
+	"offboarding.candidatesPage": "{from}–{to} of {total}",
+	"offboarding.candidatesPrev": "Previous page",
+	"offboarding.candidatesNext": "Next page",
 	"offboarding.candidatesLoading": "Loading candidates…",
-	"offboarding.candidatesEmpty": "No active accounts without membership found.",
+	"offboarding.candidatesEmpty": "No offboarding candidates found.",
 	"offboarding.candidatesError":
 		"Candidates could not be loaded. Please try again.",
 	"offboarding.noGroups": "No groups",
 	"offboarding.colReason": "Reason",
+	"offboarding.filterReasons": "Filter by reason",
 	"offboarding.reason.missing_mitglieder": "No membership role",
 	"offboarding.reason.not_in_easyverein": "Not in EasyVerein",
 	"offboarding.bulletChecklist": "Departure checklist",

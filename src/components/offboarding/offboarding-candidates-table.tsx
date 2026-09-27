@@ -2,14 +2,21 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
-	getFilteredRowModel,
-	getSortedRowModel,
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+	ArrowDown,
+	ArrowUp,
+	ArrowUpDown,
+	ChevronLeft,
+	ChevronRight,
+	Search,
+	X,
+} from "lucide-react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import {
 	groupBadgeVariant,
@@ -18,7 +25,11 @@ import {
 } from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
-import type { OffboardingCandidate, OffboardingReason } from "#/lib/members";
+import {
+	OFFBOARDING_REASONS,
+	type OffboardingCandidate,
+	type OffboardingReason,
+} from "#/lib/members";
 import { cn } from "#/lib/utils";
 
 type OffboardingCandidatesTableProps = {
@@ -30,6 +41,8 @@ const REASON_MESSAGE_KEYS: Record<OffboardingReason, MessageKey> = {
 	missing_mitglieder: "offboarding.reason.missing_mitglieder",
 	not_in_easyverein: "offboarding.reason.not_in_easyverein",
 };
+
+const PAGE_SIZE = 50;
 
 function initials(name: string): string {
 	const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -47,12 +60,90 @@ export function OffboardingCandidatesTable({
 		{ id: "name", desc: false },
 	]);
 	const [nameFilter, setNameFilter] = useState("");
+	const [selectedReasons, setSelectedReasons] = useState<OffboardingReason[]>(
+		[],
+	);
+	const [page, setPage] = useState(0);
+
+	const deferredName = useDeferredValue(nameFilter.trim().toLowerCase());
+
+	const reasonCounts = useMemo(() => {
+		const counts = new Map<OffboardingReason, number>();
+		for (const reason of OFFBOARDING_REASONS) counts.set(reason, 0);
+		for (const candidate of candidates) {
+			for (const reason of candidate.reasons) {
+				counts.set(reason, (counts.get(reason) ?? 0) + 1);
+			}
+		}
+		return counts;
+	}, [candidates]);
+
+	const filteredCandidates = useMemo(() => {
+		let rows = candidates;
+
+		if (selectedReasons.length > 0) {
+			rows = rows.filter((candidate) =>
+				selectedReasons.some((reason) => candidate.reasons.includes(reason)),
+			);
+		}
+
+		if (deferredName) {
+			rows = rows.filter((candidate) =>
+				candidate.name.toLowerCase().includes(deferredName),
+			);
+		}
+
+		const sort = sorting[0];
+		if (sort) {
+			const dir = sort.desc ? -1 : 1;
+			rows = [...rows].sort((a, b) => {
+				if (sort.id === "reasons") {
+					return (
+						a.reasons.join(",").localeCompare(b.reasons.join(","), "de") * dir
+					);
+				}
+				if (sort.id === "groups") {
+					return (
+						a.groups.join(",").localeCompare(b.groups.join(","), "de") * dir
+					);
+				}
+				return a.name.localeCompare(b.name, "de") * dir;
+			});
+		}
+
+		return rows;
+	}, [candidates, selectedReasons, deferredName, sorting]);
+
+	const pageCount = Math.max(
+		1,
+		Math.ceil(filteredCandidates.length / PAGE_SIZE),
+	);
+	const safePage = Math.min(page, pageCount - 1);
+	const pageRows = useMemo(() => {
+		const start = safePage * PAGE_SIZE;
+		return filteredCandidates.slice(start, start + PAGE_SIZE);
+	}, [filteredCandidates, safePage]);
+
+	function toggleReason(reason: OffboardingReason) {
+		setPage(0);
+		setSelectedReasons((current) =>
+			current.includes(reason)
+				? current.filter((entry) => entry !== reason)
+				: [...current, reason],
+		);
+	}
+
+	function onNameChange(value: string) {
+		setPage(0);
+		setNameFilter(value);
+	}
 
 	const columns = useMemo<ColumnDef<OffboardingCandidate>[]>(
 		() => [
 			{
 				accessorKey: "name",
 				header: t("members.colName"),
+				enableSorting: true,
 				cell: ({ row }) => (
 					<button
 						type="button"
@@ -78,6 +169,7 @@ export function OffboardingCandidatesTable({
 				id: "reasons",
 				accessorFn: (row) => row.reasons.join(", "),
 				header: t("offboarding.colReason"),
+				enableSorting: true,
 				cell: ({ row }) => (
 					<div className="flex flex-wrap gap-1.5">
 						{row.original.reasons.map((reason) => (
@@ -87,15 +179,12 @@ export function OffboardingCandidatesTable({
 						))}
 					</div>
 				),
-				sortingFn: (a, b) =>
-					a.original.reasons
-						.join(",")
-						.localeCompare(b.original.reasons.join(","), "de"),
 			},
 			{
 				id: "groups",
 				accessorFn: (row) => row.groups.join(", "),
 				header: t("members.colGroups"),
+				enableSorting: true,
 				cell: ({ row }) => {
 					const groups = sortGroupsForDisplay(row.original.groups);
 					if (groups.length === 0) {
@@ -118,53 +207,105 @@ export function OffboardingCandidatesTable({
 						</div>
 					);
 				},
-				sortingFn: (a, b) =>
-					a.original.groups
-						.join(",")
-						.localeCompare(b.original.groups.join(","), "de"),
 			},
 		],
 		[t, onOpenProfile],
 	);
 
 	const table = useReactTable({
-		data: candidates,
+		data: pageRows,
 		columns,
-		state: {
-			sorting,
-			columnFilters: nameFilter ? [{ id: "name", value: nameFilter }] : [],
+		state: { sorting },
+		onSortingChange: (updater) => {
+			setPage(0);
+			setSorting(updater);
 		},
-		onSortingChange: setSorting,
 		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
+		manualFiltering: true,
+		manualPagination: true,
+		manualSorting: true,
+		pageCount,
 	});
 
-	const filteredCount = table.getFilteredRowModel().rows.length;
+	const hasFilters = selectedReasons.length > 0 || nameFilter.trim().length > 0;
+	const rangeStart =
+		filteredCandidates.length === 0 ? 0 : safePage * PAGE_SIZE + 1;
+	const rangeEnd = Math.min(
+		(safePage + 1) * PAGE_SIZE,
+		filteredCandidates.length,
+	);
 
 	return (
 		<div className="surface-panel min-w-0 overflow-hidden">
-			<div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-				<div className="relative w-full max-w-md">
-					<Search
-						className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-						aria-hidden
-					/>
-					<Input
-						data-shortcut="search"
-						value={nameFilter}
-						onChange={(event) => setNameFilter(event.target.value)}
-						placeholder={t("members.searchPlaceholder")}
-						aria-label={t("members.searchPlaceholder")}
-						className="pl-9"
-					/>
+			<div className="space-y-3 border-b border-border px-4 py-4 sm:px-5">
+				<div className="flex flex-col gap-2">
+					<p className="text-xs font-medium text-muted-foreground">
+						{t("offboarding.filterReasons")}
+					</p>
+					<div className="flex flex-wrap gap-2">
+						{OFFBOARDING_REASONS.map((reason) => {
+							const active = selectedReasons.includes(reason);
+							const count = reasonCounts.get(reason) ?? 0;
+							return (
+								<button
+									key={reason}
+									type="button"
+									onClick={() => toggleReason(reason)}
+									aria-pressed={active}
+									className={cn(
+										"inline-flex items-center gap-2 border px-2.5 py-1.5 text-sm transition-colors",
+										active
+											? "border-border bg-muted font-medium text-foreground"
+											: "border-border bg-background text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+									)}
+								>
+									<span>{t(REASON_MESSAGE_KEYS[reason])}</span>
+									<span className="font-mono text-[0.65rem] tabular-nums text-muted-foreground">
+										{count}
+									</span>
+								</button>
+							);
+						})}
+						{hasFilters ? (
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								onClick={() => {
+									setSelectedReasons([]);
+									setNameFilter("");
+									setPage(0);
+								}}
+							>
+								<X className="size-3.5" aria-hidden />
+								{t("members.clearFilters")}
+							</Button>
+						) : null}
+					</div>
 				</div>
-				<p className="shrink-0 text-sm text-muted-foreground tabular-nums">
-					{t("offboarding.candidatesShowing", {
-						filtered: String(filteredCount),
-						total: String(candidates.length),
-					})}
-				</p>
+
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div className="relative w-full max-w-md">
+						<Search
+							className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+							aria-hidden
+						/>
+						<Input
+							data-shortcut="search"
+							value={nameFilter}
+							onChange={(event) => onNameChange(event.target.value)}
+							placeholder={t("members.searchPlaceholder")}
+							aria-label={t("members.searchPlaceholder")}
+							className="pl-9"
+						/>
+					</div>
+					<p className="shrink-0 text-sm text-muted-foreground tabular-nums">
+						{t("offboarding.candidatesShowing", {
+							filtered: String(filteredCandidates.length),
+							total: String(candidates.length),
+						})}
+					</p>
+				</div>
 			</div>
 
 			<div className="w-full min-w-0 overflow-x-auto">
@@ -230,13 +371,15 @@ export function OffboardingCandidatesTable({
 								>
 									{candidates.length === 0
 										? t("offboarding.candidatesEmpty")
-										: t("members.emptyFiltered")}
+										: hasFilters
+											? t("members.emptyFiltered")
+											: t("offboarding.candidatesEmpty")}
 								</td>
 							</tr>
 						) : (
 							table.getRowModel().rows.map((row, index) => (
 								<tr
-									key={row.id}
+									key={row.original.id}
 									onClick={() => onOpenProfile(row.original.id)}
 									className={cn(
 										"cursor-pointer border-b border-border/70 transition-colors last:border-b-0 hover:bg-primary/[0.04]",
@@ -260,6 +403,42 @@ export function OffboardingCandidatesTable({
 					</tbody>
 				</table>
 			</div>
+
+			{filteredCandidates.length > PAGE_SIZE ? (
+				<div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5">
+					<p className="text-sm text-muted-foreground tabular-nums">
+						{t("offboarding.candidatesPage", {
+							from: String(rangeStart),
+							to: String(rangeEnd),
+							total: String(filteredCandidates.length),
+						})}
+					</p>
+					<div className="flex items-center gap-1">
+						<Button
+							type="button"
+							variant="outline"
+							size="icon-sm"
+							disabled={safePage <= 0}
+							onClick={() => setPage((current) => Math.max(0, current - 1))}
+							aria-label={t("offboarding.candidatesPrev")}
+						>
+							<ChevronLeft className="size-4" aria-hidden />
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="icon-sm"
+							disabled={safePage >= pageCount - 1}
+							onClick={() =>
+								setPage((current) => Math.min(pageCount - 1, current + 1))
+							}
+							aria-label={t("offboarding.candidatesNext")}
+						>
+							<ChevronRight className="size-4" aria-hidden />
+						</Button>
+					</div>
+				</div>
+			) : null}
 		</div>
 	);
 }
