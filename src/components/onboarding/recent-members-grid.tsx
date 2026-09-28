@@ -32,16 +32,6 @@ type ContactState = {
 	name: string | null;
 };
 
-function formatJoinedDate(iso: string, locale: string): string {
-	const date = new Date(iso);
-	if (Number.isNaN(date.getTime())) return iso;
-	return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "de-DE", {
-		day: "numeric",
-		month: "short",
-		year: "numeric",
-	}).format(date);
-}
-
 function ContactBadge({
 	contact,
 	t,
@@ -96,7 +86,7 @@ export function RecentMembersGrid({
 	members,
 	viewerContactIds,
 }: RecentMembersGridProps) {
-	const { t, locale } = useI18n();
+	const { t } = useI18n();
 	const viewerIds = viewerContactIds;
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [profileOpen, setProfileOpen] = useState(false);
@@ -419,14 +409,6 @@ export function RecentMembersGrid({
 																<div className="hidden min-w-0 shrink sm:block sm:max-w-40 md:max-w-56 xl:hidden">
 																	<ContactBadge contact={contact} t={t} />
 																</div>
-																<p className="hidden shrink truncate text-right text-xs text-muted-foreground md:block md:max-w-44 xl:hidden">
-																	{t("onboarding.recent.joined", {
-																		date: formatJoinedDate(
-																			member.dateJoined,
-																			locale,
-																		),
-																	})}
-																</p>
 															</button>
 														</li>
 													);
