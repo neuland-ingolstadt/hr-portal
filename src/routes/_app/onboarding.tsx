@@ -169,11 +169,6 @@ function OnboardingSkeleton({ phases }: { phases: LoadingPhases }) {
 			<OnboardingLoadingStatus phases={phases} />
 
 			<section className="space-y-3">
-				<div className="space-y-2" aria-hidden>
-					<div className="h-4 w-52 max-w-full animate-pulse bg-muted" />
-					<div className="h-3 w-80 max-w-full animate-pulse bg-muted" />
-				</div>
-
 				<div className="flex flex-wrap gap-2" aria-hidden>
 					{Array.from({ length: 3 }, (_, i) => (
 						<div
@@ -202,15 +197,6 @@ function OnboardingBody({ data }: { data: RecentOnboardingMembersResult }) {
 			) : null}
 
 			<section className="space-y-3">
-				<div className="space-y-1">
-					<h2 className="text-base font-semibold tracking-tight">
-						{t("onboarding.recent.title", { weeks: String(data.weeks) })}
-					</h2>
-					<p className="text-sm text-muted-foreground">
-						{t("onboarding.recent.lead")}
-					</p>
-				</div>
-
 				{data.members.length === 0 ? (
 					<div className="surface-panel flex min-h-48 items-center justify-center p-6">
 						<p className="text-sm text-muted-foreground">
@@ -361,16 +347,7 @@ function OnboardingPage() {
 
 	return (
 		<>
-			<OnboardingHeader
-				lead={t("onboarding.leadLive")}
-				meta={
-					data.members.length > 0
-						? t("onboarding.recent.count", {
-								count: String(data.members.length),
-							})
-						: undefined
-				}
-			/>
+			<OnboardingHeader lead={t("onboarding.leadLive")} />
 			<OnboardingBody data={data} />
 		</>
 	);

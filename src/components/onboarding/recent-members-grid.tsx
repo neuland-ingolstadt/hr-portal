@@ -262,6 +262,11 @@ export function RecentMembersGrid({
 		[draggingId, moveMemberStage],
 	);
 
+	const hasUnassigned = members.some((member) => {
+		const contactId = contacts[member.id]?.id ?? member.onboardingContactId;
+		return contactId == null;
+	});
+
 	const filters: { id: ContactFilter; label: string }[] = [
 		{ id: "all", label: t("onboarding.filter.all") },
 		{ id: "mine", label: t("onboarding.filter.mine") },
@@ -291,7 +296,15 @@ export function RecentMembersGrid({
 										: "border-border bg-background text-muted-foreground hover:text-foreground",
 								)}
 							>
-								{filter.label}
+								<span className="inline-flex items-center gap-1.5">
+									{filter.label}
+									{filter.id === "unassigned" && hasUnassigned ? (
+										<span
+											aria-hidden
+											className="size-1.5 shrink-0 rounded-full bg-amber-500 dark:bg-amber-400"
+										/>
+									) : null}
+								</span>
 							</button>
 						);
 					})}
