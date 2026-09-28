@@ -578,7 +578,8 @@ function CandidatesSections({
 	);
 }
 
-function OffboardingError({ error, reset }: ErrorComponentProps) {
+/** Shared error UI - do not reuse the route `errorComponent` in the page (breaks tsr-split). */
+function OffboardingErrorView({ error, reset }: ErrorComponentProps) {
 	const { t } = useI18n();
 	const message = error instanceof Error ? error.message : "";
 	const key: MessageKey =
@@ -599,6 +600,10 @@ function OffboardingError({ error, reset }: ErrorComponentProps) {
 			</div>
 		</>
 	);
+}
+
+function OffboardingError(props: ErrorComponentProps) {
+	return <OffboardingErrorView {...props} />;
 }
 
 function OffboardingPage() {
@@ -694,7 +699,7 @@ function OffboardingPage() {
 	return (
 		<>
 			{loadError ? (
-				<OffboardingError
+				<OffboardingErrorView
 					error={
 						loadError instanceof Error
 							? loadError

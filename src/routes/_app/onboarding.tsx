@@ -232,7 +232,8 @@ function OnboardingBody({ data }: { data: RecentOnboardingMembersResult }) {
 	);
 }
 
-function OnboardingError({ error, reset }: ErrorComponentProps) {
+/** Shared error UI - do not reuse the route `errorComponent` in the page (breaks tsr-split). */
+function OnboardingErrorView({ error, reset }: ErrorComponentProps) {
 	const { t } = useI18n();
 	const message = error instanceof Error ? error.message : "";
 	const key: MessageKey =
@@ -253,6 +254,10 @@ function OnboardingError({ error, reset }: ErrorComponentProps) {
 			</div>
 		</>
 	);
+}
+
+function OnboardingError(props: ErrorComponentProps) {
+	return <OnboardingErrorView {...props} />;
 }
 
 function OnboardingPage() {
@@ -336,7 +341,7 @@ function OnboardingPage() {
 
 	if (loadError) {
 		return (
-			<OnboardingError
+			<OnboardingErrorView
 				error={
 					loadError instanceof Error
 						? loadError
