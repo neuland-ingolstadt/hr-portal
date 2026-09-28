@@ -360,7 +360,7 @@ function NameField({
 				)}
 				aria-live="polite"
 			>
-				{value ?? (waiting ? "…" : "—")}
+				{value ?? (waiting ? "…" : "-")}
 			</p>
 		</div>
 	);

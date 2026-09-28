@@ -49,7 +49,7 @@ function initials(name: string): string {
 }
 
 function formatDate(value: string | null, locale: string): string {
-	if (!value) return "—";
+	if (!value) return "-";
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 	return new Intl.DateTimeFormat(locale, {
@@ -93,7 +93,7 @@ export function ApplicationsTable({
 				header: t("applications.colEmail"),
 				cell: ({ row }) => (
 					<span className="truncate text-sm text-muted-foreground">
-						{row.original.email || "—"}
+						{row.original.email || "-"}
 					</span>
 				),
 			},

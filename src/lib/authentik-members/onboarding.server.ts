@@ -95,7 +95,7 @@ export async function hydrateUserUuid(
 	};
 }
 
-/** Staff group PK membership only — no include_users, no uuid hydrate. */
+/** Staff group PK membership only - no include_users, no uuid hydrate. */
 export async function loadStaffMemberPks(): Promise<Set<string>> {
 	const names = configuredStaffGroupNames();
 	const groups = await Promise.all(names.map((name) => fetchGroupByName(name)));
@@ -264,7 +264,7 @@ export async function resolveViewerContactIds(actor: {
 
 	if (!uuid || !AUTHENTIK_UUID_RE.test(uuid)) {
 		console.warn(
-			"[onboarding.contact] session missing Authentik uuid — re-login or check OIDC uuid claim",
+			"[onboarding.contact] session missing Authentik uuid - re-login or check OIDC uuid claim",
 			{ hasUuid: Boolean(uuid), hasEmail: Boolean(actor.email?.trim()) },
 		);
 		return { viewerContactIds: [], myContactId: null };
@@ -350,7 +350,7 @@ export async function listRecentOnboardingMembersFromAuthentik(
 		throw new Error("mitglieder_group_missing");
 	}
 
-	// Two light calls only — no staff-group expand on the list path.
+	// Two light calls only - no staff-group expand on the list path.
 	let mitgliederGroup: AuthentikGroup | null;
 	let recentByPk: Map<string, AuthentikUser>;
 	try {
@@ -392,7 +392,7 @@ export async function listRecentOnboardingMembersFromAuthentik(
 				user.attributes?.[ATTR.onboardingStage],
 			),
 			onboardingContactId: contactIdFromAttributes(user.attributes),
-			// Names resolved on profile / after assign — keep the list path to 2 API calls.
+			// Names resolved on profile / after assign - keep the list path to 2 API calls.
 			onboardingContactName: null,
 		});
 	}
@@ -556,7 +556,7 @@ export async function resolveOnboardingContactRecipient(
 		let hydrated = user;
 		if (!user.email?.trim() || !user.uuid?.trim()) {
 			hydrated = await hydrateUserUuid(user);
-			// hydrateUserUuid skips when uuid is already set — force detail for email
+			// hydrateUserUuid skips when uuid is already set - force detail for email
 			if (!hydrated.email?.trim() && user.pk != null) {
 				const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
 				const res = await fetch(`${base}/api/v3/core/users/${user.pk}/`, {

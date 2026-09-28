@@ -78,7 +78,7 @@ async function setUserPassword(
 
 /**
  * Create an Authentik account (membership-tools parity) and send the welcome mail.
- * Direct fetch for user create — @goauthentik/api create is unreliable.
+ * Direct fetch for user create - @goauthentik/api create is unreliable.
  */
 export async function createMemberAccount(
 	input: NewMemberInput,
@@ -183,17 +183,17 @@ export async function createMemberAccount(
 
 /**
  * Privacy-minimal staff mail when Betreuung is assigned to someone else.
- * Never throws — returns false when recipient/Azure is missing or send fails.
+ * Never throws - returns false when recipient/Azure is missing or send fails.
  */
 export async function notifyOnboardingContactAssigned(input: {
 	contactId: string;
-	/** Mentee display name — only the first name is put in the mail. */
+	/** Mentee display name - only the first name is put in the mail. */
 	menteeDisplayName: string;
 	assignedByName: string;
 }): Promise<boolean> {
 	const recipient = await resolveOnboardingContactRecipient(input.contactId);
 	if (!recipient) {
-		console.warn("[onboarding.contact] notify skipped — no recipient email", {
+		console.warn("[onboarding.contact] notify skipped - no recipient email", {
 			contactId: input.contactId,
 		});
 		return false;

@@ -121,7 +121,7 @@ type AuthentikPaginated<T> = {
 /**
  * Prefer groups from the OIDC ID token / UserInfo (`groups` claim).
  * Authentik: add Scope Mapping "Group membership" (scope `groups`) to the
- * provider so the claim is emitted — no API token needed for RBAC.
+ * provider so the claim is emitted - no API token needed for RBAC.
  */
 export function extractGroupsClaim(source: unknown): string[] {
 	if (!source || typeof source !== "object") return [];
@@ -147,7 +147,7 @@ export function extractGroupsClaim(source: unknown): string[] {
 
 /**
  * Optional REST fallback. Authentik `/core/users/{id}/` expects numeric `pk`,
- * not the OIDC `sub` UUID — that mismatch is what produced 404 / 400.
+ * not the OIDC `sub` UUID - that mismatch is what produced 404 / 400.
  */
 export async function fetchAuthentikGroups(userSub: string): Promise<string[]> {
 	const { apiUrl, apiToken } = serverConfig.authentik;
@@ -268,7 +268,7 @@ export async function handleOidcCallback(
 	}
 
 	// Rebuild with APP_URL origin. Behind TLS-terminating Traefik the inbound
-	// request URL is http://…, but authorize used https://… from APP_URL —
+	// request URL is http://…, but authorize used https://… from APP_URL -
 	// Authentik then rejects the token exchange (often as misleading invalid_client).
 	const canonicalCallbackUrl = new URL(
 		`${callbackUrl.pathname}${callbackUrl.search}`,
@@ -332,7 +332,7 @@ export async function handleOidcCallback(
 	}
 	if (!uuid) {
 		console.warn(
-			"[auth] session has no Authentik uuid — Mine/assign-self will fail",
+			"[auth] session has no Authentik uuid - Mine/assign-self will fail",
 			{
 				claimKeys: Object.keys(claimRecord),
 				userInfoKeys: userInfo ? Object.keys(userInfo) : [],

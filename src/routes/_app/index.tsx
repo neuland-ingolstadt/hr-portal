@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_app/")({
 		const elevated = hasElevatedAccess(context.user.roles);
 
 		return {
-			// Do not await — shell + greeting render immediately.
+			// Do not await - shell + greeting render immediately.
 			statsPromise: getDirectoryStatsFn()
 				.then(
 					(directory): DashboardStats => ({

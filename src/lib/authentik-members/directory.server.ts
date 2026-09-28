@@ -50,10 +50,10 @@ function emptyCache(): DirectoryCache {
 	};
 }
 
-/** Full active-user dump — used by offboarding (needs non-Mitglieder too). */
+/** Full active-user dump - used by offboarding (needs non-Mitglieder too). */
 const directoryCache: DirectoryCache = emptyCache();
 
-/** Mitglieder-only snapshot — fast group+users path for /members. */
+/** Mitglieder-only snapshot - fast group+users path for /members. */
 const mitgliederCache: DirectoryCache = emptyCache();
 
 function invalidateCache(cache: DirectoryCache): void {
@@ -95,7 +95,7 @@ export async function loadMitgliederDirectoryMembers(): Promise<DirectorySnapsho
 }
 
 /**
- * Full active-user dump. Expensive (~seconds) — keep for offboarding only.
+ * Full active-user dump. Expensive (~seconds) - keep for offboarding only.
  */
 async function fetchActiveDirectoryMembers(): Promise<DirectorySnapshot> {
 	if (!isAuthentikApiConfigured()) {
@@ -124,7 +124,7 @@ async function fetchActiveDirectoryMembers(): Promise<DirectorySnapshot> {
 }
 
 /**
- * Mitglieder via groups+users inversion — avoids the slow paginated /users dump.
+ * Mitglieder via groups+users inversion - avoids the slow paginated /users dump.
  * ~1s vs ~8s. Member ids are Authentik user PKs (profile lookup accepts pk or uuid).
  */
 async function fetchMitgliederDirectoryMembers(): Promise<DirectorySnapshot> {
@@ -147,7 +147,7 @@ async function fetchMitgliederDirectoryMembers(): Promise<DirectorySnapshot> {
 
 	let groups: AuthentikGroup[];
 	try {
-		// Single list call with expanded users (~1s) — cheaper than /users pages.
+		// Single list call with expanded users (~1s) - cheaper than /users pages.
 		groups = await fetchAllPages<AuthentikGroup>(
 			"/api/v3/core/groups/?include_users=true",
 		);

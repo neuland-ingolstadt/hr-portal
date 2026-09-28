@@ -27,7 +27,7 @@ export type DashboardStats = {
 type HomeDashboardProps = {
 	user: SessionUser;
 	statsPromise: Promise<DashboardStats>;
-	/** Elevated only — EasyVerein pending count, no Authentik. */
+	/** Elevated only - EasyVerein pending count, no Authentik. */
 	pendingCountPromise: Promise<PendingApplicationCountResult> | null;
 };
 
@@ -42,7 +42,7 @@ function initials(name: string): string {
 }
 
 function formatStat(value: number | null): string {
-	if (value == null) return "—";
+	if (value == null) return "-";
 	return new Intl.NumberFormat("de-DE").format(value);
 }
 

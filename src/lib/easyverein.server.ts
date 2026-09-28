@@ -60,12 +60,12 @@ export type EasyVereinMembershipSnapshot = {
 
 const MEMBERSHIP_SNAPSHOT_TTL_MS = 5 * 60_000;
 /**
- * Dashboard pending-count — stale-while-revalidate.
+ * Dashboard pending-count - stale-while-revalidate.
  * Fresh: serve as-is. Soft-stale: serve + background refresh. Hard miss: await.
  */
 const PENDING_COUNT_FRESH_MS = 5 * 60_000;
 const PENDING_COUNT_MAX_AGE_MS = 30 * 60_000;
-/** Id-only query — enough to count without contact nested payloads. */
+/** Id-only query - enough to count without contact nested payloads. */
 const PENDING_COUNT_QUERY = "{id,is_application}";
 
 let membershipSnapshotCache: {

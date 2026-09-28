@@ -27,7 +27,7 @@ type ContactState = {
 	name: string | null;
 };
 
-/** Top glow fill — stage 0 still shows a small segment. */
+/** Top glow fill - stage 0 still shows a small segment. */
 function stageGlowPct(stage: OnboardingStage): number {
 	if (stage <= 0) return 12;
 	return Math.round((stage / ONBOARDING_STAGE_MAX) * 100);

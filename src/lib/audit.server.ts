@@ -74,7 +74,7 @@ function parseEvent(line: string): AuditEvent | null {
 }
 
 /**
- * Persist one audit event. Never throws to callers — mutation success must not
+ * Persist one audit event. Never throws to callers - mutation success must not
  * depend on the log. Also emits a structured console line for log shippers.
  */
 export function recordAudit(input: RecordAuditInput): void {

@@ -86,7 +86,7 @@ export async function acceptApplication(
 		);
 		const message = error instanceof Error ? error.message : String(error);
 		if (message.includes("easyverein_not_pending")) {
-			// Already accepted elsewhere — Authentik account still exists.
+			// Already accepted elsewhere - Authentik account still exists.
 			invalidatePendingApplicationCountCache();
 			const sepaMandate = await setSepaMandate(memberId);
 			return {

@@ -13,7 +13,7 @@ import { listMembersFn } from "#/lib/members.functions";
 
 export const Route = createFileRoute("/_app/members")({
 	loader: () => ({
-		// Do not await — page chrome stays interactive while Authentik loads.
+		// Do not await - page chrome stays interactive while Authentik loads.
 		membersPromise: listMembersFn(),
 	}),
 	staleTime: 30_000,

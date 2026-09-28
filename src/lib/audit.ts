@@ -1,4 +1,4 @@
-/** Client-safe audit trail types (ops history — not an identity store). */
+/** Client-safe audit trail types (ops history - not an identity store). */
 
 export const AUDIT_ACTIONS = [
 	"application.accept",
@@ -25,7 +25,7 @@ export type AuditEvent = {
 	actorName: string;
 	actorEmail: string;
 	actorRoles: string[];
-	/** Authentik sub / EV id / username — whatever identifies the target. */
+	/** Authentik sub / EV id / username - whatever identifies the target. */
 	targetId: string | null;
 	/** Human-readable target (name, email, …). */
 	targetLabel: string | null;

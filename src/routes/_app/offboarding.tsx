@@ -258,7 +258,7 @@ function StageSection({
 	);
 }
 
-/** Real load phases — EasyVerein + Authentik run in parallel; assemble after both. */
+/** Real load phases - EasyVerein + Authentik run in parallel; assemble after both. */
 const LOADING_PHASES = [
 	{ id: "easyVerein", key: "offboarding.loadingStepEasyVerein" },
 	{ id: "authentik", key: "offboarding.loadingStepAuthentik" },

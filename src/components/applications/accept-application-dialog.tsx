@@ -30,7 +30,7 @@ const ERROR_KEYS: Record<AcceptApplicationError, MessageKey> = {
 	easyverein_accept_failed: "applications.errorAcceptPartial",
 };
 
-/** SEPA problems to surface after a successful accept — silent when set/already_set. */
+/** SEPA problems to surface after a successful accept - silent when set/already_set. */
 const SEPA_ALERT_KEYS: Partial<
 	Record<NonNullable<SepaMandateStatus>, MessageKey>
 > = {
@@ -57,7 +57,7 @@ type AcceptApplicationDialogProps = {
 };
 
 function formatDate(value: string | null, locale: string): string {
-	if (!value) return "—";
+	if (!value) return "-";
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;
 	return new Intl.DateTimeFormat(locale, {
@@ -165,7 +165,7 @@ export function AcceptApplicationDialog({
 									{t("applications.colEmail")}
 								</dt>
 								<dd className="font-medium text-foreground">
-									{application.email || "—"}
+									{application.email || "-"}
 								</dd>
 							</div>
 							<div className="grid gap-0.5">

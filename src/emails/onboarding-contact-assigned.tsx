@@ -26,7 +26,7 @@ const FG = "#1a1a1a";
 export type OnboardingContactAssignedEmailProps = {
 	/** Mentor greeting name (first name of the assigned staff contact). */
 	mentorFirstName: string;
-	/** Mentee first name only — privacy-minimal. */
+	/** Mentee first name only - privacy-minimal. */
 	menteeFirstName: string;
 	/** Display name of the staff member who made the assignment. */
 	assignedByName: string;

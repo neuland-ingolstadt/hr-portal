@@ -34,11 +34,11 @@ export const serverConfig = {
 		vorstand: optional("VORSTAND_GROUP_NAME", "Vorstand"),
 		/** Same app permissions as Vorstand; separate Authentik group. */
 		admin: optional("ADMIN_GROUP_NAME", "Admin"),
-		/** Honorary members — never assignable via profile editor. */
+		/** Honorary members - never assignable via profile editor. */
 		ehrenmitglied: optional("EHRENMITGLIED_GROUP_NAME", "Ehrenmitglied"),
 		/** Authentik group counted as Verein-Mitglieder on the dashboard. */
 		mitglieder: optional("MITGLIEDER_GROUP_NAME", "mitglieder"),
-		/** Technical/service accounts — excluded from offboarding candidates. */
+		/** Technical/service accounts - excluded from offboarding candidates. */
 		technicalUsers: optional("TECHNICAL_USERS_GROUP_NAME", "technical-users"),
 	},
 	/**
@@ -54,7 +54,7 @@ export const serverConfig = {
 		),
 		fromEmail: optional("FROM_EMAIL", "welcome@neuland-ingolstadt.de"),
 	},
-	/** Local mock auth — only when AUTH_MOCK=true (never auto-enable). */
+	/** Local mock auth - only when AUTH_MOCK=true (never auto-enable). */
 	authMock: optional("AUTH_MOCK", "false") === "true",
 	/**
 	 * Member-ID API origin (no trailing slash) for QR public-key fetch.
@@ -84,7 +84,7 @@ export const serverConfig = {
 		Number.parseInt(optional("OFFBOARDING_DELETE_GRACE_DAYS", "14"), 10) || 14,
 	),
 	/**
-	 * Append-only JSONL audit log (ops history — not identity).
+	 * Append-only JSONL audit log (ops history - not identity).
 	 * Mount a volume on this path in production.
 	 */
 	auditLogPath: optional("AUDIT_LOG_PATH", "data/audit.jsonl"),

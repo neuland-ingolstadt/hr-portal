@@ -561,7 +561,7 @@ function ProfileBody({
 				</div>
 			</section>
 
-			{/* Onboarding — stepped slider + contact */}
+			{/* Onboarding - stepped slider + contact */}
 			<section className="space-y-4 border-t border-border pt-6">
 				<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
 					{t("profile.onboarding")}
@@ -660,7 +660,7 @@ function ProfileBody({
 					)}
 				</div>
 			</section>
-			{/* Ressorts — full width, checkboxes in a comfortable grid */}
+			{/* Ressorts - full width, checkboxes in a comfortable grid */}
 			<section className="space-y-3 border-t border-border pt-6">
 				{canEditGroups ? (
 					<>

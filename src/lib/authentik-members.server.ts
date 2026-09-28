@@ -1,6 +1,6 @@
 /**
  * Authentik directory / members facade.
- * Implementation lives in `#/lib/authentik-members/*` — keep this barrel for stable imports.
+ * Implementation lives in `#/lib/authentik-members/*` - keep this barrel for stable imports.
  */
 
 export {

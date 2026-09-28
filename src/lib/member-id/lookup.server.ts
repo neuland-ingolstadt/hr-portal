@@ -143,7 +143,7 @@ function resolveUserGroups(
 
 /**
  * Look up a directory user by Authentik UUID (OIDC `sub` from Member-ID QR).
- * Uses query `?uuid=` — path-by-sub is unreliable.
+ * Uses query `?uuid=` - path-by-sub is unreliable.
  */
 export async function lookupMemberByUuid(
 	uuid: string,

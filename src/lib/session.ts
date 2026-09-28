@@ -8,7 +8,7 @@ import { assertSessionSecret } from "#/lib/config";
 
 export type AppSessionData = {
 	user?: SessionUser;
-	/** OIDC ID token — server-only, used for logout id_token_hint. Never send to client. */
+	/** OIDC ID token - server-only, used for logout id_token_hint. Never send to client. */
 	idToken?: string;
 	oauth?: {
 		codeVerifier: string;

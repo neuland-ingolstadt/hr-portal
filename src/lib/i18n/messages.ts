@@ -27,14 +27,14 @@ const de = {
 	"audit.eyebrow": "Nachvollziehbarkeit",
 	"audit.title": "Audit-Log",
 	"audit.lead":
-		"Wer hat welche Aktion im Portal ausgelöst — unabhängig vom Authentik-Servicekonto.",
+		"Wer hat welche Aktion im Portal ausgelöst - unabhängig vom Authentik-Servicekonto.",
 	"audit.loading": "Audit-Einträge werden geladen…",
 	"audit.empty": "Noch keine Audit-Einträge.",
 	"audit.count": "{count} Einträge",
 	"audit.retry": "Erneut versuchen",
 	"audit.status.ok": "Erfolgreich",
 	"audit.status.failed": "Fehlgeschlagen",
-	"audit.targetNone": "—",
+	"audit.targetNone": "-",
 	"audit.actorTarget": "von {actor} · {target}",
 	"audit.searchPlaceholder": "Akteur, Ziel oder Fehler suchen…",
 	"audit.filterAction": "Aktion",
@@ -139,7 +139,7 @@ const de = {
 		"0 neu · 1 Gespräch · 2 Projekt · 3 engagiert · 4 fertig. Die Bedeutungen sind teamseitig festgelegt; das Portal speichert nur die Zahl in Authentik. Anpassen geht am Slider im Profil.",
 	"help.onboarding.s3.heading": "Betreuung zuweisen",
 	"help.onboarding.s3.body":
-		"Im Profil kannst du eine Person aus HR, Vorstand oder Admin als Ansprechpartner setzen (oder dich selbst). Das ist nur ein Kontakt-Hinweis — keine Aufgabenliste und keine Fristen. Die Zuweisung landet in Authentik und im Audit-Log.",
+		"Im Profil kannst du eine Person aus HR, Vorstand oder Admin als Ansprechpartner setzen (oder dich selbst). Das ist nur ein Kontakt-Hinweis - keine Aufgabenliste und keine Fristen. Die Zuweisung landet in Authentik und im Audit-Log.",
 	"help.onboarding.s4.heading": "Empfohlener Ablauf",
 	"help.onboarding.s4.body":
 		"Mitgliedsantrag in Bewerbungen annehmen → Person erscheint nach date_joined hier → Betreuung zuweisen → Stufe im Alltag fortschreiben. Manuelles Anlegen ist für Ausnahmen gedacht, nicht für den Standardprozess.",
@@ -259,7 +259,7 @@ const de = {
 		"EasyVerein-API ist nicht konfiguriert (EASYVEREIN_API_TOKEN).",
 	"applications.errorNotFound": "Antrag wurde nicht gefunden.",
 	"applications.errorNotPending":
-		"Dieser Antrag ist nicht mehr offen — bitte Liste aktualisieren.",
+		"Dieser Antrag ist nicht mehr offen - bitte Liste aktualisieren.",
 	"applications.errorAcceptFailed": "Annahme ist fehlgeschlagen.",
 	"applications.errorAcceptPartial":
 		"Authentik-Konto „{username}“ wurde angelegt, aber EasyVerein konnte nicht aktualisiert werden. Bitte manuell nachziehen.",
@@ -292,9 +292,9 @@ const de = {
 	"onboarding.eyebrow": "Abläufe",
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
-		"Neue Mitglieder strukturiert einarbeiten — von Zugang bis Willkommen.",
+		"Neue Mitglieder strukturiert einarbeiten - von Zugang bis Willkommen.",
 	"onboarding.leadLive":
-		"Neue Authentik-Konten der letzten Wochen — Einstiegspunkt fürs Onboarding.",
+		"Neue Authentik-Konten der letzten Wochen - Einstiegspunkt fürs Onboarding.",
 	"onboarding.bulletChecklist": "Aufgabenlisten pro Rolle",
 	"onboarding.bulletAccess": "Zugänge und Gruppen vorbereiten",
 	"onboarding.bulletWelcome": "Willkommensschritte und Termine",
@@ -311,12 +311,12 @@ const de = {
 		"Keine neuen Mitgliederkonten in den letzten {weeks} Wochen.",
 	"onboarding.recent.loading": "Neue Mitglieder werden geladen…",
 	"onboarding.loadingHint":
-		"Neue Authentik-Konten der letzten Wochen — gruppiert nach Einstiegsfortschritt und Betreuung.",
+		"Neue Authentik-Konten der letzten Wochen - gruppiert nach Einstiegsfortschritt und Betreuung.",
 	"onboarding.loadingStepAccounts": "Neue Authentik-Konten werden geladen…",
 	"onboarding.loadingStepMitglieder": "Mitglieder-Gruppe wird abgeglichen…",
 	"onboarding.loadingStepStages": "Onboarding-Stufen werden aufgebaut…",
 	"onboarding.recent.mockHint":
-		"Lokale Mock-Daten — Authentik-API ist nicht konfiguriert.",
+		"Lokale Mock-Daten - Authentik-API ist nicht konfiguriert.",
 	"onboarding.recent.errorApiMissing":
 		"Authentik-API ist nicht konfiguriert. Neue Mitglieder können nicht geladen werden.",
 	"onboarding.recent.errorLoad":
@@ -347,7 +347,7 @@ const de = {
 	"onboarding.create.submitting": "Wird angelegt…",
 	"onboarding.create.success": "Konto „{username}“ wurde angelegt.",
 	"onboarding.create.successNoEmail":
-		"Die Willkommensmail konnte nicht gesendet werden — Zugangsdaten bitte manuell weitergeben.",
+		"Die Willkommensmail konnte nicht gesendet werden - Zugangsdaten bitte manuell weitergeben.",
 	"onboarding.create.errorUnauthorized": "Nicht autorisiert.",
 	"onboarding.create.errorInvalid":
 		"Bitte Vorname, Nachname und gültige E-Mail angeben.",
@@ -380,13 +380,13 @@ const de = {
 	"offboarding.process.error":
 		"Prozess fehlgeschlagen. Bitte erneut versuchen.",
 	"offboarding.process.nothingDue.empty":
-		"Keine Offboarding-Kandidaten — derzeit nichts zu tun.",
+		"Keine Offboarding-Kandidaten - derzeit nichts zu tun.",
 	"offboarding.process.nothingDue.leaving":
-		"{count} mit zukünftigem Austritt — Prozess greift erst am Austrittstag.",
+		"{count} mit zukünftigem Austritt - Prozess greift erst am Austrittstag.",
 	"offboarding.process.nothingDue.grace":
 		"{count} warten noch auf die {days}-Tage-Schonfrist nach Entzug des Zugangs.",
 	"offboarding.process.nothingDue.both":
-		"{leaving} mit zukünftigem Austritt, {grace} noch in der {days}-Tage-Schonfrist — derzeit nichts fällig.",
+		"{leaving} mit zukünftigem Austritt, {grace} noch in der {days}-Tage-Schonfrist - derzeit nichts fällig.",
 	"offboarding.process.phaseRevoke": "Mitglieder-Rolle entfernen",
 	"offboarding.process.phaseDelete": "Konto löschen",
 	"offboarding.process.progressCount": "{done} von {total}",
@@ -517,7 +517,7 @@ const de = {
 		"Mitgliederverzeichnis ist nicht konfiguriert. Bitte die Administration kontaktieren.",
 	"members.retry": "Erneut versuchen",
 	"members.mockHint":
-		"Lokale Beispieldaten — in Produktion siehst du echte Mitglieder.",
+		"Lokale Beispieldaten - in Produktion siehst du echte Mitglieder.",
 	"members.openProfile": "Profil öffnen",
 	"profile.title": "Mitgliedsprofil",
 	"profile.lead": "Stammdaten und Connect-Integrationen.",
@@ -531,7 +531,7 @@ const de = {
 	"profile.fieldEmail": "E-Mail",
 	"profile.openInAuthentik": "Authentik",
 	"profile.openGroupsInAuthentik": "Gruppen in Authentik bearbeiten",
-	"profile.empty": "—",
+	"profile.empty": "-",
 	"profile.ressorts": "Ressorts",
 	"profile.noRessorts": "Kein Ressort zugewiesen.",
 	"profile.groups": "Gruppen",
@@ -633,7 +633,7 @@ const de = {
 	"scanner.openProfile": "Profil anzeigen",
 	"scanner.publicKeyLoading": "Öffentlicher Schlüssel wird geladen…",
 	"scanner.publicKeyUnavailable":
-		"Scanner nicht verfügbar — öffentlicher Schlüssel konnte nicht geladen werden.",
+		"Scanner nicht verfügbar - öffentlicher Schlüssel konnte nicht geladen werden.",
 	"scanner.publicKeyRetry": "Schlüssel erneut laden",
 	"scanner.historyTitle": "Lokale Historie",
 	"scanner.historyHint": "Nur auf diesem Gerät gespeichert.",
@@ -679,14 +679,14 @@ const en: Record<MessageKey, string> = {
 	"audit.eyebrow": "Accountability",
 	"audit.title": "Audit log",
 	"audit.lead":
-		"Who triggered which portal action — independent of the Authentik service account.",
+		"Who triggered which portal action - independent of the Authentik service account.",
 	"audit.loading": "Loading audit entries…",
 	"audit.empty": "No audit entries yet.",
 	"audit.count": "{count} entries",
 	"audit.retry": "Try again",
 	"audit.status.ok": "Succeeded",
 	"audit.status.failed": "Failed",
-	"audit.targetNone": "—",
+	"audit.targetNone": "-",
 	"audit.actorTarget": "by {actor} · {target}",
 	"audit.searchPlaceholder": "Search actor, target, or error…",
 	"audit.filterAction": "Action",
@@ -790,7 +790,7 @@ const en: Record<MessageKey, string> = {
 		"0 new · 1 conversation · 2 project · 3 engaging · 4 done. Meanings are defined by the team; the portal only stores the number in Authentik. Adjust via the slider on the profile.",
 	"help.onboarding.s3.heading": "Assign a contact",
 	"help.onboarding.s3.body":
-		"On the profile you can set someone from HR, board, or admin as the point of contact (or assign yourself). This is contact metadata only — not a task list and not due dates. The assignment is stored in Authentik and written to the audit log.",
+		"On the profile you can set someone from HR, board, or admin as the point of contact (or assign yourself). This is contact metadata only - not a task list and not due dates. The assignment is stored in Authentik and written to the audit log.",
 	"help.onboarding.s4.heading": "Recommended flow",
 	"help.onboarding.s4.body":
 		"Accept the application under Applications → the person appears here after date_joined → assign a contact → advance the stage in day-to-day work. Manual create is for exceptions, not the default process.",
@@ -906,7 +906,7 @@ const en: Record<MessageKey, string> = {
 		"EasyVerein API is not configured (EASYVEREIN_API_TOKEN).",
 	"applications.errorNotFound": "Application was not found.",
 	"applications.errorNotPending":
-		"This application is no longer pending — please refresh the list.",
+		"This application is no longer pending - please refresh the list.",
 	"applications.errorAcceptFailed": "Accept failed.",
 	"applications.errorAcceptPartial":
 		"Authentik account “{username}” was created, but EasyVerein could not be updated. Please finish that step manually.",
@@ -939,9 +939,9 @@ const en: Record<MessageKey, string> = {
 	"onboarding.eyebrow": "Workflows",
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
-		"Bring new members up to speed — from access to welcome steps.",
+		"Bring new members up to speed - from access to welcome steps.",
 	"onboarding.leadLive":
-		"New Authentik accounts from the last weeks — starting point for onboarding.",
+		"New Authentik accounts from the last weeks - starting point for onboarding.",
 	"onboarding.bulletChecklist": "Role-based task lists",
 	"onboarding.bulletAccess": "Prepare access and groups",
 	"onboarding.bulletWelcome": "Welcome steps and appointments",
@@ -958,12 +958,12 @@ const en: Record<MessageKey, string> = {
 		"No new member accounts in the last {weeks} weeks.",
 	"onboarding.recent.loading": "Loading new members…",
 	"onboarding.loadingHint":
-		"Recent Authentik accounts from the last weeks — grouped by onboarding progress and contact.",
+		"Recent Authentik accounts from the last weeks - grouped by onboarding progress and contact.",
 	"onboarding.loadingStepAccounts": "Loading recent Authentik accounts…",
 	"onboarding.loadingStepMitglieder": "Matching the Mitglieder group…",
 	"onboarding.loadingStepStages": "Building the onboarding stages…",
 	"onboarding.recent.mockHint":
-		"Local mock data — Authentik API is not configured.",
+		"Local mock data - Authentik API is not configured.",
 	"onboarding.recent.errorApiMissing":
 		"Authentik API is not configured. Cannot load new members.",
 	"onboarding.recent.errorLoad": "Could not load new members.",
@@ -993,7 +993,7 @@ const en: Record<MessageKey, string> = {
 	"onboarding.create.submitting": "Creating…",
 	"onboarding.create.success": "Account “{username}” was created.",
 	"onboarding.create.successNoEmail":
-		"The welcome email could not be sent — please share credentials manually.",
+		"The welcome email could not be sent - please share credentials manually.",
 	"onboarding.create.errorUnauthorized": "Not authorized.",
 	"onboarding.create.errorInvalid":
 		"Please provide first name, last name, and a valid email.",
@@ -1025,13 +1025,13 @@ const en: Record<MessageKey, string> = {
 		"{revoked} roles removed, {deleted} accounts deleted. Skipped (future resignation): {skipped}. Errors: {errors}.",
 	"offboarding.process.error": "Process failed. Please try again.",
 	"offboarding.process.nothingDue.empty":
-		"No offboarding candidates — nothing to run.",
+		"No offboarding candidates - nothing to run.",
 	"offboarding.process.nothingDue.leaving":
-		"{count} with a future resignation date — process runs on that day.",
+		"{count} with a future resignation date - process runs on that day.",
 	"offboarding.process.nothingDue.grace":
 		"{count} still in the {days}-day grace period after access was revoked.",
 	"offboarding.process.nothingDue.both":
-		"{leaving} with a future resignation, {grace} still in the {days}-day grace period — nothing due yet.",
+		"{leaving} with a future resignation, {grace} still in the {days}-day grace period - nothing due yet.",
 	"offboarding.process.phaseRevoke": "Removing Mitglieder role",
 	"offboarding.process.phaseDelete": "Deleting account",
 	"offboarding.process.progressCount": "{done} of {total}",
@@ -1159,7 +1159,7 @@ const en: Record<MessageKey, string> = {
 		"Members directory is not configured. Please contact an administrator.",
 	"members.retry": "Try again",
 	"members.mockHint":
-		"Local sample data — in production you will see real members.",
+		"Local sample data - in production you will see real members.",
 	"members.openProfile": "Open profile",
 	"profile.title": "Member profile",
 	"profile.lead": "Identity fields and Connect integrations.",
@@ -1173,7 +1173,7 @@ const en: Record<MessageKey, string> = {
 	"profile.fieldEmail": "Email",
 	"profile.openInAuthentik": "Authentik",
 	"profile.openGroupsInAuthentik": "Edit groups in Authentik",
-	"profile.empty": "—",
+	"profile.empty": "-",
 	"profile.ressorts": "Ressorts",
 	"profile.noRessorts": "No ressort assigned.",
 	"profile.groups": "Groups",
@@ -1267,7 +1267,7 @@ const en: Record<MessageKey, string> = {
 	"scanner.openProfile": "View profile",
 	"scanner.publicKeyLoading": "Loading public key…",
 	"scanner.publicKeyUnavailable":
-		"Scanner unavailable — could not load the public key.",
+		"Scanner unavailable - could not load the public key.",
 	"scanner.publicKeyRetry": "Reload key",
 	"scanner.historyTitle": "Local history",
 	"scanner.historyHint": "Stored only on this device.",

@@ -4,7 +4,7 @@ export type NewMemberInput = {
 	firstName: string;
 	lastName: string;
 	email: string;
-	/** EasyVerein member pk — stored on Authentik `attributes.easyVereinMemberId`. */
+	/** EasyVerein member pk - stored on Authentik `attributes.easyVereinMemberId`. */
 	easyVereinMemberId?: number;
 };
 
@@ -166,7 +166,7 @@ export type UpdateMemberOnboardingContactResult =
 	  }
 	| { success: false; error: UpdateMemberOnboardingContactError };
 
-/** First token of a display name — privacy-minimal mentee label in mail. */
+/** First token of a display name - privacy-minimal mentee label in mail. */
 export function firstNameFromDisplayName(name: string): string {
 	const trimmed = name.trim();
 	if (!trimmed) return "Mitglied";

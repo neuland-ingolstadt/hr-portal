@@ -77,7 +77,7 @@ export function QrCamera({ onScan, paused = false, className }: QrCameraProps) {
 				stream = await navigator.mediaDevices.getUserMedia(constraints);
 			}
 
-			// Unmounted or a newer start superseded this request — release immediately.
+			// Unmounted or a newer start superseded this request - release immediately.
 			if (startId !== startIdRef.current) {
 				stopMediaStream(stream);
 				return;

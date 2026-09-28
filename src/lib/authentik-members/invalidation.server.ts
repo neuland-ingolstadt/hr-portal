@@ -1,4 +1,4 @@
-/** Directory cache invalidation registry — avoids cycles between domain modules. */
+/** Directory cache invalidation registry - avoids cycles between domain modules. */
 
 type Invalidator = () => void;
 

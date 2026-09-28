@@ -212,7 +212,7 @@ html.theme-transition *::after {
 	}
 
 	/* Keep in @layer base so utility classes (e.g. text-primary-foreground on
-	   Button asChild <a>) can override — unlayered `a {}` wins over @layer utilities. */
+	   Button asChild <a>) can override - unlayered `a {}` wins over @layer utilities. */
 	a {
 		color: inherit;
 		text-decoration: none;

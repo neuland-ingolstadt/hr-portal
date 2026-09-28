@@ -13,7 +13,7 @@ export type ApplicationsResult = {
 	applications: PendingApplication[];
 };
 
-/** Dashboard badge — no application payloads. */
+/** Dashboard badge - no application payloads. */
 export type PendingApplicationCountResult = {
 	count: number | null;
 	source: "easyverein" | "unavailable";

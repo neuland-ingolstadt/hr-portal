@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_app/onboarding")({
 	component: OnboardingPage,
 });
 
-/** Conceptual load phases — mirrors the Authentik list path (accounts → Mitglieder → stages). */
+/** Conceptual load phases - mirrors the Authentik list path (accounts → Mitglieder → stages). */
 const LOADING_PHASES = [
 	{ id: "accounts", key: "onboarding.loadingStepAccounts" },
 	{ id: "mitglieder", key: "onboarding.loadingStepMitglieder" },

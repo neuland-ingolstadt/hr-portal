@@ -24,7 +24,7 @@ import {
 } from "#/lib/offboarding";
 
 type MutationActor = {
-	/** Session `sub` — block self-revoke / self-delete. */
+	/** Session `sub` - block self-revoke / self-delete. */
 	actorSub?: string;
 };
 
@@ -62,7 +62,7 @@ async function assertOffboardingMutationAllowed(
 }
 
 /**
- * Stage 1: remove Authentik Mitglieder group only — no EasyVerein write.
+ * Stage 1: remove Authentik Mitglieder group only - no EasyVerein write.
  * Also stamps `attributes.membershipRevokedAt` for later grace-period checks.
  */
 export async function revokeMitgliederGroup(

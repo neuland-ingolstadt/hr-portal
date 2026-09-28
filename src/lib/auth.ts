@@ -4,7 +4,7 @@ export type AppRole = "hr" | "vorstand" | "admin";
 
 /** Client-safe session identity. Never include tokens or secrets. */
 export type SessionUser = {
-	/** OIDC `sub` — may be Authentik hashed subject (`hashed_user_id`). */
+	/** OIDC `sub` - may be Authentik hashed subject (`hashed_user_id`). */
 	sub: string;
 	/**
 	 * Authentik user UUID from the custom `uuid` claim (ID token / UserInfo).

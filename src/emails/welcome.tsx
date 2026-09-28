@@ -43,7 +43,7 @@ export function WelcomeEmail({
 					<title>Willkommen bei Neuland Ingolstadt</title>
 				</Head>
 				<Preview>
-					Willkommen bei Neuland Ingolstadt — deine Zugangsdaten und erste
+					Willkommen bei Neuland Ingolstadt - deine Zugangsdaten und erste
 					Schritte
 				</Preview>
 				<Body

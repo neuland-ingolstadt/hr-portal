@@ -104,13 +104,13 @@ function easyVereinIdFromAttributes(
 
 function userLabel(user: AuthentikUser): string {
 	const name = user.name?.trim() || user.username || "?";
-	const email = user.email?.trim() || "—";
+	const email = user.email?.trim() || "-";
 	const pk = user.pk != null ? `pk=${user.pk}` : "pk=?";
 	return `${name} <${email}> (${pk})`;
 }
 
 function evLabel(ev: EasyVereinDirectoryMember): string {
-	const email = ev.email || "—";
+	const email = ev.email || "-";
 	return `#${ev.id} ${ev.displayName} <${email}>`;
 }
 
@@ -176,7 +176,7 @@ async function authentikFetch<T>(
 			throw new Error(
 				`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: gateway/HTML error` +
 					(title ? ` (“${title}”)` : "") +
-					` — is ${authentikBase()} up?`,
+					` - is ${authentikBase()} up?`,
 			);
 		}
 		throw new Error(
@@ -365,7 +365,7 @@ async function main() {
 	if (flags.help) {
 		console.log(`Usage: bun run scripts/backfill-easyverein-ids.ts [flags]
 
-  (default)               dry-run — print email matches + name reviews
+  (default)               dry-run - print email matches + name reviews
   --apply                 PATCH email matches only
   --apply-name            also PATCH unique name matches (review first!)
   --include-applications  include EasyVerein is_application=true members
@@ -412,7 +412,7 @@ async function main() {
 	);
 
 	printSection(
-		"Name-only matches (review — apply with --apply --apply-name)",
+		"Name-only matches (review - apply with --apply --apply-name)",
 		result.nameReviews.map(
 			(m) => `  NAME   ${evLabel(m.ev)}  →  ${userLabel(m.user)}`,
 		),

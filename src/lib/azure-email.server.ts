@@ -22,7 +22,7 @@ export async function sendEmail(
 	const senderAddress = serverConfig.azure.fromEmail;
 
 	if (!connectionString || !senderAddress) {
-		console.warn("[azure-email] not configured — skipping send");
+		console.warn("[azure-email] not configured - skipping send");
 		return false;
 	}
 
@@ -32,7 +32,7 @@ export async function sendEmail(
 		render(body, { plainText: true }),
 	]);
 
-	// No Reply-To — transactional mail; replies are not wanted.
+	// No Reply-To - transactional mail; replies are not wanted.
 	const message: EmailMessage = {
 		senderAddress,
 		content: { subject, html, plainText },

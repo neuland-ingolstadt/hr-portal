@@ -34,7 +34,7 @@ export function memberHasRessort(groups: Iterable<string>): boolean {
 }
 
 /**
- * Dashboard KPIs — stale-while-revalidate.
+ * Dashboard KPIs - stale-while-revalidate.
  * Fresh: serve as-is. Soft-stale: serve + background refresh. Hard miss: await.
  */
 const STATS_FRESH_MS = 5 * 60_000;
@@ -108,7 +108,7 @@ export async function computeDirectoryStatsUncached(): Promise<DirectoryStats> {
 	const ressortNames = [...RESSORT_KEYS];
 
 	// Group PK lists cover Mitglied/ressort. Onboarding needs date_joined + attributes
-	// (light users_obj omits both) — page recent /users/ in parallel.
+	// (light users_obj omits both) - page recent /users/ in parallel.
 	const [namedGroups, recentByPk] = await Promise.all([
 		Promise.all([
 			fetchGroupByName(mitgliederName),
