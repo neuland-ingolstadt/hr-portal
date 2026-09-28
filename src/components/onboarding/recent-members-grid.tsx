@@ -1,4 +1,5 @@
 import { Check, CircleAlert } from "lucide-react";
+import type { DragEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
@@ -14,7 +15,10 @@ import {
 	ONBOARDING_STAGE_MAX,
 	ONBOARDING_STAGES,
 } from "#/lib/onboarding";
+import { updateMemberOnboardingStageFn } from "#/lib/onboarding.functions";
 import { cn } from "#/lib/utils";
+
+const DRAG_MEMBER_ID_TYPE = "application/x-onboarding-member-id";
 
 type ContactFilter = "all" | "mine" | "unassigned";
 
@@ -104,6 +108,10 @@ export function RecentMembersGrid({
 		}
 		return initial;
 	});
+	const [draggingId, setDraggingId] = useState<string | null>(null);
+	const [dragOverStage, setDragOverStage] = useState<OnboardingStage | null>(
+		null,
+	);
 	const [contacts, setContacts] = useState(() => {
 		const initial: Record<string, ContactState> = {};
 		for (const member of members) {
@@ -194,6 +202,66 @@ export function RecentMembersGrid({
 		[profileId],
 	);
 
+	const moveMemberStage = useCallback(
+		(id: string, nextStage: OnboardingStage) => {
+			const prevStage =
+				stages[id] ?? members.find((member) => member.id === id)?.onboardingStage;
+			if (prevStage === undefined || prevStage === nextStage) return;
+			applyStageChange(id, nextStage);
+			updateMemberOnboardingStageFn({ data: { id, stage: nextStage } })
+				.then((result) => {
+					if (!result.success) applyStageChange(id, prevStage);
+				})
+				.catch((err) => {
+					console.error("[onboarding] drag-and-drop stage update failed", err);
+					applyStageChange(id, prevStage);
+				});
+		},
+		[applyStageChange, members, stages],
+	);
+
+	const handleCardDragStart = useCallback(
+		(id: string) => (event: DragEvent<HTMLButtonElement>) => {
+			setDraggingId(id);
+			event.dataTransfer.effectAllowed = "move";
+			event.dataTransfer.setData(DRAG_MEMBER_ID_TYPE, id);
+		},
+		[],
+	);
+
+	const handleCardDragEnd = useCallback(() => {
+		setDraggingId(null);
+		setDragOverStage(null);
+	}, []);
+
+	const handleStageDragOver = useCallback(
+		(stage: OnboardingStage) => (event: DragEvent<HTMLElement>) => {
+			if (!draggingId) return;
+			event.preventDefault();
+			event.dataTransfer.dropEffect = "move";
+			setDragOverStage(stage);
+		},
+		[draggingId],
+	);
+
+	const handleStageDragLeave = useCallback(
+		(stage: OnboardingStage) => () => {
+			setDragOverStage((current) => (current === stage ? null : current));
+		},
+		[],
+	);
+
+	const handleStageDrop = useCallback(
+		(stage: OnboardingStage) => (event: DragEvent<HTMLElement>) => {
+			event.preventDefault();
+			const id = event.dataTransfer.getData(DRAG_MEMBER_ID_TYPE) || draggingId;
+			setDraggingId(null);
+			setDragOverStage(null);
+			if (id) moveMemberStage(id, stage);
+		},
+		[draggingId, moveMemberStage],
+	);
+
 	const filters: { id: ContactFilter; label: string }[] = [
 		{ id: "all", label: t("onboarding.filter.all") },
 		{ id: "mine", label: t("onboarding.filter.mine") },
@@ -240,6 +308,7 @@ export function RecentMembersGrid({
 						{sections.map(({ stage, members: sectionMembers }, index) => {
 							const headingId = `onboarding-stage-${stage}`;
 							const isLast = index === sections.length - 1;
+							const isDragOver = dragOverStage === stage;
 							return (
 								<div key={stage} className="flex gap-3 xl:flex-col xl:gap-2">
 									<div
@@ -257,7 +326,13 @@ export function RecentMembersGrid({
 											<span className="w-px flex-1 bg-border xl:ml-2 xl:h-px xl:w-auto" />
 										) : null}
 									</div>
-									<section className="flex min-w-0 flex-1 flex-col space-y-3 pb-1">
+									{/* biome-ignore lint/a11y/noStaticElementInteractions: drag-and-drop stage column; cards stay editable via click/profile sheet */}
+									<section
+										className="flex min-w-0 flex-1 flex-col space-y-3 pb-1"
+										onDragOver={handleStageDragOver(stage)}
+										onDragLeave={handleStageDragLeave(stage)}
+										onDrop={handleStageDrop(stage)}
+									>
 									<div
 										id={headingId}
 										className="flex w-full items-center gap-2 text-left"
@@ -273,7 +348,10 @@ export function RecentMembersGrid({
 									{sectionMembers.length === 0 ? (
 										<div
 											id={`onboarding-stage-panel-${stage}`}
-											className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-border/60 px-4 py-5 text-center text-sm text-muted-foreground"
+											className={cn(
+												"flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-border/60 px-4 py-5 text-center text-sm text-muted-foreground",
+												isDragOver && "border-foreground/60 text-foreground",
+											)}
 										>
 											{t("onboarding.stage.empty")}
 										</div>
@@ -287,8 +365,8 @@ export function RecentMembersGrid({
 										>
 											<ul
 												className={cn(
-													"m-0 flex flex-1 list-none flex-col divide-y divide-border/60 overflow-hidden rounded-md border border-border/60 bg-muted/40 p-2",
-													"xl:gap-2 xl:divide-y-0 xl:overflow-visible xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0",
+													"m-0 flex flex-1 list-none flex-col gap-2",
+													isDragOver && "outline-2 outline-dashed outline-foreground/40",
 												)}
 											>
 												{sectionMembers.map((member) => {
@@ -302,11 +380,14 @@ export function RecentMembersGrid({
 														<li key={member.id}>
 															<button
 																type="button"
+																draggable
 																onClick={() => openProfile(member.id)}
+																onDragStart={handleCardDragStart(member.id)}
+																onDragEnd={handleCardDragEnd}
 																className={cn(
-																	"relative flex w-full items-center gap-3 overflow-hidden px-2 py-2.5 text-left transition-colors hover:bg-background/60 sm:gap-4",
+																	"relative flex w-full cursor-grab items-center gap-3 overflow-hidden rounded-md border border-border/60 bg-muted/40 px-2 py-2.5 text-left transition-colors hover:bg-background/60 active:cursor-grabbing sm:gap-4",
 																	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-																	"xl:rounded-md xl:border xl:border-border/60 xl:bg-muted/40",
+																	draggingId === member.id && "opacity-40",
 																)}
 															>
 																<div className="min-w-0 flex-1 space-y-0.5">
