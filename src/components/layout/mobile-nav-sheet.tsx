@@ -4,6 +4,7 @@ import { NeulandPalm } from "#/components/brand/neuland-palm";
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
 	type NavItem,
+	bottomNavItems,
 	navItemsForRoles,
 	overviewItems,
 	workflowItems,
@@ -32,19 +33,25 @@ function MobileNavSection({
 	items,
 	pathname,
 	onNavigate,
+	hideTitle = false,
 }: {
 	title: string;
 	items: NavItem[];
 	pathname: string;
 	onNavigate: () => void;
+	hideTitle?: boolean;
 }) {
 	const { t } = useI18n();
 
 	return (
 		<div className="flex flex-col gap-1">
-			<p className="px-1 pb-1.5 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-				{title}
-			</p>
+			{hideTitle ? (
+				<span className="sr-only">{title}</span>
+			) : (
+				<p className="px-1 pb-1.5 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+					{title}
+				</p>
+			)}
 			{items.map((item) => {
 				const Icon = item.icon;
 				const active = item.match(pathname);
@@ -82,6 +89,7 @@ export function MobileNavSheet({ open, onOpenChange }: MobileNavSheetProps) {
 	const { user } = appRouteApi.useRouteContext();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const visibleWorkflows = navItemsForRoles(workflowItems, user.roles);
+	const visibleBottom = navItemsForRoles(bottomNavItems, user.roles);
 
 	function close() {
 		onOpenChange(false);
@@ -123,6 +131,17 @@ export function MobileNavSheet({ open, onOpenChange }: MobileNavSheetProps) {
 						pathname={pathname}
 						onNavigate={close}
 					/>
+					{visibleBottom.length > 0 ? (
+						<div className="mt-auto">
+							<MobileNavSection
+								title={t("nav.audit")}
+								items={visibleBottom}
+								pathname={pathname}
+								onNavigate={close}
+								hideTitle
+							/>
+						</div>
+					) : null}
 				</nav>
 
 				<div className="flex items-center gap-1 border-t border-border p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

@@ -5,6 +5,7 @@ import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortc
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
 	type NavItem,
+	bottomNavItems,
 	navItemsForRoles,
 	overviewItems,
 	workflowItems,
@@ -31,17 +32,19 @@ function NavSection({
 	items,
 	pathname,
 	collapsed,
+	hideTitle = false,
 }: {
 	title: string;
 	items: NavItem[];
 	pathname: string;
 	collapsed: boolean;
+	hideTitle?: boolean;
 }) {
 	const { t } = useI18n();
 
 	return (
 		<div className="flex flex-col gap-1">
-			{collapsed ? (
+			{hideTitle || collapsed ? (
 				<span className="sr-only">{title}</span>
 			) : (
 				<p
@@ -106,6 +109,7 @@ export function AppSidebar({
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const canCollapse = typeof onCollapsedChange === "function";
 	const visibleWorkflows = navItemsForRoles(workflowItems, user.roles);
+	const visibleBottom = navItemsForRoles(bottomNavItems, user.roles);
 
 	return (
 		<aside
@@ -196,6 +200,17 @@ export function AppSidebar({
 					pathname={pathname}
 					collapsed={collapsed}
 				/>
+				{visibleBottom.length > 0 ? (
+					<div className="mt-auto">
+						<NavSection
+							title={t("nav.audit")}
+							items={visibleBottom}
+							pathname={pathname}
+							collapsed={collapsed}
+							hideTitle
+						/>
+					</div>
+				) : null}
 			</nav>
 
 			<div

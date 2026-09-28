@@ -39,13 +39,6 @@ export const overviewItems: NavItem[] = [
 		icon: ScanQrCode,
 		match: (pathname) => pathname.startsWith(ROUTES.SCANNER),
 	},
-	{
-		to: ROUTES.AUDIT,
-		labelKey: "nav.audit",
-		icon: ScrollText,
-		match: (pathname) => pathname.startsWith(ROUTES.AUDIT),
-		elevatedOnly: true,
-	},
 ];
 
 export const workflowItems: NavItem[] = [
@@ -67,6 +60,17 @@ export const workflowItems: NavItem[] = [
 		labelKey: "nav.offboarding",
 		icon: UserMinus,
 		match: (pathname) => pathname.startsWith(ROUTES.OFFBOARDING),
+		elevatedOnly: true,
+	},
+];
+
+/** Pinned at the bottom of the sidebar (Vorstand/Admin). */
+export const bottomNavItems: NavItem[] = [
+	{
+		to: ROUTES.AUDIT,
+		labelKey: "nav.audit",
+		icon: ScrollText,
+		match: (pathname) => pathname.startsWith(ROUTES.AUDIT),
 		elevatedOnly: true,
 	},
 ];

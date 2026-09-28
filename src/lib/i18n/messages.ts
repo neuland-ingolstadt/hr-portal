@@ -26,8 +26,7 @@ const de = {
 	"nav.expandSidebar": "Seitenleiste ausklappen",
 	"audit.eyebrow": "Nachvollziehbarkeit",
 	"audit.title": "Audit-Log",
-	"audit.lead":
-		"Wer hat welche Aktion im Portal ausgelöst - unabhängig vom Authentik-Servicekonto.",
+	"audit.lead": "Wer hat welche Aktion im Portal ausgelöst.",
 	"audit.loading": "Audit-Einträge werden geladen…",
 	"audit.empty": "Noch keine Audit-Einträge.",
 	"audit.count": "{count} Einträge",
@@ -293,8 +292,7 @@ const de = {
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Neue Mitglieder strukturiert einarbeiten - von Zugang bis Willkommen.",
-	"onboarding.leadLive":
-		"Neue Authentik-Konten der letzten Wochen - Einstiegspunkt fürs Onboarding.",
+	"onboarding.leadLive": "Neue Authentik-Konten der letzten Wochen.",
 	"onboarding.bulletChecklist": "Aufgabenlisten pro Rolle",
 	"onboarding.bulletAccess": "Zugänge und Gruppen vorbereiten",
 	"onboarding.bulletWelcome": "Willkommensschritte und Termine",
@@ -367,7 +365,7 @@ const de = {
 	"offboarding.lead":
 		"Austritte sauber abwickeln: Zugänge, Übergaben und Dokumentation.",
 	"offboarding.leadLive":
-		"Zwei Authentik-Schritte: Mitglieder-Gruppe entfernen, danach Konto nach Schonfrist löschen. EasyVerein bleibt unverändert.",
+		"Zwei Authentik-Schritte: Mitglieder-Gruppe entfernen, danach Konto nach Schonfrist löschen.",
 	"offboarding.process.title": "Fällige Aktionen ausführen",
 	"offboarding.process.lead":
 		"Entfernt die Mitglieder-Gruppe bei Konten mit wirksamem Austritt oder fehlender EasyVerein-ID. Löscht Konten, deren Zugang seit mindestens {days} Tagen entzogen ist. Zukünftige Austrittsdaten werden übersprungen.",
@@ -678,8 +676,7 @@ const en: Record<MessageKey, string> = {
 	"nav.expandSidebar": "Expand sidebar",
 	"audit.eyebrow": "Accountability",
 	"audit.title": "Audit log",
-	"audit.lead":
-		"Who triggered which portal action - independent of the Authentik service account.",
+	"audit.lead": "Who triggered which portal action.",
 	"audit.loading": "Loading audit entries…",
 	"audit.empty": "No audit entries yet.",
 	"audit.count": "{count} entries",
@@ -940,8 +937,7 @@ const en: Record<MessageKey, string> = {
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Bring new members up to speed - from access to welcome steps.",
-	"onboarding.leadLive":
-		"New Authentik accounts from the last weeks - starting point for onboarding.",
+	"onboarding.leadLive": "New Authentik accounts from the last weeks.",
 	"onboarding.bulletChecklist": "Role-based task lists",
 	"onboarding.bulletAccess": "Prepare access and groups",
 	"onboarding.bulletWelcome": "Welcome steps and appointments",
@@ -1013,7 +1009,7 @@ const en: Record<MessageKey, string> = {
 	"offboarding.lead":
 		"Handle departures cleanly: access, handovers, and documentation.",
 	"offboarding.leadLive":
-		"Two Authentik steps: remove the Mitglieder group, then delete the account after a grace period. EasyVerein is left unchanged.",
+		"Two Authentik steps: remove the Mitglieder group, then delete the account after a grace period.",
 	"offboarding.process.title": "Run due actions",
 	"offboarding.process.lead":
 		"Removes the Mitglieder group from accounts that have already left or have no EasyVerein ID. Deletes accounts whose access was revoked at least {days} days ago. Future resignation dates are skipped.",

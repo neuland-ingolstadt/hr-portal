@@ -44,7 +44,7 @@ export const serverConfig = {
 		ehrenmitglied: optional("EHRENMITGLIED_GROUP_NAME", "Ehrenmitglied"),
 		/** Authentik group counted as Verein-Mitglieder on the dashboard. */
 		mitglieder: optional("MITGLIEDER_GROUP_NAME", "mitglieder"),
-		/** Technical/service accounts - excluded from offboarding candidates. */
+		/** Technical/service accounts - excluded from offboarding + onboarding contacts. */
 		technicalUsers: optional("TECHNICAL_USERS_GROUP_NAME", "technical-users"),
 	},
 	/**

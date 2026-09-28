@@ -122,7 +122,7 @@ export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
 		return result;
 	});
 
-/** HR / Vorstand / Admin accounts that can be onboarding contacts. */
+/** HR / Vorstand / Admin accounts that can be onboarding contacts (not technical-users). */
 export const listOnboardingContactsFn = createServerFn({
 	method: "GET",
 }).handler(async (): Promise<OnboardingContactsResult> => {

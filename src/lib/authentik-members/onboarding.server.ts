@@ -29,6 +29,7 @@ import {
 	fetchJson,
 	hasMitgliederGroup,
 	matchesMitgliederGroup,
+	userPkFromGroupEntry,
 	userPksFromGroup,
 } from "#/lib/authentik-members/shared.server";
 import {
@@ -124,12 +125,56 @@ export async function loadStaffMemberPks(): Promise<Set<string>> {
 	return pks;
 }
 
+/**
+ * Authentik `technical-users` PKs - never assignable as onboarding contacts,
+ * even when also in HR / Vorstand / Admin.
+ */
+export async function loadTechnicalUserPks(): Promise<Set<string>> {
+	const name = serverConfig.groups.technicalUsers.trim();
+	if (!name) return new Set();
+
+	const group = await fetchGroupByName(name);
+	if (!group) {
+		console.warn(
+			`[onboarding.contact] technical-users group not found: requested=${name}`,
+		);
+		return new Set();
+	}
+	if (group.name?.trim().toLowerCase() !== name.toLowerCase()) {
+		console.warn(
+			`[onboarding.contact] technical-users group name mismatch: requested=${name} got=${group.name ?? "?"}`,
+		);
+		return new Set();
+	}
+
+	// Prefer the full `users` PK list so inactive / service accounts stay excluded.
+	const pks = new Set<string>();
+	for (const raw of group.users ?? []) {
+		const pk = userPkFromGroupEntry(raw);
+		if (pk) pks.add(pk);
+	}
+	if (pks.size > 0) {
+		console.info(
+			`[onboarding.contact] technical-users group ${group.name}: ${pks.size} users`,
+		);
+		return pks;
+	}
+	return userPksFromGroup(group);
+}
+
 export async function isAllowedOnboardingContact(
 	contactId: string,
 	contactUser: AuthentikUser,
 ): Promise<{ allowed: boolean; reason: string }> {
 	const pk = contactUser.pk != null ? String(contactUser.pk) : null;
 	const uuid = contactUser.uuid?.trim() || null;
+
+	if (pk) {
+		const technicalPks = await loadTechnicalUserPks();
+		if (technicalPks.has(pk)) {
+			return { allowed: false, reason: "technical_users_group" };
+		}
+	}
 
 	// Same source as the profile picker (cached, include_users).
 	try {
@@ -169,6 +214,7 @@ export function invalidateStaffContactsCache(): void {
 
 export async function collectStaffContacts(
 	groups: AuthentikGroup[],
+	excludePks?: Set<string>,
 ): Promise<Map<string, OnboardingContactRef>> {
 	const byPk = new Map<string, AuthentikUser>();
 	for (const group of groups) {
@@ -177,7 +223,9 @@ export async function collectStaffContacts(
 			if (user.is_active === false) continue;
 			if (user.type === "service_account") continue;
 			if (user.pk == null) continue;
-			byPk.set(String(user.pk), user);
+			const pk = String(user.pk);
+			if (excludePks?.has(pk)) continue;
+			byPk.set(pk, user);
 		}
 	}
 
@@ -215,14 +263,18 @@ export async function loadStaffContactsCached(): Promise<
 	if (staffContactsCache.inflight) return staffContactsCache.inflight;
 
 	staffContactsCache.inflight = (async () => {
-		const groups = (
-			await Promise.all(
+		const [staffGroups, technicalPks] = await Promise.all([
+			Promise.all(
 				configuredStaffGroupNames().map((name) =>
 					fetchGroupByName(name, { includeUsers: true }),
 				),
-			)
-		).filter((group): group is AuthentikGroup => group != null);
-		const value = await collectStaffContacts(groups);
+			),
+			loadTechnicalUserPks(),
+		]);
+		const groups = staffGroups.filter(
+			(group): group is AuthentikGroup => group != null,
+		);
+		const value = await collectStaffContacts(groups, technicalPks);
 		staffContactsCache.value = value;
 		staffContactsCache.expiresAt = Date.now() + STAFF_CONTACTS_CACHE_TTL_MS;
 		return value;
@@ -487,6 +539,7 @@ export async function updateMemberOnboardingStage(
 
 /**
  * Staff who can be assigned as onboarding contacts (HR / Vorstand / Admin).
+ * Excludes Authentik `technical-users` group members.
  */
 export async function listOnboardingContactsFromAuthentik(): Promise<OnboardingContactsResult> {
 	if (!isAuthentikApiConfigured()) {
