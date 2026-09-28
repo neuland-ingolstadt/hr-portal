@@ -131,21 +131,17 @@ function OnboardingLoadingStatus({ phases }: { phases: LoadingPhases }) {
 
 function MemberCardSkeleton() {
 	return (
-		<li className="surface-panel relative flex flex-col gap-4 overflow-hidden p-4">
-			<span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-muted">
+		<li className="surface-panel relative flex items-center gap-4 overflow-hidden px-4 py-3">
+			<span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-muted">
 				<span className="block h-full w-[12%] animate-pulse bg-primary/40" />
 			</span>
-			<div className="flex items-start gap-3">
-				<div className="size-10 shrink-0 animate-pulse bg-muted" />
-				<div className="min-w-0 flex-1 space-y-2 pt-1">
-					<div className="h-3.5 w-3/4 animate-pulse bg-muted" />
-					<div className="h-3 w-1/2 animate-pulse bg-muted" />
-				</div>
+			<div className="size-10 shrink-0 animate-pulse bg-muted" />
+			<div className="min-w-0 flex-1 space-y-2">
+				<div className="h-3.5 w-1/3 animate-pulse bg-muted" />
+				<div className="h-3 w-1/4 animate-pulse bg-muted" />
 			</div>
-			<div className="mt-auto space-y-2">
-				<div className="h-3 w-2/5 animate-pulse bg-muted" />
-				<div className="h-3 w-1/3 animate-pulse bg-muted" />
-			</div>
+			<div className="hidden h-3 w-40 animate-pulse bg-muted sm:block" />
+			<div className="hidden h-3 w-32 animate-pulse bg-muted md:block" />
 		</li>
 	);
 }
@@ -158,7 +154,7 @@ function StageSectionSkeleton({ cards }: { cards: number }) {
 				<div className="h-3.5 min-w-0 flex-1 max-w-28 animate-pulse bg-muted" />
 				<div className="h-3 w-5 shrink-0 animate-pulse bg-muted" />
 			</div>
-			<ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			<ul className="m-0 flex list-none flex-col gap-2 p-0">
 				{Array.from({ length: cards }, (_, i) => (
 					<MemberCardSkeleton key={`onboarding-card-skel-${String(i)}`} />
 				))}

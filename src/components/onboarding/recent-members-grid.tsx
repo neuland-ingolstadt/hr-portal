@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown, CircleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { useI18n } from "#/lib/i18n/locale-context";
@@ -26,12 +26,6 @@ type ContactState = {
 	id: string | null;
 	name: string | null;
 };
-
-/** Top glow fill - stage 0 still shows a small segment. */
-function stageGlowPct(stage: OnboardingStage): number {
-	if (stage <= 0) return 12;
-	return Math.round((stage / ONBOARDING_STAGE_MAX) * 100);
-}
 
 function initials(name: string): string {
 	const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -65,7 +59,7 @@ function groupByStage(
 	return ONBOARDING_STAGES.map((stage) => ({
 		stage,
 		members: byStage.get(stage) ?? [],
-	})).filter((section) => section.members.length > 0);
+	}));
 }
 
 export function RecentMembersGrid({
@@ -230,11 +224,25 @@ export function RecentMembersGrid({
 					</div>
 				) : (
 					<div className="flex flex-col gap-8">
-						{sections.map(({ stage, members: sectionMembers }) => {
+						{sections.map(({ stage, members: sectionMembers }, index) => {
 							const isOpen = !collapsed[stage];
 							const headingId = `onboarding-stage-${stage}`;
+							const isLast = index === sections.length - 1;
 							return (
-								<section key={stage} className="min-w-0 space-y-3">
+								<div key={stage} className="flex gap-3">
+									<div className="flex flex-col items-center" aria-hidden>
+										<span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background font-mono text-xs font-semibold text-foreground">
+											{stage === ONBOARDING_STAGE_MAX ? (
+												<Check className="size-3.5" strokeWidth={2.5} />
+											) : (
+												stage + 1
+											)}
+										</span>
+										{!isLast ? (
+											<span className="w-px flex-1 bg-border" />
+										) : null}
+									</div>
+									<section className="min-w-0 flex-1 space-y-3 pb-1">
 									<button
 										type="button"
 										id={headingId}
@@ -261,15 +269,22 @@ export function RecentMembersGrid({
 										</span>
 									</button>
 
-									{isOpen ? (
+									{isOpen && sectionMembers.length === 0 ? (
+										<div
+											id={`onboarding-stage-panel-${stage}`}
+											className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-5 text-center text-sm text-muted-foreground"
+										>
+											{t("onboarding.stage.empty")}
+										</div>
+									) : null}
+
+									{isOpen && sectionMembers.length > 0 ? (
 										<section
 											id={`onboarding-stage-panel-${stage}`}
 											aria-labelledby={headingId}
 										>
-											<ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+											<ul className="m-0 flex list-none flex-col divide-y divide-border/60 rounded-2xl border border-border/60 bg-muted/40 p-2">
 												{sectionMembers.map((member) => {
-													const memberStage =
-														stages[member.id] ?? member.onboardingStage;
 													const contact =
 														contacts[member.id] ??
 														({
@@ -282,49 +297,61 @@ export function RecentMembersGrid({
 																type="button"
 																onClick={() => openProfile(member.id)}
 																className={cn(
-																	"surface-panel surface-panel--interactive relative flex w-full flex-col gap-4 overflow-hidden p-4 text-left transition-colors",
+																	"relative flex w-full items-center gap-3 overflow-hidden px-2 py-2.5 text-left transition-colors hover:bg-background/60 sm:gap-4",
 																	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 																)}
 															>
 																<span
 																	aria-hidden
-																	className="absolute inset-x-0 top-0 h-0.5 bg-muted"
+																	className="flex size-10 shrink-0 items-center justify-center border border-border bg-muted font-mono text-xs font-semibold tracking-wide text-foreground"
 																>
-																	<span
-																		className="block h-full bg-gradient-to-r from-primary via-primary to-primary/30 transition-[width] duration-300 ease-out"
-																		style={{
-																			width: `${stageGlowPct(memberStage)}%`,
-																		}}
-																	/>
+																	{initials(member.name)}
 																</span>
-																<div className="flex items-start gap-3">
-																	<span
-																		aria-hidden
-																		className="flex size-10 shrink-0 items-center justify-center border border-border bg-muted font-mono text-xs font-semibold tracking-wide text-foreground"
-																	>
-																		{initials(member.name)}
-																	</span>
-																	<div className="min-w-0 space-y-1">
-																		<p className="truncate text-sm font-semibold tracking-tight">
-																			{member.name}
-																		</p>
-																		{member.username ? (
-																			<p className="truncate font-mono text-xs text-muted-foreground">
-																				{member.username}
-																			</p>
-																		) : null}
-																	</div>
-																</div>
-																<div className="mt-auto space-y-1">
-																	<p className="text-xs text-muted-foreground">
-																		{t("onboarding.recent.joined", {
-																			date: formatJoinedDate(
-																				member.dateJoined,
-																				locale,
-																			),
-																		})}
+																<div className="min-w-0 flex-1 space-y-0.5">
+																	<p className="truncate text-sm font-semibold tracking-tight">
+																		{member.name}
 																	</p>
-																	<p className="truncate text-xs text-muted-foreground">
+																	{member.username ? (
+																		<p className="truncate font-mono text-xs text-muted-foreground">
+																			{member.username}
+																		</p>
+																	) : null}
+																	<p
+																		className={cn(
+																			"flex items-center gap-1.5 text-xs text-muted-foreground sm:hidden",
+																			!contact.id && "text-amber-600 dark:text-amber-500",
+																		)}
+																	>
+																		{!contact.id ? (
+																			<CircleAlert
+																				aria-hidden
+																				className="size-3.5 shrink-0"
+																			/>
+																		) : null}
+																		<span className="truncate">
+																			{contact.id
+																				? contact.name
+																					? t("onboarding.recent.contact", {
+																							name: contact.name,
+																						})
+																					: t("onboarding.recent.contactAssigned")
+																				: t("onboarding.recent.contactNone")}
+																		</span>
+																	</p>
+																</div>
+																<p
+																	className={cn(
+																		"hidden w-40 shrink-0 items-center gap-1.5 text-xs text-muted-foreground sm:flex md:w-56",
+																		!contact.id && "text-amber-600 dark:text-amber-500",
+																	)}
+																>
+																	{!contact.id ? (
+																		<CircleAlert
+																			aria-hidden
+																			className="size-3.5 shrink-0"
+																		/>
+																	) : null}
+																	<span className="truncate">
 																		{contact.id
 																			? contact.name
 																				? t("onboarding.recent.contact", {
@@ -332,8 +359,16 @@ export function RecentMembersGrid({
 																					})
 																				: t("onboarding.recent.contactAssigned")
 																			: t("onboarding.recent.contactNone")}
-																	</p>
-																</div>
+																	</span>
+																</p>
+																<p className="hidden shrink-0 text-right text-xs text-muted-foreground md:block md:w-44">
+																	{t("onboarding.recent.joined", {
+																		date: formatJoinedDate(
+																			member.dateJoined,
+																			locale,
+																		),
+																	})}
+																</p>
 															</button>
 														</li>
 													);
@@ -341,7 +376,8 @@ export function RecentMembersGrid({
 											</ul>
 										</section>
 									) : null}
-								</section>
+									</section>
+								</div>
 							);
 						})}
 					</div>
