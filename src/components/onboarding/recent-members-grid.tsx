@@ -1,4 +1,4 @@
-import { Check, ChevronDown, CircleAlert } from "lucide-react";
+import { Check, CircleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
@@ -27,13 +27,6 @@ type ContactState = {
 	id: string | null;
 	name: string | null;
 };
-
-function initials(name: string): string {
-	const parts = name.trim().split(/\s+/).filter(Boolean);
-	if (parts.length === 0) return "?";
-	if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-	return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
-}
 
 function formatJoinedDate(iso: string, locale: string): string {
 	const date = new Date(iso);
@@ -104,9 +97,6 @@ export function RecentMembersGrid({
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [profileOpen, setProfileOpen] = useState(false);
 	const [contactFilter, setContactFilter] = useState<ContactFilter>("all");
-	const [collapsed, setCollapsed] = useState<
-		Partial<Record<OnboardingStage, boolean>>
-	>({});
 	const [stages, setStages] = useState(() => {
 		const initial: Record<string, OnboardingStage> = {};
 		for (const member of members) {
@@ -174,13 +164,6 @@ export function RecentMembersGrid({
 		if (!open) setProfileId(null);
 	}, []);
 
-	const toggleStage = useCallback((stage: OnboardingStage) => {
-		setCollapsed((current) => ({
-			...current,
-			[stage]: !current[stage],
-		}));
-	}, []);
-
 	const applyStageChange = useCallback(
 		(id: string, nextStage: OnboardingStage) => {
 			setStages((current) => {
@@ -190,9 +173,6 @@ export function RecentMembersGrid({
 				}
 				return next;
 			});
-			setCollapsed((current) =>
-				current[nextStage] ? { ...current, [nextStage]: false } : current,
-			);
 		},
 		[profileId],
 	);
@@ -256,14 +236,16 @@ export function RecentMembersGrid({
 						</p>
 					</div>
 				) : (
-					<div className="flex flex-col gap-8">
+					<div className="flex flex-col gap-8 xl:grid xl:grid-cols-5 xl:items-stretch xl:gap-4">
 						{sections.map(({ stage, members: sectionMembers }, index) => {
-							const isOpen = !collapsed[stage];
 							const headingId = `onboarding-stage-${stage}`;
 							const isLast = index === sections.length - 1;
 							return (
-								<div key={stage} className="flex gap-3">
-									<div className="flex flex-col items-center" aria-hidden>
+								<div key={stage} className="flex gap-3 xl:flex-col xl:gap-2">
+									<div
+										className="flex flex-col items-center xl:w-full xl:flex-row"
+										aria-hidden
+									>
 										<span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-background font-mono text-xs font-semibold text-foreground">
 											{stage === ONBOARDING_STAGE_MAX ? (
 												<Check className="size-3.5" strokeWidth={2.5} />
@@ -272,51 +254,43 @@ export function RecentMembersGrid({
 											)}
 										</span>
 										{!isLast ? (
-											<span className="w-px flex-1 bg-border" />
+											<span className="w-px flex-1 bg-border xl:ml-2 xl:h-px xl:w-auto" />
 										) : null}
 									</div>
-									<section className="min-w-0 flex-1 space-y-3 pb-1">
-									<button
-										type="button"
+									<section className="flex min-w-0 flex-1 flex-col space-y-3 pb-1">
+									<div
 										id={headingId}
-										aria-expanded={isOpen}
-										aria-controls={`onboarding-stage-panel-${stage}`}
-										onClick={() => toggleStage(stage)}
-										className={cn(
-											"flex w-full items-center gap-2 text-left",
-											"rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-										)}
+										className="flex w-full items-center gap-2 text-left"
 									>
-										<ChevronDown
-											aria-hidden
-											className={cn(
-												"size-4 shrink-0 text-muted-foreground transition-transform duration-200",
-												!isOpen && "-rotate-90",
-											)}
-										/>
-										<h3 className="min-w-0 flex-1 text-base font-semibold tracking-tight text-foreground">
+										<h3 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-foreground">
 											{t(ONBOARDING_STAGE_LABEL_KEYS[stage])}
 										</h3>
 										<span className="font-mono text-xs tabular-nums text-muted-foreground">
 											{sectionMembers.length}
 										</span>
-									</button>
+									</div>
 
-									{isOpen && sectionMembers.length === 0 ? (
+									{sectionMembers.length === 0 ? (
 										<div
 											id={`onboarding-stage-panel-${stage}`}
-											className="rounded-md border border-border/60 bg-muted/40 px-4 py-5 text-center text-sm text-muted-foreground"
+											className="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-border/60 px-4 py-5 text-center text-sm text-muted-foreground"
 										>
 											{t("onboarding.stage.empty")}
 										</div>
 									) : null}
 
-									{isOpen && sectionMembers.length > 0 ? (
+									{sectionMembers.length > 0 ? (
 										<section
 											id={`onboarding-stage-panel-${stage}`}
 											aria-labelledby={headingId}
+											className="flex flex-1 flex-col"
 										>
-											<ul className="m-0 flex list-none flex-col divide-y divide-border/60 overflow-hidden rounded-md border border-border/60 bg-muted/40 p-2">
+											<ul
+												className={cn(
+													"m-0 flex flex-1 list-none flex-col divide-y divide-border/60 overflow-hidden rounded-md border border-border/60 bg-muted/40 p-2",
+													"xl:gap-2 xl:divide-y-0 xl:overflow-visible xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0",
+												)}
+											>
 												{sectionMembers.map((member) => {
 													const contact =
 														contacts[member.id] ??
@@ -332,14 +306,9 @@ export function RecentMembersGrid({
 																className={cn(
 																	"relative flex w-full items-center gap-3 overflow-hidden px-2 py-2.5 text-left transition-colors hover:bg-background/60 sm:gap-4",
 																	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+																	"xl:rounded-md xl:border xl:border-border/60 xl:bg-muted/40",
 																)}
 															>
-																<span
-																	aria-hidden
-																	className="flex size-10 shrink-0 items-center justify-center border border-border bg-muted font-mono text-xs font-semibold tracking-wide text-foreground"
-																>
-																	{initials(member.name)}
-																</span>
 																<div className="min-w-0 flex-1 space-y-0.5">
 																	<p className="truncate text-sm font-semibold tracking-tight">
 																		{member.name}
@@ -349,14 +318,14 @@ export function RecentMembersGrid({
 																			@{member.username}
 																		</p>
 																	) : null}
-																	<div className="sm:hidden">
+																	<div className="sm:hidden xl:block">
 																		<ContactBadge contact={contact} t={t} />
 																	</div>
 																</div>
-																<div className="hidden w-40 shrink-0 sm:block md:w-56">
+																<div className="hidden w-40 shrink-0 sm:block md:w-56 xl:hidden">
 																	<ContactBadge contact={contact} t={t} />
 																</div>
-																<p className="hidden shrink-0 text-right text-xs text-muted-foreground md:block md:w-44">
+																<p className="hidden shrink-0 text-right text-xs text-muted-foreground md:block md:w-44 xl:hidden">
 																	{t("onboarding.recent.joined", {
 																		date: formatJoinedDate(
 																			member.dateJoined,
