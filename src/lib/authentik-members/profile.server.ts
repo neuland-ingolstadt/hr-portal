@@ -60,13 +60,16 @@ export function isDiscordConnected(
 	);
 }
 
-/** Authentik admin UI deep links for a user PK. */
+/** Authentik admin UI deep links for a user PK (browser-facing public origin). */
 export function authentikAdminUrls(pk: number | string | null | undefined): {
 	user: string | null;
 	groups: string | null;
 } {
 	if (pk == null || pk === "") return { user: null, groups: null };
-	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+	const base =
+		(
+			serverConfig.authentik.publicUrl || serverConfig.authentik.apiUrl
+		)?.replace(/\/$/, "") ?? "";
 	if (!base) return { user: null, groups: null };
 	const user = `${base}/if/admin/#/identity/users/${pk}`;
 	const groupsTab = encodeURIComponent(JSON.stringify({ page: "page-groups" }));

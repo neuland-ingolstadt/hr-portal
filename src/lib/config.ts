@@ -26,8 +26,14 @@ export const serverConfig = {
 		issuer: optional("AUTHENTIK_ISSUER"),
 		clientId: optional("AUTHENTIK_CLIENT_ID"),
 		clientSecret: optional("AUTHENTIK_CLIENT_SECRET"),
+		/** In-cluster or private API base (server-side Authentik REST). */
 		apiUrl: optional("AUTHENTIK_API_URL"),
 		apiToken: optional("AUTHENTIK_API_TOKEN"),
+		/**
+		 * Browser-facing Authentik origin for admin deep links.
+		 * Empty → fall back to AUTHENTIK_API_URL (fine when both are public).
+		 */
+		publicUrl: optional("AUTHENTIK_PUBLIC_URL"),
 	},
 	groups: {
 		hr: optional("HR_GROUP_NAME", "HR"),
