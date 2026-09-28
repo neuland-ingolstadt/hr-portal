@@ -37,11 +37,6 @@
 	--color-input: hsl(var(--input));
 	--color-ring: hsl(var(--ring));
 
-	--radius-sm: 0;
-	--radius-md: 0;
-	--radius-lg: 0;
-	--radius-xl: 0;
-
 	--animate-sheet-in-right: sheet-in-right 320ms cubic-bezier(0.32, 0.72, 0, 1);
 	--animate-sheet-out-right: sheet-out-right 220ms cubic-bezier(0.32, 0.72, 0, 1);
 	--animate-sheet-in-left: sheet-in-left 320ms cubic-bezier(0.32, 0.72, 0, 1);
@@ -86,7 +81,6 @@
 	--accent-foreground: 0 0% 10%;
 	--destructive: 0 70% 40%;
 	--destructive-foreground: 0 0% 98%;
-	--radius: 0;
 
 	--ambient-background: #f5f8f5;
 	--ambient-grid-line: rgba(13, 50, 36, 0.045);
