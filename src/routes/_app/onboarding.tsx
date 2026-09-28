@@ -131,37 +131,49 @@ function OnboardingLoadingStatus({ phases }: { phases: LoadingPhases }) {
 
 function MemberCardSkeleton() {
 	return (
-		<li className="surface-panel relative flex items-center gap-4 overflow-hidden px-4 py-3">
-			<span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-muted">
-				<span className="block h-full w-[12%] animate-pulse bg-primary/40" />
-			</span>
-			<div className="size-10 shrink-0 animate-pulse bg-muted" />
-			<div className="min-w-0 flex-1 space-y-2">
-				<div className="h-3.5 w-1/3 animate-pulse bg-muted" />
-				<div className="h-3 w-1/4 animate-pulse bg-muted" />
+		<li className="relative flex items-center gap-3 overflow-hidden rounded-md border border-border/60 bg-muted/40 px-2 py-2.5 sm:gap-4">
+			<div className="min-w-0 flex-1 space-y-1.5">
+				<div className="h-3.5 w-3/5 animate-pulse bg-muted" />
+				<div className="h-3 w-2/5 animate-pulse bg-muted" />
+				<div className="h-5 w-20 animate-pulse bg-muted sm:hidden xl:block" />
 			</div>
-			<div className="hidden h-3 w-40 animate-pulse bg-muted sm:block" />
-			<div className="hidden h-3 w-32 animate-pulse bg-muted md:block" />
+			<div className="hidden h-5 w-24 shrink-0 animate-pulse bg-muted sm:block xl:hidden" />
 		</li>
 	);
 }
 
-function StageSectionSkeleton({ cards }: { cards: number }) {
+function StageColumnSkeleton({
+	cards,
+	isLast,
+}: {
+	cards: number;
+	isLast: boolean;
+}) {
 	return (
-		<section className="min-w-0 space-y-3" aria-hidden>
-			<div className="flex items-center gap-2">
-				<div className="size-4 shrink-0 animate-pulse bg-muted" />
-				<div className="h-3.5 min-w-0 flex-1 max-w-28 animate-pulse bg-muted" />
-				<div className="h-3 w-5 shrink-0 animate-pulse bg-muted" />
+		<div className="flex gap-3 xl:flex-col xl:gap-2" aria-hidden>
+			<div className="flex flex-col items-center xl:w-full xl:flex-row">
+				<span className="size-7 shrink-0 animate-pulse rounded-full border border-border bg-muted" />
+				{!isLast ? (
+					<span className="w-px flex-1 bg-border xl:ml-2 xl:h-px xl:w-auto" />
+				) : null}
 			</div>
-			<ul className="m-0 flex list-none flex-col gap-2 p-0">
-				{Array.from({ length: cards }, (_, i) => (
-					<MemberCardSkeleton key={`onboarding-card-skel-${String(i)}`} />
-				))}
-			</ul>
-		</section>
+			<section className="flex min-w-0 flex-1 flex-col space-y-3 pb-1">
+				<div className="flex w-full items-center gap-2">
+					<div className="h-4 min-w-0 flex-1 max-w-28 animate-pulse bg-muted" />
+					<div className="h-3 w-4 shrink-0 animate-pulse bg-muted" />
+				</div>
+				<ul className="m-0 flex list-none flex-col gap-2 p-0">
+					{Array.from({ length: cards }, (_, i) => (
+						<MemberCardSkeleton key={`onboarding-card-skel-${String(i)}`} />
+					))}
+				</ul>
+			</section>
+		</div>
 	);
 }
+
+/** Card counts per stage column - mirrors a typical board fill. */
+const SKELETON_STAGE_CARDS = [3, 2, 2, 1, 1] as const;
 
 function OnboardingSkeleton({ phases }: { phases: LoadingPhases }) {
 	return (
@@ -169,18 +181,25 @@ function OnboardingSkeleton({ phases }: { phases: LoadingPhases }) {
 			<OnboardingLoadingStatus phases={phases} />
 
 			<section className="space-y-3">
-				<div className="flex flex-wrap gap-2" aria-hidden>
-					{Array.from({ length: 3 }, (_, i) => (
-						<div
-							key={`onboarding-filter-skel-${String(i)}`}
-							className="h-8 w-16 animate-pulse bg-muted"
-						/>
-					))}
-				</div>
+				<div className="flex flex-col gap-6">
+					<div className="flex flex-wrap gap-2" aria-hidden>
+						{Array.from({ length: 3 }, (_, i) => (
+							<div
+								key={`onboarding-filter-skel-${String(i)}`}
+								className="h-8 w-20 animate-pulse border border-border bg-muted"
+							/>
+						))}
+					</div>
 
-				<div className="space-y-8">
-					<StageSectionSkeleton cards={4} />
-					<StageSectionSkeleton cards={3} />
+					<div className="flex flex-col gap-8 xl:grid xl:grid-cols-5 xl:items-stretch xl:gap-4">
+						{SKELETON_STAGE_CARDS.map((cards, index) => (
+							<StageColumnSkeleton
+								key={`onboarding-stage-skel-${String(index)}`}
+								cards={cards}
+								isLast={index === SKELETON_STAGE_CARDS.length - 1}
+							/>
+						))}
+					</div>
 				</div>
 			</section>
 		</div>
