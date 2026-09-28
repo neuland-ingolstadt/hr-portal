@@ -131,21 +131,17 @@ function OnboardingLoadingStatus({ phases }: { phases: LoadingPhases }) {
 
 function MemberCardSkeleton() {
 	return (
-		<li className="surface-panel relative flex flex-col gap-4 overflow-hidden p-4">
-			<span aria-hidden className="absolute inset-x-0 top-0 h-0.5 bg-muted">
+		<li className="surface-panel relative flex items-center gap-4 overflow-hidden px-4 py-3">
+			<span aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-muted">
 				<span className="block h-full w-[12%] animate-pulse bg-primary/40" />
 			</span>
-			<div className="flex items-start gap-3">
-				<div className="size-10 shrink-0 animate-pulse bg-muted" />
-				<div className="min-w-0 flex-1 space-y-2 pt-1">
-					<div className="h-3.5 w-3/4 animate-pulse bg-muted" />
-					<div className="h-3 w-1/2 animate-pulse bg-muted" />
-				</div>
+			<div className="size-10 shrink-0 animate-pulse bg-muted" />
+			<div className="min-w-0 flex-1 space-y-2">
+				<div className="h-3.5 w-1/3 animate-pulse bg-muted" />
+				<div className="h-3 w-1/4 animate-pulse bg-muted" />
 			</div>
-			<div className="mt-auto space-y-2">
-				<div className="h-3 w-2/5 animate-pulse bg-muted" />
-				<div className="h-3 w-1/3 animate-pulse bg-muted" />
-			</div>
+			<div className="hidden h-3 w-40 animate-pulse bg-muted sm:block" />
+			<div className="hidden h-3 w-32 animate-pulse bg-muted md:block" />
 		</li>
 	);
 }
@@ -158,7 +154,7 @@ function StageSectionSkeleton({ cards }: { cards: number }) {
 				<div className="h-3.5 min-w-0 flex-1 max-w-28 animate-pulse bg-muted" />
 				<div className="h-3 w-5 shrink-0 animate-pulse bg-muted" />
 			</div>
-			<ul className="grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			<ul className="m-0 flex list-none flex-col gap-2 p-0">
 				{Array.from({ length: cards }, (_, i) => (
 					<MemberCardSkeleton key={`onboarding-card-skel-${String(i)}`} />
 				))}
@@ -173,11 +169,6 @@ function OnboardingSkeleton({ phases }: { phases: LoadingPhases }) {
 			<OnboardingLoadingStatus phases={phases} />
 
 			<section className="space-y-3">
-				<div className="space-y-2" aria-hidden>
-					<div className="h-4 w-52 max-w-full animate-pulse bg-muted" />
-					<div className="h-3 w-80 max-w-full animate-pulse bg-muted" />
-				</div>
-
 				<div className="flex flex-wrap gap-2" aria-hidden>
 					{Array.from({ length: 3 }, (_, i) => (
 						<div
@@ -206,15 +197,6 @@ function OnboardingBody({ data }: { data: RecentOnboardingMembersResult }) {
 			) : null}
 
 			<section className="space-y-3">
-				<div className="space-y-1">
-					<h2 className="text-base font-semibold tracking-tight">
-						{t("onboarding.recent.title", { weeks: String(data.weeks) })}
-					</h2>
-					<p className="text-sm text-muted-foreground">
-						{t("onboarding.recent.lead")}
-					</p>
-				</div>
-
 				{data.members.length === 0 ? (
 					<div className="surface-panel flex min-h-48 items-center justify-center p-6">
 						<p className="text-sm text-muted-foreground">
@@ -365,16 +347,7 @@ function OnboardingPage() {
 
 	return (
 		<>
-			<OnboardingHeader
-				lead={t("onboarding.leadLive")}
-				meta={
-					data.members.length > 0
-						? t("onboarding.recent.count", {
-								count: String(data.members.length),
-							})
-						: undefined
-				}
-			/>
+			<OnboardingHeader lead={t("onboarding.leadLive")} />
 			<OnboardingBody data={data} />
 		</>
 	);

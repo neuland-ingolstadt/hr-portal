@@ -90,7 +90,7 @@ const de = {
 		"Im Profil findest du Stammdaten, Gruppen (inkl. Ressorts), Connect-Integrationen und die Onboarding-Stufe. Wo vorhanden, ist die EasyVerein-Mitglieds-ID als Attribut hinterlegt: sie verknüpft Authentik mit EasyVerein für Offboarding und Annahme.",
 	"help.members.s3.heading": "Onboarding-Stufe",
 	"help.members.s3.body":
-		"Die Stufe (0–4) steuert die Gruppierung auf der Onboarding-Seite: neu, Gespräch, Projekt, engagiert, fertig. Du kannst sie hier im Profil oder auf der Onboarding-Karte setzen. Das ist ein menschlicher Fortschrittsmarker, keine Checkliste und keine automatische Queue.",
+		"Die Stufe (0–4) steuert die Gruppierung auf der Onboarding-Seite: Neu im Verein, Am Onboarding Call teilgenommen, Projekt zugewiesen, Beitrag geleistet, Onboarding abgeschlossen. Du kannst sie hier im Profil oder auf der Onboarding-Karte setzen. Das ist ein menschlicher Fortschrittsmarker, keine Checkliste und keine automatische Queue.",
 	"help.members.s4.heading": "Gruppen bearbeiten",
 	"help.members.s4.body":
 		"Nur Vorstand/Admin können Ressort-Gruppen im Profil ändern. Geschützte Gruppen (u. a. HR, Vorstand, Admin, Ehrenmitglied, technical-users, mitglieder) dürfen über das Portal nicht verändert werden: das verhindert versehentliche Rechte- oder Mitgliedschaftsänderungen.",
@@ -132,10 +132,10 @@ const de = {
 		"Onboarding ist kein Aufgaben-Queue und kein Checklisten-Workflow. Es zeigt Mitglieder mit Authentik-Konto der letzten 12 Wochen, gruppiert nach attributes.onboardingStage. Optional kannst du eine betreuende HR-/Staff-Person (attributes.onboardingContact) zuweisen. Neue Konten legst du bevorzugt über Bewerbungen an.",
 	"help.onboarding.s1.heading": "Zeitfenster und Karten",
 	"help.onboarding.s1.body":
-		"Nur Konten aus den letzten zwölf Wochen erscheinen hier. Die Karten sind nach Stufe gruppiert; der farbige Rand oben visualisiert den Fortschritt. Klick öffnet dasselbe Profil-Sheet wie im Mitgliederverzeichnis. Filter: alle / meine / ohne Betreuung.",
+		"Nur Konten aus den letzten zwölf Wochen erscheinen hier. Die Karten stehen unter ihrer Stufe - auf breiten Bildschirmen als Spalten nebeneinander, sonst untereinander. Klick öffnet dasselbe Profil-Sheet wie im Mitgliederverzeichnis. Filter: alle / meine / ohne Betreuung.",
 	"help.onboarding.s2.heading": "Stufen 0–4",
 	"help.onboarding.s2.body":
-		"0 neu · 1 Gespräch · 2 Projekt · 3 engagiert · 4 fertig. Die Bedeutungen sind teamseitig festgelegt; das Portal speichert nur die Zahl in Authentik. Anpassen geht am Slider im Profil.",
+		"0 Neu im Verein · 1 Am Onboarding Call teilgenommen · 2 Projekt zugewiesen · 3 Beitrag geleistet · 4 Onboarding abgeschlossen. Die Bedeutungen sind teamseitig festgelegt; das Portal speichert nur die Zahl in Authentik. Karte per Drag & Drop in eine andere Stufe ziehen, oder die Stufe am Slider im Profil anpassen.",
 	"help.onboarding.s3.heading": "Betreuung zuweisen",
 	"help.onboarding.s3.body":
 		"Im Profil kannst du eine Person aus HR, Vorstand oder Admin als Ansprechpartner setzen (oder dich selbst). Das ist nur ein Kontakt-Hinweis - keine Aufgabenliste und keine Fristen. Die Zuweisung landet in Authentik und im Audit-Log.",
@@ -292,19 +292,14 @@ const de = {
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Neue Mitglieder strukturiert einarbeiten - von Zugang bis Willkommen.",
-	"onboarding.leadLive": "Neue Authentik-Konten der letzten Wochen.",
+	"onboarding.leadLive": "Mitglieder der letzten 12 Wochen.",
 	"onboarding.bulletChecklist": "Aufgabenlisten pro Rolle",
 	"onboarding.bulletAccess": "Zugänge und Gruppen vorbereiten",
 	"onboarding.bulletWelcome": "Willkommensschritte und Termine",
 	"onboarding.bulletTrack": "Fortschritt für HR & Vorstand",
-	"onboarding.recent.title": "Neu in den letzten {weeks} Wochen",
-	"onboarding.recent.lead":
-		"Mitglieder nach Authentik-Kontoanlage. Klicke eine Karte fürs Profil.",
-	"onboarding.recent.joined": "Konto seit {date}",
 	"onboarding.recent.contact": "Betreuung: {name}",
 	"onboarding.recent.contactAssigned": "Betreut",
 	"onboarding.recent.contactNone": "Keine Betreuung",
-	"onboarding.recent.count": "{count} neu",
 	"onboarding.recent.empty":
 		"Keine neuen Mitgliederkonten in den letzten {weeks} Wochen.",
 	"onboarding.recent.loading": "Neue Mitglieder werden geladen…",
@@ -322,14 +317,15 @@ const de = {
 	"onboarding.recent.retry": "Erneut versuchen",
 	"onboarding.filter.label": "Nach Betreuung filtern",
 	"onboarding.filter.all": "Alle",
-	"onboarding.filter.mine": "Meine",
+	"onboarding.filter.mine": "Mir zugewiesen",
 	"onboarding.filter.unassigned": "Ohne Betreuung",
 	"onboarding.filter.empty": "Keine Einträge für diesen Filter.",
-	"onboarding.stage.new": "Neu",
-	"onboarding.stage.conversation": "Gespräch",
-	"onboarding.stage.project": "Projekt",
-	"onboarding.stage.contributing": "Beitrag",
-	"onboarding.stage.done": "Fertig",
+	"onboarding.stage.empty": "Kein Mitglied in dieser Stufe.",
+	"onboarding.stage.new": "Neu im Verein",
+	"onboarding.stage.conversation": "Am Onboarding Call teilgenommen",
+	"onboarding.stage.project": "Projekt zugewiesen",
+	"onboarding.stage.contributing": "Beitrag geleistet",
+	"onboarding.stage.done": "Onboarding abgeschlossen",
 	"onboarding.stage.progress": "Onboarding-Fortschritt",
 	"onboarding.create.title": "Konto anlegen",
 	"onboarding.create.lead":
@@ -551,7 +547,8 @@ const de = {
 	"profile.errorGroupsApi": "Authentik-API ist nicht konfiguriert.",
 	"profile.errorGroupsFailed": "Gruppen konnten nicht gespeichert werden.",
 	"profile.onboarding": "Onboarding",
-	"profile.onboardingHint": "Gespräch → Projekt → Beitrag → fertig.",
+	"profile.onboardingHint":
+		"Neu im Verein → Am Onboarding Call teilgenommen → Projekt zugewiesen → Beitrag geleistet → Onboarding abgeschlossen.",
 	"profile.onboardingSave": "Stufe speichern",
 	"profile.onboardingSaving": "Wird gespeichert…",
 	"profile.onboardingSaved": "Onboarding-Stufe aktualisiert.",
@@ -739,7 +736,7 @@ const en: Record<MessageKey, string> = {
 		"The profile shows core data, groups (including ressorts), Connect integrations, and onboarding stage. When present, the EasyVerein member id is stored as an attribute: it links Authentik to EasyVerein for offboarding and accept.",
 	"help.members.s3.heading": "Onboarding stage",
 	"help.members.s3.body":
-		"The stage (0–4) controls grouping on the onboarding page: new, conversation, project, engaging, done. Set it here on the profile or on the onboarding card. It is a human progress marker, not a checklist and not an automated queue.",
+		"The stage (0–4) controls grouping on the onboarding page: New to the club, Onboarding call, Project assigned, Contribution made, Onboarding complete. Set it here on the profile or on the onboarding card. It is a human progress marker, not a checklist and not an automated queue.",
 	"help.members.s4.heading": "Editing groups",
 	"help.members.s4.body":
 		"Only board/admin can change ressort groups on the profile. Protected groups (including HR, Vorstand, Admin, Ehrenmitglied, technical-users, mitglieder) cannot be changed through the portal: that prevents accidental privilege or membership changes.",
@@ -781,10 +778,10 @@ const en: Record<MessageKey, string> = {
 		"Onboarding is not a task queue and not a checklist workflow. It shows members whose Authentik account was created in the last 12 weeks, grouped by attributes.onboardingStage. Optionally assign a staff contact (attributes.onboardingContact). Prefer creating new accounts via Applications.",
 	"help.onboarding.s1.heading": "Time window and cards",
 	"help.onboarding.s1.body":
-		"Only accounts from the last twelve weeks appear here. Cards are grouped by stage; the top colour edge visualises progress. Click opens the same profile sheet as in the member directory. Filters: all / mine / unassigned.",
+		"Only accounts from the last twelve weeks appear here. Cards sit under their stage - side by side as columns on wide screens, stacked otherwise. Click opens the same profile sheet as in the member directory. Filters: all / mine / unassigned.",
 	"help.onboarding.s2.heading": "Stages 0–4",
 	"help.onboarding.s2.body":
-		"0 new · 1 conversation · 2 project · 3 engaging · 4 done. Meanings are defined by the team; the portal only stores the number in Authentik. Adjust via the slider on the profile.",
+		"0 New to the club · 1 Onboarding call · 2 Project assigned · 3 Contribution made · 4 Onboarding complete. Meanings are defined by the team; the portal only stores the number in Authentik. Drag a card into another stage, or adjust it via the slider on the profile.",
 	"help.onboarding.s3.heading": "Assign a contact",
 	"help.onboarding.s3.body":
 		"On the profile you can set someone from HR, board, or admin as the point of contact (or assign yourself). This is contact metadata only - not a task list and not due dates. The assignment is stored in Authentik and written to the audit log.",
@@ -937,19 +934,14 @@ const en: Record<MessageKey, string> = {
 	"onboarding.title": "Onboarding",
 	"onboarding.lead":
 		"Bring new members up to speed - from access to welcome steps.",
-	"onboarding.leadLive": "New Authentik accounts from the last weeks.",
+	"onboarding.leadLive": "Members from the last 12 weeks.",
 	"onboarding.bulletChecklist": "Role-based task lists",
 	"onboarding.bulletAccess": "Prepare access and groups",
 	"onboarding.bulletWelcome": "Welcome steps and appointments",
 	"onboarding.bulletTrack": "Progress for HR & board",
-	"onboarding.recent.title": "New in the last {weeks} weeks",
-	"onboarding.recent.lead":
-		"Members by Authentik account creation. Click a card for the profile.",
-	"onboarding.recent.joined": "Account since {date}",
 	"onboarding.recent.contact": "Contact: {name}",
 	"onboarding.recent.contactAssigned": "Has contact",
 	"onboarding.recent.contactNone": "No contact",
-	"onboarding.recent.count": "{count} new",
 	"onboarding.recent.empty":
 		"No new member accounts in the last {weeks} weeks.",
 	"onboarding.recent.loading": "Loading new members…",
@@ -969,11 +961,12 @@ const en: Record<MessageKey, string> = {
 	"onboarding.filter.mine": "Mine",
 	"onboarding.filter.unassigned": "Unassigned",
 	"onboarding.filter.empty": "No entries for this filter.",
-	"onboarding.stage.new": "New",
-	"onboarding.stage.conversation": "Talk",
-	"onboarding.stage.project": "Project",
-	"onboarding.stage.contributing": "Contributing",
-	"onboarding.stage.done": "Done",
+	"onboarding.stage.empty": "No member in this stage.",
+	"onboarding.stage.new": "New to the club",
+	"onboarding.stage.conversation": "Onboarding call",
+	"onboarding.stage.project": "Project assigned",
+	"onboarding.stage.contributing": "Contribution made",
+	"onboarding.stage.done": "Onboarding complete",
 	"onboarding.stage.progress": "Onboarding progress",
 	"onboarding.create.title": "Create account",
 	"onboarding.create.lead":
@@ -1190,7 +1183,8 @@ const en: Record<MessageKey, string> = {
 	"profile.errorGroupsApi": "Authentik API is not configured.",
 	"profile.errorGroupsFailed": "Groups could not be saved.",
 	"profile.onboarding": "Onboarding",
-	"profile.onboardingHint": "Talk → project → contributing → done.",
+	"profile.onboardingHint":
+		"New to the club → Onboarding call → Project assigned → Contribution made → Onboarding complete.",
 	"profile.onboardingSave": "Save stage",
 	"profile.onboardingSaving": "Saving…",
 	"profile.onboardingSaved": "Onboarding stage updated.",

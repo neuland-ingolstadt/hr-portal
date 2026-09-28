@@ -4,8 +4,8 @@ import { NeulandPalm } from "#/components/brand/neuland-palm";
 import { KeyboardShortcutsHelpButton } from "#/components/layout/keyboard-shortcuts";
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
-	type NavItem,
 	bottomNavItems,
+	type NavItem,
 	navItemsForRoles,
 	overviewItems,
 	workflowItems,
