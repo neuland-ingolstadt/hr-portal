@@ -101,11 +101,11 @@ export function PageHeader({
 			<StickyPageTitleBar title={title} stuck={stuck} />
 			<header
 				className={cn(
-					"page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between",
+					"page-header flex flex-row items-start justify-between gap-3 sm:items-end",
 					className,
 				)}
 			>
-				<div className="min-w-0 space-y-2">
+				<div className="min-w-0 flex-1 space-y-2">
 					{eyebrow ? <p className="eyebrow mb-0">{eyebrow}</p> : null}
 					<h1 ref={titleRef} className="page-title text-balance">
 						{title}

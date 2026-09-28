@@ -416,10 +416,10 @@ export function RecentMembersGrid({
 																		<ContactBadge contact={contact} t={t} />
 																	</div>
 																</div>
-																<div className="hidden w-40 shrink-0 sm:block md:w-56 xl:hidden">
+																<div className="hidden min-w-0 shrink sm:block sm:max-w-40 md:max-w-56 xl:hidden">
 																	<ContactBadge contact={contact} t={t} />
 																</div>
-																<p className="hidden shrink-0 text-right text-xs text-muted-foreground md:block md:w-44 xl:hidden">
+																<p className="hidden shrink truncate text-right text-xs text-muted-foreground md:block md:max-w-44 xl:hidden">
 																	{t("onboarding.recent.joined", {
 																		date: formatJoinedDate(
 																			member.dateJoined,
