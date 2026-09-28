@@ -132,10 +132,10 @@ const de = {
 		"Onboarding ist kein Aufgaben-Queue und kein Checklisten-Workflow. Es zeigt Mitglieder mit Authentik-Konto der letzten 12 Wochen, gruppiert nach attributes.onboardingStage. Optional kannst du eine betreuende HR-/Staff-Person (attributes.onboardingContact) zuweisen. Neue Konten legst du bevorzugt über Bewerbungen an.",
 	"help.onboarding.s1.heading": "Zeitfenster und Karten",
 	"help.onboarding.s1.body":
-		"Nur Konten aus den letzten zwölf Wochen erscheinen hier. Die Karten sind nach Stufe gruppiert; der farbige Rand oben visualisiert den Fortschritt. Klick öffnet dasselbe Profil-Sheet wie im Mitgliederverzeichnis. Filter: alle / meine / ohne Betreuung.",
+		"Nur Konten aus den letzten zwölf Wochen erscheinen hier. Die Karten stehen unter ihrer Stufe - auf breiten Bildschirmen als Spalten nebeneinander, sonst untereinander. Klick öffnet dasselbe Profil-Sheet wie im Mitgliederverzeichnis. Filter: alle / meine / ohne Betreuung.",
 	"help.onboarding.s2.heading": "Stufen 0–4",
 	"help.onboarding.s2.body":
-		"0 Neu im Verein · 1 Am Onboarding Call teilgenommen · 2 Projekt zugewiesen · 3 Beitrag geleistet · 4 Onboarding abgeschlossen. Die Bedeutungen sind teamseitig festgelegt; das Portal speichert nur die Zahl in Authentik. Anpassen geht am Slider im Profil.",
+		"0 Neu im Verein · 1 Am Onboarding Call teilgenommen · 2 Projekt zugewiesen · 3 Beitrag geleistet · 4 Onboarding abgeschlossen. Die Bedeutungen sind teamseitig festgelegt; das Portal speichert nur die Zahl in Authentik. Karte per Drag & Drop in eine andere Stufe ziehen, oder die Stufe am Slider im Profil anpassen.",
 	"help.onboarding.s3.heading": "Betreuung zuweisen",
 	"help.onboarding.s3.body":
 		"Im Profil kannst du eine Person aus HR, Vorstand oder Admin als Ansprechpartner setzen (oder dich selbst). Das ist nur ein Kontakt-Hinweis - keine Aufgabenliste und keine Fristen. Die Zuweisung landet in Authentik und im Audit-Log.",
@@ -783,10 +783,10 @@ const en: Record<MessageKey, string> = {
 		"Onboarding is not a task queue and not a checklist workflow. It shows members whose Authentik account was created in the last 12 weeks, grouped by attributes.onboardingStage. Optionally assign a staff contact (attributes.onboardingContact). Prefer creating new accounts via Applications.",
 	"help.onboarding.s1.heading": "Time window and cards",
 	"help.onboarding.s1.body":
-		"Only accounts from the last twelve weeks appear here. Cards are grouped by stage; the top colour edge visualises progress. Click opens the same profile sheet as in the member directory. Filters: all / mine / unassigned.",
+		"Only accounts from the last twelve weeks appear here. Cards sit under their stage - side by side as columns on wide screens, stacked otherwise. Click opens the same profile sheet as in the member directory. Filters: all / mine / unassigned.",
 	"help.onboarding.s2.heading": "Stages 0–4",
 	"help.onboarding.s2.body":
-		"0 New to the club · 1 Onboarding call · 2 Project assigned · 3 Contribution made · 4 Onboarding complete. Meanings are defined by the team; the portal only stores the number in Authentik. Adjust via the slider on the profile.",
+		"0 New to the club · 1 Onboarding call · 2 Project assigned · 3 Contribution made · 4 Onboarding complete. Meanings are defined by the team; the portal only stores the number in Authentik. Drag a card into another stage, or adjust it via the slider on the profile.",
 	"help.onboarding.s3.heading": "Assign a contact",
 	"help.onboarding.s3.body":
 		"On the profile you can set someone from HR, board, or admin as the point of contact (or assign yourself). This is contact metadata only - not a task list and not due dates. The assignment is stored in Authentik and written to the audit log.",
