@@ -3,8 +3,13 @@ import type {
 	AcceptApplicationInput,
 	AcceptApplicationResult,
 	ApplicationsResult,
+	PendingApplicationCountResult,
 } from "#/lib/applications";
-import { acceptApplication, listApplications } from "#/lib/applications.server";
+import {
+	acceptApplication,
+	getPendingApplicationCount,
+	listApplications,
+} from "#/lib/applications.server";
 import { recordAudit } from "#/lib/audit.server";
 import { requireElevatedAccess } from "#/lib/auth.server";
 
@@ -31,23 +36,31 @@ export const listApplicationsFn = createServerFn({ method: "GET" }).handler(
 	},
 );
 
+export const getPendingApplicationCountFn = createServerFn({
+	method: "GET",
+}).handler(async (): Promise<PendingApplicationCountResult> => {
+	await requireElevatedAccess();
+	return getPendingApplicationCount();
+});
+
 export const acceptApplicationFn = createServerFn({ method: "POST" })
 	.validator(validateAcceptInput)
 	.handler(async ({ data }): Promise<AcceptApplicationResult> => {
 		const actor = await requireElevatedAccess();
 		const result = await acceptApplication(data);
-		recordAudit({
-			actor,
-			action: "application.accept",
-			targetId: String(data.memberId),
-			targetLabel: result.username ?? null,
-			success: result.success,
-			error: result.success ? null : result.error,
-			meta: {
-				username: result.username ?? null,
-				emailSent: result.emailSent ?? null,
-				easyVereinAccepted: result.easyVereinAccepted ?? null,
-			},
-		});
+		if (result.success) {
+			recordAudit({
+				actor,
+				action: "application.accept",
+				targetId: String(data.memberId),
+				targetLabel: result.username ?? null,
+				meta: {
+					username: result.username ?? null,
+					emailSent: result.emailSent ?? null,
+					easyVereinAccepted: result.easyVereinAccepted ?? null,
+					sepaMandate: result.sepaMandate ?? null,
+				},
+			});
+		}
 		return result;
 	});

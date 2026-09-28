@@ -3,6 +3,7 @@ import {
 	createFileRoute,
 	type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { PageHeader } from "#/components/layout/page-header";
 import { MembersTable } from "#/components/members/members-table";
 import { Button } from "#/components/ui/button";
 import { useI18n } from "#/lib/i18n/locale-context";
@@ -24,14 +25,12 @@ export const Route = createFileRoute("/_app/members")({
 function MembersHeader({ lead, meta }: { lead: string; meta?: string }) {
 	const { t } = useI18n();
 	return (
-		<header className="page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-			<div className="min-w-0 space-y-2">
-				<p className="eyebrow mb-0">{t("members.eyebrow")}</p>
-				<h1 className="page-title text-balance">{t("members.title")}</h1>
-				<p className="page-lead max-w-2xl">{lead}</p>
-			</div>
-			{meta ? <p className="page-meta shrink-0 sm:pb-1">{meta}</p> : null}
-		</header>
+		<PageHeader
+			eyebrow={t("members.eyebrow")}
+			title={t("members.title")}
+			lead={lead}
+			end={meta ? <p className="page-meta m-0">{meta}</p> : undefined}
+		/>
 	);
 }
 

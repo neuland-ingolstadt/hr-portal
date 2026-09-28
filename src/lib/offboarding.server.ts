@@ -1,11 +1,18 @@
 import {
+	type AuthentikUser,
+	authentikAuthHeaders,
+	authentikFetch,
+	isAuthentikApiConfigured,
+	resolveAuthentikGroupIdByName,
+	resolveAuthentikUserByUuidOrPk,
+} from "#/lib/authentik-api.server";
+import {
 	invalidateDirectoryCache,
 	listNonMitgliederAccountsFromAuthentik,
 	mockDeleteAccount,
 	mockRevokeMitgliederMembership,
 } from "#/lib/authentik-members.server";
 import { serverConfig } from "#/lib/config";
-import { partitionOffboardingStages } from "#/lib/members";
 import type {
 	DeleteAccountResult,
 	RevokeMitgliederResult,
@@ -13,120 +20,18 @@ import type {
 import {
 	isOffboardingLeavingWatchlist,
 	MEMBERSHIP_REVOKED_AT_ATTR,
+	partitionOffboardingStages,
 } from "#/lib/offboarding";
-
-type AuthentikPaginated<T> = {
-	results?: T[];
-};
-
-type AuthentikGroup = {
-	pk?: number | string;
-	name?: string;
-	group_uuid?: string;
-	uuid?: string;
-};
-
-type AuthentikUser = {
-	pk?: number;
-	uuid?: string;
-	name?: string;
-	username?: string;
-	is_active?: boolean;
-	attributes?: Record<string, unknown>;
-};
-
-const UUID_RE =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type MutationActor = {
 	/** Session `sub` — block self-revoke / self-delete. */
 	actorSub?: string;
 };
 
-function isAuthentikApiConfigured(): boolean {
-	const { apiUrl, apiToken } = serverConfig.authentik;
-	return Boolean(apiUrl && apiToken);
-}
-
-function apiBase(): string {
-	return serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
-}
-
-function authHeaders(json = false): HeadersInit {
-	const headers: Record<string, string> = {
-		Authorization: `Bearer ${serverConfig.authentik.apiToken}`,
-		Accept: "application/json",
-	};
-	if (json) headers["Content-Type"] = "application/json";
-	return headers;
-}
-
-async function authentikFetch<T>(
-	path: string,
-	init?: RequestInit & { responseType?: "json" | "none" },
-): Promise<T> {
-	const response = await fetch(`${apiBase()}${path}`, init);
-	if (!response.ok) {
-		const detail = await response.text().catch(() => "");
-		throw new Error(
-			`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
-		);
-	}
-	if (init?.responseType === "none" || response.status === 204) {
-		return undefined as T;
-	}
-	return (await response.json()) as T;
-}
-
-async function resolveUser(id: string): Promise<AuthentikUser | null> {
-	const sub = id.trim();
-	if (!sub) return null;
-
-	if (UUID_RE.test(sub)) {
-		const body = await authentikFetch<AuthentikPaginated<AuthentikUser>>(
-			`/api/v3/core/users/?uuid=${encodeURIComponent(sub)}&page_size=5`,
-			{ headers: authHeaders() },
-		);
-		return (
-			body.results?.find((entry) => entry.uuid === sub) ??
-			body.results?.[0] ??
-			null
-		);
-	}
-
-	try {
-		return await authentikFetch<AuthentikUser>(
-			`/api/v3/core/users/${encodeURIComponent(sub)}/`,
-			{ headers: authHeaders() },
-		);
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		if (message.includes("→ 404")) return null;
-		throw error;
-	}
-}
-
 async function resolveMitgliederGroupId(): Promise<string | null> {
 	const name = serverConfig.groups.mitglieder.trim();
 	if (!name) return null;
-
-	const expected = name.toLowerCase();
-	const body = await authentikFetch<AuthentikPaginated<AuthentikGroup>>(
-		`/api/v3/core/groups/?name=${encodeURIComponent(name)}&page_size=5`,
-		{ headers: authHeaders() },
-	);
-
-	const group =
-		body.results?.find(
-			(entry) => entry.name?.trim().toLowerCase() === expected,
-		) ?? body.results?.[0];
-	if (!group) return null;
-
-	return (
-		group.group_uuid ??
-		group.uuid ??
-		(group.pk != null ? String(group.pk) : null)
-	);
+	return resolveAuthentikGroupIdByName(name);
 }
 
 function isSelfTarget(memberId: string, actorSub?: string): boolean {
@@ -183,7 +88,7 @@ export async function revokeMitgliederGroup(
 	}
 
 	try {
-		const user = await resolveUser(id);
+		const user = await resolveAuthentikUserByUuidOrPk(id);
 		if (!user || user.pk == null) {
 			return { success: false, error: "user_not_found" };
 		}
@@ -195,19 +100,19 @@ export async function revokeMitgliederGroup(
 
 		await authentikFetch(`/api/v3/core/groups/${groupId}/remove_user/`, {
 			method: "POST",
-			headers: authHeaders(true),
+			headers: authentikAuthHeaders(true),
 			body: JSON.stringify({ pk: user.pk }),
 			responseType: "none",
 		});
 
 		const current = await authentikFetch<AuthentikUser>(
 			`/api/v3/core/users/${user.pk}/`,
-			{ headers: authHeaders() },
+			{ headers: authentikAuthHeaders() },
 		);
 
 		await authentikFetch(`/api/v3/core/users/${user.pk}/`, {
 			method: "PATCH",
-			headers: authHeaders(true),
+			headers: authentikAuthHeaders(true),
 			body: JSON.stringify({
 				attributes: {
 					...(current.attributes ?? {}),
@@ -255,7 +160,7 @@ export async function deleteAuthentikAccount(
 	}
 
 	try {
-		const user = await resolveUser(id);
+		const user = await resolveAuthentikUserByUuidOrPk(id);
 		if (!user || user.pk == null) {
 			return { success: false, error: "user_not_found" };
 		}
@@ -264,7 +169,7 @@ export async function deleteAuthentikAccount(
 
 		await authentikFetch(`/api/v3/core/users/${user.pk}/`, {
 			method: "DELETE",
-			headers: authHeaders(),
+			headers: authentikAuthHeaders(),
 			responseType: "none",
 		});
 

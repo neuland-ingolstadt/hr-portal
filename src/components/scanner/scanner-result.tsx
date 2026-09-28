@@ -153,7 +153,7 @@ export function ScannerResult({
 							<h2
 								className={cn(
 									"text-base font-semibold tracking-tight",
-									duplicate && "text-white",
+									duplicate && "text-sky-700 dark:text-sky-300",
 								)}
 							>
 								{duplicate
@@ -180,7 +180,12 @@ export function ScannerResult({
 
 				{result.payload ? (
 					<div className="grid gap-4 sm:grid-cols-2">
-						<Field label={t("scanner.fieldName")} value={result.payload.name} />
+						<NameField
+							label={t("scanner.fieldName")}
+							qrName={result.payload.name}
+							resolvedName={foundMember?.name}
+							lookupLoading={lookupLoading}
+						/>
 						<Field
 							label={t("scanner.fieldSub")}
 							value={result.payload.sub}
@@ -322,6 +327,40 @@ function Field({
 				)}
 			>
 				{value}
+			</p>
+		</div>
+	);
+}
+
+/** QR name immediately; swaps to Authentik name when lookup succeeds. */
+function NameField({
+	label,
+	qrName,
+	resolvedName,
+	lookupLoading,
+}: {
+	label: string;
+	qrName: string | undefined;
+	resolvedName: string | undefined;
+	lookupLoading: boolean;
+}) {
+	const fromQr = qrName?.trim() || undefined;
+	const value = resolvedName ?? fromQr;
+	const waiting = lookupLoading && !resolvedName;
+
+	return (
+		<div className="space-y-1">
+			<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+				{label}
+			</p>
+			<p
+				className={cn(
+					"break-all text-sm text-foreground transition-opacity",
+					waiting && fromQr && "opacity-80",
+				)}
+				aria-live="polite"
+			>
+				{value ?? (waiting ? "…" : "—")}
 			</p>
 		</div>
 	);

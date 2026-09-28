@@ -24,7 +24,7 @@ const RESCAN_COOLDOWN_MS = 2000;
 
 export function MemberIdScanner() {
 	const { t } = useI18n();
-	const { entries, addScan, clearHistory } = useScanHistory();
+	const { entries, addScan, clearHistory, updateScanName } = useScanHistory();
 	const [keyReady, setKeyReady] = useState(false);
 	const [keyLoading, setKeyLoading] = useState(true);
 	const [keyError, setKeyError] = useState(false);
@@ -92,7 +92,7 @@ export function MemberIdScanner() {
 			if (verification.payload?.sub) {
 				const { isDuplicate: duplicate } = addScan({
 					sub: verification.payload.sub,
-					name: verification.payload.name,
+					name: verification.payload.name?.trim() || verification.payload.sub,
 					success: verification.success,
 				});
 				setIsDuplicate(duplicate && verification.success);
@@ -107,6 +107,9 @@ export function MemberIdScanner() {
 					data: { sub: verification.payload.sub },
 				});
 				setLookup(enriched);
+				if (enriched.status === "found") {
+					updateScanName(verification.payload.sub, enriched.member.name);
+				}
 			} catch (err) {
 				console.error("[scanner] enrichment failed", err);
 				setLookup({ status: "error", error: "lookup_failed" });
@@ -114,7 +117,7 @@ export function MemberIdScanner() {
 				setLookupLoading(false);
 			}
 		},
-		[addScan, cooldown, startCooldown],
+		[addScan, cooldown, startCooldown, updateScanName],
 	);
 
 	if (keyLoading) {

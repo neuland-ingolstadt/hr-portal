@@ -1,10 +1,9 @@
 import {
-	Await,
 	createFileRoute,
 	type ErrorComponentProps,
 	useRouter,
 } from "@tanstack/react-router";
-import { Loader2, Play } from "lucide-react";
+import { Check, Loader2, Play } from "lucide-react";
 import {
 	type ReactNode,
 	useCallback,
@@ -12,6 +11,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { PageHeader } from "#/components/layout/page-header";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { DeleteAccountDialog } from "#/components/offboarding/delete-account-dialog";
 import { OffboardingStageTable } from "#/components/offboarding/offboarding-candidates-table";
@@ -19,29 +19,43 @@ import { RevokeMitgliederDialog } from "#/components/offboarding/revoke-mitglied
 import { Button } from "#/components/ui/button";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
+import type { OffboardingProcessProgress } from "#/lib/offboarding";
 import {
 	type OffboardingCandidate,
 	type OffboardingCandidatesResult,
 	partitionOffboardingStages,
-} from "#/lib/members";
-import { listOffboardingCandidatesFn } from "#/lib/members.functions";
-import type { OffboardingProcessProgress } from "#/lib/offboarding";
-import { planOffboardingProcess } from "#/lib/offboarding";
+	planOffboardingProcess,
+} from "#/lib/offboarding";
 import {
 	deleteAccountFn,
+	listOffboardingCandidatesFn,
 	revokeMitgliederFn,
+	warmOffboardingAuthentikFn,
+	warmOffboardingEasyVereinFn,
 } from "#/lib/offboarding.functions";
 import { requireElevatedUser } from "#/lib/require-app-user";
 import { cn } from "#/lib/utils";
+
+/** Brief pause after the last real phase so completed checks are visible. */
+const LOADING_COMPLETE_HOLD_MS = 400;
+/** Skip the step theatre when caches are warm and everything resolves instantly. */
+const LOADING_THEATRE_MIN_MS = 450;
 
 export const Route = createFileRoute("/_app/offboarding")({
 	beforeLoad: ({ context }) => {
 		requireElevatedUser(context.user);
 	},
-	loader: () => ({
-		// Do not await — page chrome stays interactive while Authentik loads.
-		candidatesPromise: listOffboardingCandidatesFn(),
-	}),
+	loader: () => {
+		// Start EasyVerein + Authentik in parallel; advance UI as each settles.
+		// EasyVerein is listed first in the loading theatre (usually finishes sooner).
+		const easyVereinPromise = warmOffboardingEasyVereinFn();
+		const authentikPromise = warmOffboardingAuthentikFn();
+		const candidatesPromise = Promise.all([
+			easyVereinPromise,
+			authentikPromise,
+		]).then(() => listOffboardingCandidatesFn());
+		return { easyVereinPromise, authentikPromise, candidatesPromise };
+	},
 	staleTime: 30_000,
 	preloadStaleTime: 30_000,
 	errorComponent: OffboardingError,
@@ -51,14 +65,12 @@ export const Route = createFileRoute("/_app/offboarding")({
 function OffboardingHeader({ meta }: { meta?: string }) {
 	const { t } = useI18n();
 	return (
-		<header className="page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-			<div className="min-w-0 space-y-2">
-				<p className="eyebrow mb-0">{t("offboarding.eyebrow")}</p>
-				<h1 className="page-title text-balance">{t("offboarding.title")}</h1>
-				<p className="page-lead max-w-2xl">{t("offboarding.leadLive")}</p>
-			</div>
-			{meta ? <p className="page-meta shrink-0 sm:pb-1">{meta}</p> : null}
-		</header>
+		<PageHeader
+			eyebrow={t("offboarding.eyebrow")}
+			title={t("offboarding.title")}
+			lead={t("offboarding.leadLive")}
+			end={meta ? <p className="page-meta m-0">{meta}</p> : undefined}
+		/>
 	);
 }
 
@@ -246,6 +258,23 @@ function StageSection({
 	);
 }
 
+/** Real load phases — EasyVerein + Authentik run in parallel; assemble after both. */
+const LOADING_PHASES = [
+	{ id: "easyVerein", key: "offboarding.loadingStepEasyVerein" },
+	{ id: "authentik", key: "offboarding.loadingStepAuthentik" },
+	{ id: "candidates", key: "offboarding.loadingStepCandidates" },
+] as const satisfies ReadonlyArray<{ id: string; key: MessageKey }>;
+
+type LoadingPhaseId = (typeof LOADING_PHASES)[number]["id"];
+type PhaseStatus = "pending" | "active" | "done";
+type LoadingPhases = Record<LoadingPhaseId, PhaseStatus>;
+
+const INITIAL_LOADING_PHASES: LoadingPhases = {
+	easyVerein: "active",
+	authentik: "active",
+	candidates: "pending",
+};
+
 function StageTableSkeleton({ rows = 5 }: { rows?: number }) {
 	return (
 		<div className="min-w-0 border border-border/60" aria-hidden>
@@ -271,24 +300,79 @@ function StageTableSkeleton({ rows = 5 }: { rows?: number }) {
 	);
 }
 
-function CandidatesSkeleton() {
+function CandidatesLoadingStatus({ phases }: { phases: LoadingPhases }) {
 	const { t } = useI18n();
+	const doneCount = LOADING_PHASES.filter(
+		(phase) => phases[phase.id] === "done",
+	).length;
+	const allDone = doneCount === LOADING_PHASES.length;
+	const percent = Math.round((doneCount / LOADING_PHASES.length) * 100);
+
+	return (
+		<section
+			className="surface-panel grid gap-3 p-5 sm:p-6"
+			aria-live="polite"
+			aria-busy={!allDone}
+			aria-label={t("offboarding.candidatesLoading")}
+		>
+			<div className="h-1 overflow-hidden bg-muted">
+				{allDone ? (
+					<div className="h-full w-full bg-primary transition-[width] duration-300" />
+				) : doneCount > 0 ? (
+					<div
+						className="h-full bg-primary transition-[width] duration-300 ease-out"
+						style={{ width: `${percent}%` }}
+					/>
+				) : (
+					<div className="h-full w-1/3 animate-accept-progress bg-primary" />
+				)}
+			</div>
+			<ol className="m-0 grid list-none gap-2.5 p-0">
+				{LOADING_PHASES.map(({ id, key }) => {
+					const status = phases[id];
+					const done = status === "done";
+					const active = status === "active";
+					return (
+						<li
+							key={id}
+							className={cn(
+								"flex items-center gap-2.5 text-sm",
+								done && "text-foreground",
+								active && "font-medium text-foreground",
+								!done && !active && "text-muted-foreground",
+							)}
+						>
+							<span
+								className={cn(
+									"flex size-5 shrink-0 items-center justify-center",
+									(done || active) && "text-primary",
+								)}
+								aria-hidden
+							>
+								{done ? (
+									<Check className="size-4" strokeWidth={2.5} />
+								) : active ? (
+									<Loader2 className="size-4 animate-spin" />
+								) : (
+									<span className="size-1.5 rounded-full bg-muted-foreground/40" />
+								)}
+							</span>
+							<span>{t(key)}</span>
+						</li>
+					);
+				})}
+			</ol>
+			<p className="m-0 text-xs text-muted-foreground">
+				{t("offboarding.loadingHint")}
+			</p>
+		</section>
+	);
+}
+
+function CandidatesSkeleton({ phases }: { phases: LoadingPhases }) {
 	return (
 		<div className="space-y-8" aria-busy="true">
-			<span className="sr-only">{t("offboarding.candidatesLoading")}</span>
-			<section
-				className="surface-panel flex flex-col gap-4 p-5 sm:p-6"
-				aria-hidden
-			>
-				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-					<div className="min-w-0 flex-1 space-y-2">
-						<div className="h-4 w-40 animate-pulse bg-muted" />
-						<div className="h-3 w-full max-w-md animate-pulse bg-muted" />
-						<div className="h-3 w-2/3 max-w-sm animate-pulse bg-muted" />
-					</div>
-					<div className="h-10 w-36 shrink-0 animate-pulse bg-muted" />
-				</div>
-			</section>
+			<CandidatesLoadingStatus phases={phases} />
 
 			<div className="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-6">
 				<section className="min-w-0 space-y-2">
@@ -518,9 +602,14 @@ function OffboardingError({ error, reset }: ErrorComponentProps) {
 }
 
 function OffboardingPage() {
-	const { candidatesPromise } = Route.useLoaderData();
+	const { easyVereinPromise, authentikPromise, candidatesPromise } =
+		Route.useLoaderData();
 	const { t } = useI18n();
 	const router = useRouter();
+
+	const [phases, setPhases] = useState<LoadingPhases>(INITIAL_LOADING_PHASES);
+	const [data, setData] = useState<OffboardingCandidatesResult | null>(null);
+	const [loadError, setLoadError] = useState<unknown>(null);
 
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [profileOpen, setProfileOpen] = useState(false);
@@ -534,6 +623,54 @@ function OffboardingPage() {
 		null,
 	);
 	const [deleteOpen, setDeleteOpen] = useState(false);
+
+	useEffect(() => {
+		let cancelled = false;
+		const startedAt = performance.now();
+
+		setPhases(INITIAL_LOADING_PHASES);
+		setData(null);
+		setLoadError(null);
+
+		const markDone = (id: LoadingPhaseId) => {
+			if (cancelled) return;
+			setPhases((current) =>
+				current[id] === "done" ? current : { ...current, [id]: "done" },
+			);
+		};
+
+		void (async () => {
+			try {
+				// EasyVerein + Authentik warm in parallel; either may finish first.
+				await Promise.all([
+					easyVereinPromise.then(() => markDone("easyVerein")),
+					authentikPromise.then(() => markDone("authentik")),
+				]);
+				if (cancelled) return;
+
+				setPhases((current) => ({ ...current, candidates: "active" }));
+				const result = await candidatesPromise;
+				if (cancelled) return;
+				markDone("candidates");
+
+				const elapsed = performance.now() - startedAt;
+				if (elapsed >= LOADING_THEATRE_MIN_MS) {
+					await new Promise((resolve) =>
+						window.setTimeout(resolve, LOADING_COMPLETE_HOLD_MS),
+					);
+					if (cancelled) return;
+				}
+
+				setData(result);
+			} catch (error) {
+				if (!cancelled) setLoadError(error);
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [easyVereinPromise, authentikPromise, candidatesPromise]);
 
 	const openProfile = useCallback((id: string) => {
 		setProfileId(id);
@@ -556,32 +693,36 @@ function OffboardingPage() {
 
 	return (
 		<>
-			<Await
-				promise={candidatesPromise}
-				fallback={
-					<>
-						<OffboardingHeader />
-						<CandidatesSkeleton />
-					</>
-				}
-			>
-				{(data) => (
-					<>
-						<OffboardingHeader
-							meta={t("offboarding.candidatesCount", {
-								count: String(data.members.length),
-							})}
-						/>
-						<CandidatesSections
-							data={data}
-							onOpenProfile={openProfile}
-							onRevoke={openRevoke}
-							onDelete={openDelete}
-							onProcessDone={refresh}
-						/>
-					</>
-				)}
-			</Await>
+			{loadError ? (
+				<OffboardingError
+					error={
+						loadError instanceof Error
+							? loadError
+							: new Error("offboarding_load_failed")
+					}
+					reset={refresh}
+				/>
+			) : data ? (
+				<>
+					<OffboardingHeader
+						meta={t("offboarding.candidatesCount", {
+							count: String(data.members.length),
+						})}
+					/>
+					<CandidatesSections
+						data={data}
+						onOpenProfile={openProfile}
+						onRevoke={openRevoke}
+						onDelete={openDelete}
+						onProcessDone={refresh}
+					/>
+				</>
+			) : (
+				<>
+					<OffboardingHeader />
+					<CandidatesSkeleton phases={phases} />
+				</>
+			)}
 
 			<MemberProfileSheet
 				memberId={profileId}

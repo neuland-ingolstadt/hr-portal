@@ -1,10 +1,70 @@
-/** Client-safe offboarding action types. */
+/** Client-safe offboarding types and helpers. */
+
+import type { Member } from "#/lib/members";
 
 /** Authentik user attribute stamped when Mitglieder is revoked (stage 1). */
 export const MEMBERSHIP_REVOKED_AT_ATTR = "membershipRevokedAt" as const;
 
+/**
+ * Why a directory account appears on the offboarding list.
+ */
+export type OffboardingReason =
+	| "membership_revoked"
+	| "not_in_easyverein"
+	| "left_easyverein";
+
+export const OFFBOARDING_REASONS: OffboardingReason[] = [
+	"membership_revoked",
+	"not_in_easyverein",
+	"left_easyverein",
+];
+
+export type OffboardingCandidate = Member & {
+	reasons: OffboardingReason[];
+	/**
+	 * EasyVerein `resignation_date` (YYYY-MM-DD) when known for leave/leaving.
+	 */
+	easyVereinResignationDate?: string | null;
+};
+
+export type OffboardingCandidatesResult = {
+	members: OffboardingCandidate[];
+	availableGroups: string[];
+	source: "authentik" | "mock";
+	/** True when EV reconciliation ran (false if EV API missing). */
+	easyVereinReconciled?: boolean;
+	/** Days after revoke before process may auto-delete. */
+	deleteGraceDays?: number;
+};
+
+/**
+ * Stage 1: revoke Mitglieder (missing EV link, or EV leave/missing).
+ * Stage 2: has `membershipRevokedAt` → delete Authentik account.
+ */
+export function partitionOffboardingStages(
+	candidates: OffboardingCandidate[],
+): {
+	revokeMembership: OffboardingCandidate[];
+	deleteAccount: OffboardingCandidate[];
+} {
+	const revokeMembership: OffboardingCandidate[] = [];
+	const deleteAccount: OffboardingCandidate[] = [];
+
+	for (const candidate of candidates) {
+		if (candidate.reasons.includes("membership_revoked")) {
+			deleteAccount.push(candidate);
+		} else if (
+			candidate.reasons.includes("not_in_easyverein") ||
+			candidate.reasons.includes("left_easyverein")
+		) {
+			revokeMembership.push(candidate);
+		}
+	}
+
+	return { revokeMembership, deleteAccount };
+}
+
 export type RevokeMitgliederError =
-	| "unauthorized"
 	| "invalid_id"
 	| "not_eligible"
 	| "authentik_api_missing"
@@ -17,7 +77,6 @@ export type RevokeMitgliederResult =
 	| { success: false; error: RevokeMitgliederError };
 
 export type DeleteAccountError =
-	| "unauthorized"
 	| "invalid_id"
 	| "not_eligible"
 	| "authentik_api_missing"
@@ -30,14 +89,6 @@ export type DeleteAccountResult =
 
 /** Offboarding pipeline stage. */
 export type OffboardingStage = "revoke_membership" | "delete_account";
-
-export type ProcessOffboardingResult = {
-	revoked: number;
-	deleted: number;
-	skippedLeaving: number;
-	errors: number;
-	graceDays: number;
-};
 
 export type OffboardingProcessProgress = {
 	phase: "revoke" | "delete" | "done";
@@ -52,14 +103,28 @@ export type OffboardingProcessProgress = {
 	skippedLeaving: number;
 };
 
-/** Whole days since `membershipRevokedAt`. */
+/** Local calendar days since `membershipRevokedAt` (not elapsed 24h blocks). */
 export function daysSinceMembershipRevoked(
 	iso: string | null | undefined,
+	now = new Date(),
 ): number | null {
 	if (!iso) return null;
-	const at = Date.parse(iso);
-	if (Number.isNaN(at)) return null;
-	return Math.max(0, Math.floor((Date.now() - at) / 86_400_000));
+	const at = new Date(iso);
+	if (Number.isNaN(at.getTime())) return null;
+	const startOfToday = Date.UTC(
+		now.getFullYear(),
+		now.getMonth(),
+		now.getDate(),
+	);
+	const startOfRevokeDay = Date.UTC(
+		at.getFullYear(),
+		at.getMonth(),
+		at.getDate(),
+	);
+	return Math.max(
+		0,
+		Math.floor((startOfToday - startOfRevokeDay) / 86_400_000),
+	);
 }
 
 function todayIsoDate(): string {

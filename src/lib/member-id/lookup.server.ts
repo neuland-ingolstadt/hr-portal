@@ -1,26 +1,14 @@
+import {
+	type AuthentikGroup,
+	type AuthentikPaginated,
+	type AuthentikUser,
+	authentikApiBase,
+	authentikAuthHeaders,
+	authentikGroupKey,
+	isAuthentikApiConfigured,
+} from "#/lib/authentik-api.server";
 import { serverConfig } from "#/lib/config";
 import type { LookupMemberResult, ScannedMember } from "#/lib/member-id/types";
-
-type AuthentikPaginated<T> = {
-	results?: T[];
-};
-
-type AuthentikGroup = {
-	pk?: number | string;
-	name?: string;
-	group_uuid?: string;
-	uuid?: string;
-};
-
-type AuthentikUser = {
-	pk?: number | string;
-	uuid?: string;
-	name?: string;
-	username?: string;
-	is_active?: boolean;
-	type?: string;
-	groups?: Array<string | AuthentikGroup>;
-};
 
 const MOCK_BY_ID: Record<string, ScannedMember> = {
 	"mock-1": {
@@ -49,26 +37,6 @@ const MOCK_BY_ID: Record<string, ScannedMember> = {
 	},
 };
 
-function isAuthentikApiConfigured(): boolean {
-	const { apiUrl, apiToken } = serverConfig.authentik;
-	return Boolean(apiUrl && apiToken);
-}
-
-function authHeaders(): HeadersInit {
-	return {
-		Authorization: `Bearer ${serverConfig.authentik.apiToken}`,
-		Accept: "application/json",
-	};
-}
-
-function groupKey(group: AuthentikGroup): string | null {
-	return (
-		group.group_uuid ??
-		group.uuid ??
-		(group.pk != null ? String(group.pk) : null)
-	);
-}
-
 function displayName(user: AuthentikUser): string {
 	const name = user.name?.trim();
 	if (name) return name;
@@ -96,7 +64,7 @@ const groupCache: {
 };
 
 async function fetchAllGroupsUncached(): Promise<Map<string, string>> {
-	const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+	const base = authentikApiBase();
 	const groupNamesById = new Map<string, string>();
 	let page = 1;
 
@@ -105,7 +73,7 @@ async function fetchAllGroupsUncached(): Promise<Map<string, string>> {
 		url.searchParams.set("page", String(page));
 		url.searchParams.set("page_size", "100");
 
-		const res = await fetch(url, { headers: authHeaders() });
+		const res = await fetch(url, { headers: authentikAuthHeaders() });
 		if (!res.ok) {
 			throw new Error(`Authentik groups failed (${res.status})`);
 		}
@@ -116,7 +84,7 @@ async function fetchAllGroupsUncached(): Promise<Map<string, string>> {
 		for (const group of body.results ?? []) {
 			const name = group.name?.trim();
 			if (!name) continue;
-			const key = groupKey(group);
+			const key = authentikGroupKey(group);
 			if (key) groupNamesById.set(key, name);
 			if (group.pk != null) groupNamesById.set(String(group.pk), name);
 		}
@@ -163,7 +131,7 @@ function resolveUserGroups(
 				names.push(entry.name.trim());
 				continue;
 			}
-			const key = groupKey(entry);
+			const key = authentikGroupKey(entry);
 			if (key) {
 				const mapped = groupNamesById.get(key);
 				if (mapped) names.push(mapped);
@@ -195,12 +163,12 @@ export async function lookupMemberByUuid(
 	}
 
 	try {
-		const base = serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
+		const base = authentikApiBase();
 		const url = new URL(`${base}/api/v3/core/users/`);
 		url.searchParams.set("uuid", sub);
 		url.searchParams.set("page_size", "5");
 
-		const res = await fetch(url, { headers: authHeaders() });
+		const res = await fetch(url, { headers: authentikAuthHeaders() });
 		if (!res.ok) {
 			console.error(`[scanner] user lookup failed: ${res.status}`);
 			return { status: "error", error: "lookup_failed" };

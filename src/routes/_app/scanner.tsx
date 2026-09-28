@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "#/components/layout/page-header";
 import { MemberIdScanner } from "#/components/scanner/member-id-scanner";
 import { useI18n } from "#/lib/i18n/locale-context";
 
@@ -11,13 +12,11 @@ function ScannerPage() {
 
 	return (
 		<>
-			<header className="page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-				<div className="min-w-0 space-y-2">
-					<p className="eyebrow mb-0">{t("scanner.eyebrow")}</p>
-					<h1 className="page-title text-balance">{t("scanner.title")}</h1>
-					<p className="page-lead max-w-2xl">{t("scanner.lead")}</p>
-				</div>
-			</header>
+			<PageHeader
+				eyebrow={t("scanner.eyebrow")}
+				title={t("scanner.title")}
+				lead={t("scanner.lead")}
+			/>
 			<MemberIdScanner />
 		</>
 	);

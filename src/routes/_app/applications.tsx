@@ -9,6 +9,7 @@ import { useCallback, useState } from "react";
 import { AcceptApplicationDialog } from "#/components/applications/accept-application-dialog";
 import { ApplicationsTable } from "#/components/applications/applications-table";
 import { ManualCreateMemberDialog } from "#/components/applications/manual-create-member-dialog";
+import { PageHeader } from "#/components/layout/page-header";
 import { Button } from "#/components/ui/button";
 import type {
 	ApplicationsResult,
@@ -40,14 +41,9 @@ function ApplicationsHeader({
 	onManualCreate?: () => void;
 }) {
 	const { t } = useI18n();
-	return (
-		<header className="page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-			<div className="min-w-0 space-y-2">
-				<p className="eyebrow mb-0">{t("applications.eyebrow")}</p>
-				<h1 className="page-title text-balance">{t("applications.title")}</h1>
-				<p className="page-lead max-w-2xl">{t("applications.leadLive")}</p>
-			</div>
-			<div className="flex shrink-0 flex-wrap items-center gap-3 sm:pb-1">
+	const end =
+		meta || onManualCreate ? (
+			<>
 				{meta ? <p className="page-meta m-0">{meta}</p> : null}
 				{onManualCreate ? (
 					<Button type="button" variant="outline" onClick={onManualCreate}>
@@ -55,8 +51,16 @@ function ApplicationsHeader({
 						{t("applications.manualCreate")}
 					</Button>
 				) : null}
-			</div>
-		</header>
+			</>
+		) : undefined;
+
+	return (
+		<PageHeader
+			eyebrow={t("applications.eyebrow")}
+			title={t("applications.title")}
+			lead={t("applications.leadLive")}
+			end={end}
+		/>
 	);
 }
 

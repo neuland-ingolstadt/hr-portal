@@ -24,6 +24,7 @@ import {
 	partitionGroups,
 	RESSORTS,
 	ressortLabelKey,
+	sortGroupsForDisplay,
 } from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
@@ -32,12 +33,18 @@ import type { MemberProfile, MemberProfileResult } from "#/lib/members";
 import {
 	getMemberProfileFn,
 	updateMemberGroupsFn,
-	updateMemberOnboardingStageFn,
 } from "#/lib/members.functions";
 import type {
+	OnboardingContactRef,
 	OnboardingStage,
+	UpdateMemberOnboardingContactError,
 	UpdateMemberOnboardingStageError,
 } from "#/lib/onboarding";
+import {
+	listOnboardingContactsFn,
+	updateMemberOnboardingContactFn,
+	updateMemberOnboardingStageFn,
+} from "#/lib/onboarding.functions";
 import { cn } from "#/lib/utils";
 
 const appRouteApi = getRouteApi("/_app");
@@ -60,12 +67,30 @@ const STAGE_ERROR_KEYS: Record<UpdateMemberOnboardingStageError, MessageKey> = {
 	update_failed: "profile.errorOnboardingFailed",
 };
 
+const CONTACT_ERROR_KEYS: Record<
+	UpdateMemberOnboardingContactError,
+	MessageKey
+> = {
+	invalid_id: "profile.errorContactNotFound",
+	invalid_contact: "profile.errorContactInvalid",
+	user_not_found: "profile.errorContactNotFound",
+	authentik_api_missing: "profile.errorContactApi",
+	update_failed: "profile.errorContactFailed",
+};
+
 type MemberProfileSheetProps = {
 	memberId: string | null;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	/** Called after a successful stage save so list cards can refresh. */
+	/** Called when the stage changes (optimistic) so list cards regroup immediately. */
 	onOnboardingStageChange?: (memberId: string, stage: OnboardingStage) => void;
+	/** Called when the contact changes so list cards update immediately. */
+	onOnboardingContactChange?: (
+		memberId: string,
+		contact: OnboardingContactRef | null,
+	) => void;
+	/** Called when assignable groups change so list rows update immediately. */
+	onGroupsChange?: (memberId: string, groups: string[]) => void;
 };
 
 function initials(name: string): string {
@@ -108,12 +133,16 @@ export function MemberProfileSheet({
 	open,
 	onOpenChange,
 	onOnboardingStageChange,
+	onOnboardingContactChange,
+	onGroupsChange,
 }: MemberProfileSheetProps) {
 	const { t } = useI18n();
 	const { user } = appRouteApi.useRouteContext();
 	const canEditGroups = hasElevatedAccess(user.roles);
 	const [result, setResult] = useState<MemberProfileResult | null>(null);
 	const [loading, setLoading] = useState(false);
+	const [contacts, setContacts] = useState<OnboardingContactRef[]>([]);
+	const [myContactId, setMyContactId] = useState<string | null>(null);
 	const sheetOpen = open && Boolean(memberId);
 
 	useEffect(() => {
@@ -145,6 +174,24 @@ export function MemberProfileSheet({
 			cancelled = true;
 		};
 	}, [sheetOpen, memberId]);
+
+	useEffect(() => {
+		if (!sheetOpen) return;
+		let cancelled = false;
+		void listOnboardingContactsFn()
+			.then((next) => {
+				if (!cancelled) {
+					setContacts(next.contacts);
+					setMyContactId(next.myContactId);
+				}
+			})
+			.catch((err) => {
+				console.error("[members] onboarding contacts load failed", err);
+			});
+		return () => {
+			cancelled = true;
+		};
+	}, [sheetOpen]);
 
 	// Radix locks body pointer-events while open; restore if we unmount mid-open
 	// (e.g. Await remount) so the app does not stay frozen.
@@ -194,11 +241,16 @@ export function MemberProfileSheet({
 					{!loading && profile ? (
 						<ProfileBody
 							profile={profile}
+							listMemberId={memberId ?? profile.id}
 							canEditGroups={canEditGroups}
+							myContactId={myContactId}
+							contacts={contacts}
 							onProfileUpdate={(next) => {
 								setResult({ status: "found", profile: next });
-								onOnboardingStageChange?.(next.id, next.onboardingStage);
 							}}
+							onOnboardingStageChange={onOnboardingStageChange}
+							onOnboardingContactChange={onOnboardingContactChange}
+							onGroupsChange={onGroupsChange}
 						/>
 					) : null}
 				</div>
@@ -216,14 +268,38 @@ function selectedFromProfile(groups: string[]): Set<string> {
 	return selected;
 }
 
+function mergeAssignableGroups(
+	current: string[],
+	assignable: Iterable<string>,
+): string[] {
+	const { readonly } = partitionEditableGroups(current);
+	return sortGroupsForDisplay([...readonly, ...assignable]);
+}
+
 function ProfileBody({
 	profile,
+	listMemberId,
 	canEditGroups,
+	myContactId,
+	contacts,
 	onProfileUpdate,
+	onOnboardingStageChange,
+	onOnboardingContactChange,
+	onGroupsChange,
 }: {
 	profile: MemberProfile;
+	/** Id used by the parent list (may be pk while profile.id is uuid). */
+	listMemberId: string;
 	canEditGroups: boolean;
+	myContactId: string | null;
+	contacts: OnboardingContactRef[];
 	onProfileUpdate: (profile: MemberProfile) => void;
+	onOnboardingStageChange?: (memberId: string, stage: OnboardingStage) => void;
+	onOnboardingContactChange?: (
+		memberId: string,
+		contact: OnboardingContactRef | null,
+	) => void;
+	onGroupsChange?: (memberId: string, groups: string[]) => void;
 }) {
 	const { t } = useI18n();
 	const { ressorts, other } = partitionGroups(profile.groups);
@@ -241,9 +317,41 @@ function ProfileBody({
 	const [stageErrorKey, setStageErrorKey] = useState<MessageKey | null>(null);
 	const [stageSaved, setStageSaved] = useState(false);
 
+	const [contact, setContact] = useState<OnboardingContactRef | null>(
+		profile.onboardingContact,
+	);
+	const [contactPending, setContactPending] = useState(false);
+	const [contactErrorKey, setContactErrorKey] = useState<MessageKey | null>(
+		null,
+	);
+	const [contactSavedKey, setContactSavedKey] = useState<MessageKey | null>(
+		null,
+	);
+
 	const stageRequestId = useRef(0);
+	const contactRequestId = useRef(0);
 	const groupsRequestId = useRef(0);
+	const contactSelectId = useId();
 	const profileId = profile.id;
+	const stageListId = listMemberId;
+
+	const contactOptions = (() => {
+		const byId = new Map<string, OnboardingContactRef>();
+		for (const entry of contacts) byId.set(entry.id, entry);
+		if (profile.onboardingContact) {
+			byId.set(profile.onboardingContact.id, profile.onboardingContact);
+		}
+		if (contact) byId.set(contact.id, contact);
+		return [...byId.values()].sort((a, b) =>
+			a.name.localeCompare(b.name, "de"),
+		);
+	})();
+	const selfContactId = myContactId;
+	const canAssignSelf = Boolean(selfContactId);
+	const isAssignedToSelf =
+		contact?.id != null &&
+		selfContactId != null &&
+		contact.id === selfContactId;
 
 	useEffect(() => {
 		setSelected(selectedFromProfile(profile.groups));
@@ -252,6 +360,10 @@ function ProfileBody({
 	useEffect(() => {
 		setStage(profile.onboardingStage);
 	}, [profile.onboardingStage]);
+
+	useEffect(() => {
+		setContact(profile.onboardingContact);
+	}, [profile.onboardingContact]);
 
 	async function persistStage(next: OnboardingStage) {
 		const requestId = ++stageRequestId.current;
@@ -265,16 +377,19 @@ function ProfileBody({
 			if (requestId !== stageRequestId.current) return;
 			if (!result.success) {
 				setStage(profile.onboardingStage);
+				onOnboardingStageChange?.(stageListId, profile.onboardingStage);
 				setStageErrorKey(STAGE_ERROR_KEYS[result.error]);
 				return;
 			}
 			onProfileUpdate(result.profile);
 			setStage(result.profile.onboardingStage);
+			onOnboardingStageChange?.(stageListId, result.profile.onboardingStage);
 			setStageSaved(true);
 		} catch (err) {
 			console.error("[members] update onboarding stage failed", err);
 			if (requestId === stageRequestId.current) {
 				setStage(profile.onboardingStage);
+				onOnboardingStageChange?.(stageListId, profile.onboardingStage);
 				setStageErrorKey("profile.errorOnboardingFailed");
 			}
 		} finally {
@@ -286,11 +401,72 @@ function ProfileBody({
 		setStage(next);
 		setStageErrorKey(null);
 		setStageSaved(false);
+		onOnboardingStageChange?.(stageListId, next);
 		if (next === profile.onboardingStage) return;
 		void persistStage(next);
 	}
 
-	async function persistGroups(next: Set<string>) {
+	async function persistContact(nextId: string | null) {
+		const requestId = ++contactRequestId.current;
+		const previous = profile.onboardingContact;
+		setContactPending(true);
+		setContactErrorKey(null);
+		setContactSavedKey(null);
+		try {
+			const result = await updateMemberOnboardingContactFn({
+				data: { id: profileId, contactId: nextId },
+			});
+			if (requestId !== contactRequestId.current) return;
+			if (!result.success) {
+				setContact(previous);
+				onOnboardingContactChange?.(stageListId, previous);
+				setContactErrorKey(CONTACT_ERROR_KEYS[result.error]);
+				return;
+			}
+			onProfileUpdate(result.profile);
+			setContact(result.profile.onboardingContact);
+			onOnboardingContactChange?.(
+				stageListId,
+				result.profile.onboardingContact,
+			);
+			if (result.notifyEmailSent === true) {
+				setContactSavedKey("profile.onboardingContactNotified");
+			} else if (result.notifyEmailSent === false) {
+				setContactSavedKey("profile.onboardingContactNotifyFailed");
+			} else {
+				setContactSavedKey("profile.onboardingContactSaved");
+			}
+		} catch (err) {
+			console.error("[members] update onboarding contact failed", err);
+			if (requestId === contactRequestId.current) {
+				setContact(previous);
+				onOnboardingContactChange?.(stageListId, previous);
+				setContactErrorKey("profile.errorContactFailed");
+			}
+		} finally {
+			if (requestId === contactRequestId.current) setContactPending(false);
+		}
+	}
+
+	function handleContactChange(nextId: string | null) {
+		const currentId = contact?.id ?? null;
+		if (nextId === currentId) return;
+		const optimistic =
+			nextId == null
+				? null
+				: (contactOptions.find((entry) => entry.id === nextId) ?? {
+						id: nextId,
+						name: nextId,
+						username: null,
+					});
+		setContact(optimistic);
+		setContactErrorKey(null);
+		setContactSavedKey(null);
+		onOnboardingContactChange?.(stageListId, optimistic);
+		void persistContact(nextId);
+	}
+
+	async function persistGroups(next: Set<string>, previousGroups: string[]) {
 		const requestId = ++groupsRequestId.current;
 		setPending(true);
 		setErrorKey(null);
@@ -304,17 +480,20 @@ function ProfileBody({
 			});
 			if (requestId !== groupsRequestId.current) return;
 			if (!result.success) {
-				setSelected(selectedFromProfile(profile.groups));
+				setSelected(selectedFromProfile(previousGroups));
+				onGroupsChange?.(stageListId, previousGroups);
 				setErrorKey(GROUP_ERROR_KEYS[result.error]);
 				return;
 			}
 			onProfileUpdate(result.profile);
 			setSelected(selectedFromProfile(result.profile.groups));
+			onGroupsChange?.(stageListId, result.profile.groups);
 			setSaved(true);
 		} catch (err) {
 			console.error("[members] update groups failed", err);
 			if (requestId === groupsRequestId.current) {
-				setSelected(selectedFromProfile(profile.groups));
+				setSelected(selectedFromProfile(previousGroups));
+				onGroupsChange?.(stageListId, previousGroups);
 				setErrorKey("profile.errorGroupsFailed");
 			}
 		} finally {
@@ -326,11 +505,13 @@ function ProfileBody({
 		if (pending) return;
 		setSaved(false);
 		setErrorKey(null);
+		const previousGroups = profile.groups;
 		const next = new Set(selected);
 		if (next.has(value)) next.delete(value);
 		else next.add(value);
 		setSelected(next);
-		void persistGroups(next);
+		onGroupsChange?.(stageListId, mergeAssignableGroups(previousGroups, next));
+		void persistGroups(next, previousGroups);
 	}
 
 	return (
@@ -380,16 +561,11 @@ function ProfileBody({
 				</div>
 			</section>
 
-			{/* Onboarding — stepped slider */}
+			{/* Onboarding — stepped slider + contact */}
 			<section className="space-y-4 border-t border-border pt-6">
-				<div className="space-y-1">
-					<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-						{t("profile.onboarding")}
-					</p>
-					<p className="text-sm text-muted-foreground">
-						{t("profile.onboardingHint")}
-					</p>
-				</div>
+				<p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+					{t("profile.onboarding")}
+				</p>
 				<OnboardingStageSlider
 					value={stage}
 					disabled={stagePending}
@@ -415,6 +591,74 @@ function ProfileBody({
 						) : null}
 					</div>
 				)}
+
+				<div className="space-y-2">
+					<label
+						htmlFor={contactSelectId}
+						className="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+					>
+						{t("profile.onboardingContact")}
+					</label>
+					<p className="text-sm text-muted-foreground">
+						{t("profile.onboardingContactHint")}
+					</p>
+					<div className="flex flex-wrap items-center gap-2">
+						<select
+							id={contactSelectId}
+							value={contact?.id ?? ""}
+							disabled={contactPending}
+							onChange={(event) => {
+								const value = event.target.value;
+								handleContactChange(value.length > 0 ? value : null);
+							}}
+							className={cn(
+								"h-9 min-w-[12rem] flex-1 border border-border bg-background px-3 text-sm text-foreground",
+								"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+								"disabled:cursor-not-allowed disabled:opacity-60",
+							)}
+						>
+							<option value="">{t("profile.onboardingContactNone")}</option>
+							{contactOptions.map((entry) => (
+								<option key={entry.id} value={entry.id}>
+									{entry.name}
+									{entry.username ? ` (@${entry.username})` : ""}
+								</option>
+							))}
+						</select>
+						{canAssignSelf && !isAssignedToSelf ? (
+							<button
+								type="button"
+								disabled={contactPending}
+								onClick={() => handleContactChange(selfContactId)}
+								className={cn(
+									"h-9 shrink-0 border border-border px-3 text-sm text-foreground transition-colors",
+									"hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+									"disabled:cursor-not-allowed disabled:opacity-60",
+								)}
+							>
+								{t("profile.onboardingContactAssignMe")}
+							</button>
+						) : null}
+					</div>
+					{(contactPending || contactSavedKey || contactErrorKey) && (
+						<div className="flex flex-wrap items-center gap-3">
+							{contactPending ? (
+								<p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+									<Loader2 className="size-3.5 animate-spin" aria-hidden />
+									{t("profile.onboardingContactSaving")}
+								</p>
+							) : null}
+							{contactSavedKey && !contactPending ? (
+								<p className="text-sm text-primary">{t(contactSavedKey)}</p>
+							) : null}
+							{contactErrorKey ? (
+								<p className="text-sm text-destructive" role="alert">
+									{t(contactErrorKey)}
+								</p>
+							) : null}
+						</div>
+					)}
+				</div>
 			</section>
 			{/* Ressorts — full width, checkboxes in a comfortable grid */}
 			<section className="space-y-3 border-t border-border pt-6">

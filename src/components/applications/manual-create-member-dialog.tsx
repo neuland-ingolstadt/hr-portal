@@ -17,7 +17,6 @@ import type { CreateMemberError } from "#/lib/onboarding";
 import { createMemberFn } from "#/lib/onboarding.functions";
 
 const ERROR_KEYS: Record<CreateMemberError, MessageKey> = {
-	unauthorized: "onboarding.create.errorUnauthorized",
 	invalid_input: "onboarding.create.errorInvalid",
 	authentik_api_missing: "onboarding.create.errorApiMissing",
 	username_exists: "onboarding.create.errorUsernameExists",

@@ -149,10 +149,6 @@ export function KeyboardShortcuts({ onToggleSidebar }: KeyboardShortcutsProps) {
 			const key = event.key;
 
 			if (helpOpen) {
-				if (key === "?" && !isEditableTarget(event.target)) {
-					event.preventDefault();
-					setHelpOpen(false);
-				}
 				return;
 			}
 
@@ -184,7 +180,7 @@ export function KeyboardShortcuts({ onToggleSidebar }: KeyboardShortcutsProps) {
 
 			if (key === "?") {
 				event.preventDefault();
-				setHelpOpen(true);
+				window.dispatchEvent(new Event("neuland:open-help"));
 				return;
 			}
 

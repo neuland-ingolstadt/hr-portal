@@ -24,8 +24,6 @@ export type RecordAuditInput = {
 	action: AuditAction;
 	targetId?: string | null;
 	targetLabel?: string | null;
-	success: boolean;
-	error?: string | null;
 	meta?: AuditMeta | null;
 };
 
@@ -51,6 +49,8 @@ function parseEvent(line: string): AuditEvent | null {
 		if (typeof raw.id !== "string" || typeof raw.at !== "string") return null;
 		if (!isAuditAction(raw.action)) return null;
 		if (typeof raw.actorSub !== "string") return null;
+		// Legacy rows may include success/error; only keep successful events.
+		if ("success" in raw && raw.success === false) return null;
 		return {
 			id: raw.id,
 			at: raw.at,
@@ -63,8 +63,6 @@ function parseEvent(line: string): AuditEvent | null {
 				: [],
 			targetId: typeof raw.targetId === "string" ? raw.targetId : null,
 			targetLabel: typeof raw.targetLabel === "string" ? raw.targetLabel : null,
-			success: Boolean(raw.success),
-			error: typeof raw.error === "string" ? raw.error : null,
 			meta:
 				raw.meta && typeof raw.meta === "object" && !Array.isArray(raw.meta)
 					? (raw.meta as AuditMeta)
@@ -90,8 +88,6 @@ export function recordAudit(input: RecordAuditInput): void {
 		actorRoles: [...input.actor.roles],
 		targetId: input.targetId?.trim() || null,
 		targetLabel: input.targetLabel?.trim() || null,
-		success: input.success,
-		error: input.success ? null : (input.error ?? "unknown"),
 		meta: input.meta ?? null,
 	};
 

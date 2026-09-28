@@ -56,6 +56,7 @@
 	--animate-dialog-out: dialog-out 140ms ease-in;
 	--animate-dialog-overlay-in: sheet-overlay-in 200ms ease-out;
 	--animate-dialog-overlay-out: sheet-overlay-out 180ms ease-in;
+	--animate-accept-progress: accept-progress 1.4s ease-in-out infinite;
 }
 
 :root {
@@ -368,6 +369,46 @@ html[data-sidebar-collapsed] .app-sidebar nav a {
 	line-height: 1.15;
 }
 
+/* Compact title bar pinned to the content column (right of sidebar). */
+.page-title-sticky {
+	position: fixed;
+	top: 3.5rem; /* mobile app bar */
+	right: 0;
+	left: 0;
+	z-index: 30;
+	border-bottom: 1px solid color-mix(in oklab, hsl(var(--border)) 70%, transparent);
+	background: color-mix(in oklab, hsl(var(--background)) 80%, transparent);
+	box-shadow: 0 12px 40px -28px rgba(0, 0, 0, 0.55);
+	backdrop-filter: blur(16px) saturate(1.5);
+	-webkit-backdrop-filter: blur(16px) saturate(1.5);
+	padding-left: max(1rem, env(safe-area-inset-left, 0px));
+	padding-right: max(1rem, env(safe-area-inset-right, 0px));
+	transition:
+		opacity 0.3s ease,
+		transform 0.3s ease,
+		left 0.2s ease-out;
+}
+
+@media (min-width: 640px) {
+	.page-title-sticky {
+		padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+		padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+	}
+}
+
+@media (min-width: 768px) {
+	.page-title-sticky {
+		top: 0;
+		left: 16.5rem;
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+
+	html[data-sidebar-collapsed] .page-title-sticky {
+		left: 4.25rem;
+	}
+}
+
 .page-lead {
 	margin: 0;
 	max-width: 42rem;
@@ -567,6 +608,15 @@ html[data-sidebar-collapsed] .app-sidebar nav a {
 	}
 }
 
+@keyframes accept-progress {
+	0% {
+		transform: translateX(-120%);
+	}
+	100% {
+		transform: translateX(320%);
+	}
+}
+
 @keyframes fade-down {
 	from {
 		opacity: 0;
@@ -606,6 +656,11 @@ html[data-sidebar-collapsed] .app-sidebar nav a {
 	.page-header,
 	.error-banner {
 		animation: none;
+	}
+
+	.page-title-sticky {
+		transition: none !important;
+		transform: none !important;
 	}
 }
 

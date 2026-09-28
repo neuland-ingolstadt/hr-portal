@@ -3,6 +3,7 @@ import { setResponseStatus } from "@tanstack/react-start/server";
 import * as client from "openid-client";
 import type { AppRole, SessionUser } from "#/lib/auth";
 import { hasAppAccess, hasElevatedAccess, primaryRole } from "#/lib/auth";
+import { AUTHENTIK_UUID_RE } from "#/lib/authentik-api.server";
 import { getCallbackUrl, serverConfig } from "#/lib/config";
 import { getAppSession } from "#/lib/session";
 
@@ -47,6 +48,65 @@ export function mapGroupsToRoles(groups: string[]): AppRole[] {
 	}
 
 	return [...roles];
+}
+
+/**
+ * Read Authentik directory UUID from custom `uuid` claim (ID token / UserInfo).
+ * Used when OIDC `sub_mode` is `hashed_user_id`.
+ */
+export function extractAuthentikUuidClaim(
+	...sources: Array<Record<string, unknown> | null | undefined>
+): string | null {
+	for (const source of sources) {
+		if (!source) continue;
+		for (const key of ["uuid", "ak_uuid", "user_uuid"]) {
+			const raw = source[key];
+			if (typeof raw !== "string") continue;
+			const value = raw.trim();
+			if (AUTHENTIK_UUID_RE.test(value)) return value;
+		}
+	}
+	return null;
+}
+
+/**
+ * When the OIDC `uuid` claim is missing, resolve Authentik user UUID by email.
+ * Needed for hashed `sub` until the provider scope mapping is attached.
+ */
+async function resolveAuthentikUuidByEmail(
+	email: string,
+): Promise<string | null> {
+	const { apiUrl, apiToken } = serverConfig.authentik;
+	const needle = email.trim().toLowerCase();
+	if (!apiUrl || !apiToken || !needle) return null;
+
+	const base = apiUrl.replace(/\/$/, "");
+	const url = `${base}/api/v3/core/users/?email=${encodeURIComponent(email.trim())}&page_size=10`;
+	try {
+		const res = await fetch(url, {
+			headers: {
+				Authorization: `Bearer ${apiToken}`,
+				Accept: "application/json",
+			},
+		});
+		if (!res.ok) {
+			console.warn(`[auth] uuid-by-email lookup failed: ${res.status}`);
+			return null;
+		}
+		const body = (await res.json()) as AuthentikPaginated<{
+			uuid?: string;
+			email?: string;
+		}>;
+		const results = body.results ?? [];
+		const match =
+			results.find((entry) => entry.email?.trim().toLowerCase() === needle) ??
+			results[0];
+		const uuid = match?.uuid?.trim();
+		return uuid && AUTHENTIK_UUID_RE.test(uuid) ? uuid : null;
+	} catch (err) {
+		console.warn("[auth] uuid-by-email lookup error", err);
+		return null;
+	}
 }
 
 type AuthentikGroup = {
@@ -260,9 +320,30 @@ export async function handleOidcCallback(
 
 	const groups = await resolveUserGroups(claimRecord, userInfo, claims.sub);
 	const roles = mapGroupsToRoles(groups);
+	let uuid = extractAuthentikUuidClaim(claimRecord, userInfo);
+	if (!uuid && email) {
+		uuid = await resolveAuthentikUuidByEmail(email);
+		if (uuid) {
+			console.info(
+				"[auth] session uuid filled via Authentik API (OIDC uuid claim missing)",
+				{ uuid },
+			);
+		}
+	}
+	if (!uuid) {
+		console.warn(
+			"[auth] session has no Authentik uuid — Mine/assign-self will fail",
+			{
+				claimKeys: Object.keys(claimRecord),
+				userInfoKeys: userInfo ? Object.keys(userInfo) : [],
+				hasEmail: Boolean(email),
+			},
+		);
+	}
 
 	const user: SessionUser = {
 		sub: claims.sub,
+		uuid,
 		email,
 		name,
 		groups,
@@ -314,6 +395,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 	// Only expose client-safe fields (strip legacy idToken if still nested in old cookies).
 	return {
 		sub: user.sub,
+		uuid: typeof user.uuid === "string" ? user.uuid : null,
 		email: user.email,
 		name: user.name,
 		groups: user.groups,
@@ -395,6 +477,7 @@ export async function createMockSession(
 
 	const user: SessionUser = {
 		sub: `mock-${role}`,
+		uuid: `mock-${role}`,
 		email:
 			role === "admin"
 				? "admin@neuland.local"

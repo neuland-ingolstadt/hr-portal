@@ -13,9 +13,23 @@ export type ApplicationsResult = {
 	applications: PendingApplication[];
 };
 
+/** Dashboard badge — no application payloads. */
+export type PendingApplicationCountResult = {
+	count: number | null;
+	source: "easyverein" | "unavailable";
+};
+
 export type AcceptApplicationInput = {
 	memberId: number;
 };
+
+export type SepaMandateStatus =
+	| "set"
+	| "already_set"
+	| "skipped_no_iban"
+	| "skipped_no_contact"
+	| "failed"
+	| null;
 
 export type AcceptApplicationError =
 	| CreateMemberError
@@ -30,6 +44,7 @@ export type AcceptApplicationResult =
 			username: string;
 			emailSent: boolean;
 			easyVereinAccepted: true;
+			sepaMandate: SepaMandateStatus;
 	  }
 	| {
 			success: false;
@@ -38,4 +53,5 @@ export type AcceptApplicationResult =
 			username?: string;
 			emailSent?: boolean;
 			easyVereinAccepted?: boolean;
+			sepaMandate?: SepaMandateStatus;
 	  };

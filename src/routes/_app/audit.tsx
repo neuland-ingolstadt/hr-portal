@@ -4,6 +4,7 @@ import {
 	type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { AuditEventsPanel } from "#/components/audit/audit-events-panel";
+import { PageHeader } from "#/components/layout/page-header";
 import { Button } from "#/components/ui/button";
 import type { AuditEventsResult } from "#/lib/audit";
 import { listAuditEventsFn } from "#/lib/audit.functions";
@@ -26,14 +27,12 @@ export const Route = createFileRoute("/_app/audit")({
 function AuditHeader({ meta }: { meta?: string }) {
 	const { t } = useI18n();
 	return (
-		<header className="page-header flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-			<div className="min-w-0 space-y-2">
-				<p className="eyebrow mb-0">{t("audit.eyebrow")}</p>
-				<h1 className="page-title text-balance">{t("audit.title")}</h1>
-				<p className="page-lead max-w-2xl">{t("audit.lead")}</p>
-			</div>
-			{meta ? <p className="page-meta shrink-0 sm:pb-1">{meta}</p> : null}
-		</header>
+		<PageHeader
+			eyebrow={t("audit.eyebrow")}
+			title={t("audit.title")}
+			lead={t("audit.lead")}
+			end={meta ? <p className="page-meta m-0">{meta}</p> : undefined}
+		/>
 	);
 }
 

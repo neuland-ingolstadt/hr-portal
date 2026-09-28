@@ -11,13 +11,14 @@ import {
 } from "#/components/ui/dialog";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
-import type { OffboardingCandidate } from "#/lib/members";
-import type { DeleteAccountError } from "#/lib/offboarding";
+import type {
+	DeleteAccountError,
+	OffboardingCandidate,
+} from "#/lib/offboarding";
 import { daysSinceMembershipRevoked } from "#/lib/offboarding";
 import { deleteAccountFn } from "#/lib/offboarding.functions";
 
 const ERROR_KEYS: Record<DeleteAccountError, MessageKey> = {
-	unauthorized: "offboarding.errorUnauthorized",
 	invalid_id: "offboarding.errorInvalid",
 	not_eligible: "offboarding.errorNotEligible",
 	authentik_api_missing: "offboarding.errorApiMissing",

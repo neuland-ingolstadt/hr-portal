@@ -114,5 +114,27 @@ export function useScanHistory() {
 		}
 	}, []);
 
-	return { entries, hydrated, addScan, clearHistory, findBySub };
+	const updateScanName = useCallback((sub: string, name: string) => {
+		const trimmed = name.trim();
+		if (!trimmed) return;
+		setEntries((prev) => {
+			const index = prev.findIndex(
+				(entry) => entry.success && entry.sub === sub,
+			);
+			const current = index >= 0 ? prev[index] : undefined;
+			if (!current || current.name === trimmed) return prev;
+			const next = [...prev];
+			next[index] = { ...current, name: trimmed };
+			return next;
+		});
+	}, []);
+
+	return {
+		entries,
+		hydrated,
+		addScan,
+		clearHistory,
+		updateScanName,
+		findBySub,
+	};
 }

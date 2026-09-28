@@ -7,7 +7,10 @@ import {
 	Users,
 } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
+import { HelpTriggerButton } from "#/components/layout/help-sheet";
+import { StickyPageTitle } from "#/components/layout/page-header";
 import { Badge } from "#/components/ui/badge";
+import type { PendingApplicationCountResult } from "#/lib/applications";
 import type { SessionUser } from "#/lib/auth";
 import { hasElevatedAccess, primaryRole, roleBadgeVariant } from "#/lib/auth";
 import { ROUTES } from "#/lib/constants";
@@ -16,13 +19,16 @@ import { cn } from "#/lib/utils";
 
 export type DashboardStats = {
 	memberCount: number | null;
-	groupCount: number | null;
+	ressortMemberCount: number | null;
+	onboardingMemberCount: number | null;
 	source: "authentik" | "mock" | "unavailable";
 };
 
 type HomeDashboardProps = {
 	user: SessionUser;
 	statsPromise: Promise<DashboardStats>;
+	/** Elevated only — EasyVerein pending count, no Authentik. */
+	pendingCountPromise: Promise<PendingApplicationCountResult> | null;
 };
 
 const PANEL_STATIC = "[animation:none]";
@@ -137,12 +143,14 @@ function ActionCard({
 	title,
 	description,
 	cta,
+	badge,
 }: {
 	to: string;
 	icon: ReactNode;
 	title: string;
 	description: string;
 	cta: string;
+	badge?: ReactNode;
 }) {
 	return (
 		<Link
@@ -156,10 +164,13 @@ function ActionCard({
 				<span className="flex size-10 items-center justify-center border border-border bg-muted text-foreground transition-colors group-hover:border-primary/40 group-hover:bg-primary/10 group-hover:text-primary">
 					{icon}
 				</span>
-				<ArrowUpRight
-					className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"
-					aria-hidden
-				/>
+				<div className="flex items-center gap-2">
+					{badge}
+					<ArrowUpRight
+						className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary"
+						aria-hidden
+					/>
+				</div>
 			</div>
 			<div className="space-y-1.5">
 				<h2 className="text-base font-semibold tracking-tight">{title}</h2>
@@ -172,7 +183,17 @@ function ActionCard({
 	);
 }
 
-function StatsSkeleton({ roleLabel }: { roleLabel: string }) {
+function statsHint(
+	source: DashboardStats["source"],
+	okHint: string,
+	t: (key: "home.statMock" | "home.statUnavailable") => string,
+): string {
+	if (source === "mock") return t("home.statMock");
+	if (source === "unavailable") return t("home.statUnavailable");
+	return okHint;
+}
+
+function StatsSkeleton() {
 	const { t } = useI18n();
 	return (
 		<section className="grid gap-4 sm:grid-cols-3" aria-busy="true">
@@ -182,112 +203,136 @@ function StatsSkeleton({ roleLabel }: { roleLabel: string }) {
 				hint={t("home.statMembersHint")}
 			/>
 			<StatCard
-				label={t("home.statGroups")}
+				label={t("home.statRessort")}
 				value="…"
-				hint={t("home.statGroupsHint")}
+				hint={t("home.statRessortHint")}
 			/>
 			<StatCard
-				label={t("home.statAccess")}
-				value={roleLabel}
-				hint={t("home.statAccessHint")}
+				label={t("home.statOnboarding")}
+				value="…"
+				hint={t("home.statOnboardingHint")}
 			/>
 		</section>
 	);
 }
 
-function StatsGrid({
-	stats,
-	role,
-}: {
-	stats: DashboardStats;
-	role: ReturnType<typeof primaryRole>;
-}) {
+function StatsGrid({ stats }: { stats: DashboardStats }) {
 	const { t } = useI18n();
 	return (
 		<section className="grid gap-4 sm:grid-cols-3">
 			<StatCard
 				label={t("home.statMembers")}
 				value={<CountUpValue value={stats.memberCount} />}
-				hint={
-					stats.source === "mock"
-						? t("home.statMock")
-						: stats.source === "unavailable"
-							? t("home.statUnavailable")
-							: t("home.statMembersHint")
-				}
+				hint={statsHint(stats.source, t("home.statMembersHint"), t)}
 			/>
 			<StatCard
-				label={t("home.statGroups")}
-				value={<CountUpValue value={stats.groupCount} />}
-				hint={
-					stats.source === "unavailable"
-						? t("home.statUnavailable")
-						: t("home.statGroupsHint")
-				}
+				label={t("home.statRessort")}
+				value={<CountUpValue value={stats.ressortMemberCount} />}
+				hint={statsHint(stats.source, t("home.statRessortHint"), t)}
 			/>
 			<StatCard
-				label={t("home.statAccess")}
-				value={
-					role === "admin"
-						? t("role.admin")
-						: role === "vorstand"
-							? t("role.vorstand")
-							: role === "hr"
-								? t("role.hr")
-								: t("home.empty")
-				}
-				hint={t("home.statAccessHint")}
+				label={t("home.statOnboarding")}
+				value={<CountUpValue value={stats.onboardingMemberCount} />}
+				hint={statsHint(stats.source, t("home.statOnboardingHint"), t)}
 			/>
 		</section>
 	);
 }
 
-export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
+function PendingCountBadge({
+	result,
+}: {
+	result: PendingApplicationCountResult;
+}) {
+	const { t } = useI18n();
+
+	if (result.source === "unavailable" || result.count == null) {
+		return (
+			<span className="text-xs text-muted-foreground">
+				{t("home.pendingCountUnavailable")}
+			</span>
+		);
+	}
+
+	if (result.count === 0) {
+		return (
+			<span className="text-xs text-muted-foreground">
+				{t("home.pendingCountZero")}
+			</span>
+		);
+	}
+
+	return (
+		<Badge variant="default" className="tabular-nums">
+			{t("home.pendingCount", { count: String(result.count) })}
+		</Badge>
+	);
+}
+
+export function HomeDashboard({
+	user,
+	statsPromise,
+	pendingCountPromise,
+}: HomeDashboardProps) {
 	const { t } = useI18n();
 	const role = primaryRole(user.roles);
 	const elevated = hasElevatedAccess(user.roles);
 	const firstName = user.name.trim().split(/\s+/)[0] || user.name;
-	const accessLabel =
-		role === "admin"
-			? t("role.admin")
-			: role === "vorstand"
-				? t("role.vorstand")
-				: role === "hr"
-					? t("role.hr")
-					: t("home.empty");
+
+	const helloTitle = t("home.hello", { name: firstName });
+
+	const applicationsCard = (pendingBadge: ReactNode | undefined): ReactNode => (
+		<ActionCard
+			to={ROUTES.APPLICATIONS}
+			icon={<FileCheck2 className="size-5" aria-hidden />}
+			title={t("home.moduleApplicationsTitle")}
+			description={t("home.moduleApplicationsDesc")}
+			cta={t("home.openApplications")}
+			badge={pendingBadge}
+		/>
+	);
 
 	return (
 		<div className="flex w-full min-w-0 flex-col gap-6 sm:gap-8">
-			<section
-				className={cn("surface-panel relative overflow-hidden", PANEL_STATIC)}
-			>
-				<div
-					aria-hidden
-					className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_0%_0%,color-mix(in_oklab,hsl(var(--primary))_14%,transparent),transparent_55%)]"
-				/>
-				<div
-					aria-hidden
-					className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-primary"
-				/>
-				<div className="relative p-5 sm:p-7">
-					<div className="min-w-0 space-y-3">
-						<p className="eyebrow mb-0">{t("home.eyebrow")}</p>
-						<h1 className="page-title text-balance">
-							{t("home.hello", { name: firstName })}
-						</h1>
-						<p className="page-lead max-w-xl">{t("home.lead")}</p>
-						<p className="pt-1 text-xs text-muted-foreground">
-							{t("home.signedInAs", { email: user.email || user.name })}
-						</p>
-					</div>
-				</div>
-			</section>
+			<StickyPageTitle title={helloTitle}>
+				{(titleRef) => (
+					<section
+						className={cn(
+							"surface-panel relative overflow-hidden",
+							PANEL_STATIC,
+						)}
+					>
+						<div
+							aria-hidden
+							className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_0%_0%,color-mix(in_oklab,hsl(var(--primary))_14%,transparent),transparent_55%)]"
+						/>
+						<div
+							aria-hidden
+							className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-primary"
+						/>
+						<div className="relative p-5 sm:p-7">
+							<div className="flex items-start justify-between gap-3">
+								<div className="min-w-0 space-y-3">
+									<p className="eyebrow mb-0">{t("home.eyebrow")}</p>
+									<h1 ref={titleRef} className="page-title text-balance">
+										{helloTitle}
+									</h1>
+									<p className="page-lead max-w-xl">{t("home.lead")}</p>
+									<p className="pt-1 text-xs text-muted-foreground">
+										{t("home.signedInAs", {
+											email: user.email || user.name,
+										})}
+									</p>
+								</div>
+								<HelpTriggerButton className="shrink-0" />
+							</div>
+						</div>
+					</section>
+				)}
+			</StickyPageTitle>
 
-			<Await
-				promise={statsPromise}
-				fallback={<StatsSkeleton roleLabel={accessLabel} />}
-			>
-				{(stats) => <StatsGrid stats={stats} role={role} />}
+			<Await promise={statsPromise} fallback={<StatsSkeleton />}>
+				{(stats) => <StatsGrid stats={stats} />}
 			</Await>
 
 			<section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(16rem,0.9fr)]">
@@ -299,14 +344,19 @@ export function HomeDashboard({ user, statsPromise }: HomeDashboardProps) {
 						description={t("home.actionMembersDesc")}
 						cta={t("home.openMembers")}
 					/>
-					{elevated ? (
-						<ActionCard
-							to={ROUTES.APPLICATIONS}
-							icon={<FileCheck2 className="size-5" aria-hidden />}
-							title={t("home.moduleApplicationsTitle")}
-							description={t("home.moduleApplicationsDesc")}
-							cta={t("home.openApplications")}
-						/>
+					{elevated && pendingCountPromise ? (
+						<Await
+							promise={pendingCountPromise}
+							fallback={applicationsCard(
+								<span className="text-xs text-muted-foreground">…</span>,
+							)}
+						>
+							{(result) =>
+								applicationsCard(<PendingCountBadge result={result} />)
+							}
+						</Await>
+					) : elevated ? (
+						applicationsCard(undefined)
 					) : null}
 					<ActionCard
 						to={ROUTES.ONBOARDING}

@@ -1,6 +1,7 @@
 export type QRPayload = {
 	sub: string;
-	name: string;
+	/** May be redacted or omitted for privacy; prefer Authentik name after lookup. */
+	name?: string;
 	iat: number;
 	exp: number;
 	type: QRType;

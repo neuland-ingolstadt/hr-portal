@@ -11,12 +11,13 @@ import {
 } from "#/components/ui/dialog";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
-import type { OffboardingCandidate } from "#/lib/members";
-import type { RevokeMitgliederError } from "#/lib/offboarding";
+import type {
+	OffboardingCandidate,
+	RevokeMitgliederError,
+} from "#/lib/offboarding";
 import { revokeMitgliederFn } from "#/lib/offboarding.functions";
 
 const ERROR_KEYS: Record<RevokeMitgliederError, MessageKey> = {
-	unauthorized: "offboarding.errorUnauthorized",
 	invalid_id: "offboarding.errorInvalid",
 	not_eligible: "offboarding.errorNotEligible",
 	authentik_api_missing: "offboarding.errorApiMissing",

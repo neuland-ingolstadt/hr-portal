@@ -1,6 +1,6 @@
 /** Client-safe member types (no email or other PII in list payloads). */
 
-import type { OnboardingStage } from "#/lib/onboarding";
+import type { OnboardingContactRef, OnboardingStage } from "#/lib/onboarding";
 
 export type Member = {
 	id: string;
@@ -26,68 +26,12 @@ export type MembersResult = {
 	source: "authentik" | "mock";
 };
 
-/**
- * Why a directory account appears on the offboarding list.
- */
-export type OffboardingReason =
-	| "membership_revoked"
-	| "not_in_easyverein"
-	| "left_easyverein";
-
-export const OFFBOARDING_REASONS: OffboardingReason[] = [
-	"membership_revoked",
-	"not_in_easyverein",
-	"left_easyverein",
-];
-
-export type OffboardingCandidate = Member & {
-	reasons: OffboardingReason[];
-	/**
-	 * EasyVerein `resignation_date` (YYYY-MM-DD) when known for leave/leaving.
-	 */
-	easyVereinResignationDate?: string | null;
-};
-
-export type OffboardingCandidatesResult = {
-	members: OffboardingCandidate[];
-	availableGroups: string[];
-	source: "authentik" | "mock";
-	/** True when EV reconciliation ran (false if EV API missing). */
-	easyVereinReconciled?: boolean;
-	/** Days after revoke before process may auto-delete. */
-	deleteGraceDays?: number;
-};
-
-/**
- * Stage 1: revoke Mitglieder (missing EV link, or EV leave/missing).
- * Stage 2: has `membershipRevokedAt` → delete Authentik account.
- */
-export function partitionOffboardingStages(
-	candidates: OffboardingCandidate[],
-): {
-	revokeMembership: OffboardingCandidate[];
-	deleteAccount: OffboardingCandidate[];
-} {
-	const revokeMembership: OffboardingCandidate[] = [];
-	const deleteAccount: OffboardingCandidate[] = [];
-
-	for (const candidate of candidates) {
-		if (candidate.reasons.includes("membership_revoked")) {
-			deleteAccount.push(candidate);
-		} else if (
-			candidate.reasons.includes("not_in_easyverein") ||
-			candidate.reasons.includes("left_easyverein")
-		) {
-			revokeMembership.push(candidate);
-		}
-	}
-
-	return { revokeMembership, deleteAccount };
-}
-
 export type DirectoryStats = {
 	memberCount: number;
-	groupCount: number;
+	/** Mitglieder assigned to at least one ressort group. */
+	ressortMemberCount: number;
+	/** Recent Mitglieder still below onboarding stage “done”. */
+	onboardingMemberCount: number;
 	source: "authentik" | "mock";
 };
 
@@ -108,6 +52,11 @@ export type MemberProfile = {
 	 * (0 = new … 4 = done).
 	 */
 	onboardingStage: OnboardingStage;
+	/**
+	 * HR/staff point of contact (Betreuung) from Authentik
+	 * `attributes.onboardingContact` (Authentik user UUID). `null` when unset.
+	 */
+	onboardingContact: OnboardingContactRef | null;
 	/**
 	 * Deep link into Authentik admin user detail (`/if/admin/#/identity/users/{pk}`).
 	 * `null` when PK or API base URL is unavailable (e.g. mock).

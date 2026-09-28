@@ -11,7 +11,6 @@ import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
 import { cn } from "#/lib/utils";
 
-type StatusFilter = "all" | "ok" | "failed";
 type ActionFilter = "all" | AuditAction;
 
 type AuditEventsPanelProps = {
@@ -42,7 +41,6 @@ function matchesQuery(
 		event.actorName,
 		event.targetId ?? "",
 		event.targetLabel ?? "",
-		event.error ?? "",
 		event.action,
 		actionLabel,
 		...event.actorRoles,
@@ -62,28 +60,15 @@ function AuditRow({ event }: { event: AuditEvent }) {
 	return (
 		<li className="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-5">
 			<div className="min-w-0 space-y-1">
-				<div className="flex flex-wrap items-center gap-2">
-					<span className="font-medium text-foreground">
-						{t(actionLabelKey(event.action))}
-					</span>
-					<span
-						className={cn(
-							"font-mono text-[0.65rem] font-semibold uppercase tracking-[0.08em]",
-							event.success ? "text-emerald-700" : "text-destructive",
-						)}
-					>
-						{event.success ? t("audit.status.ok") : t("audit.status.failed")}
-					</span>
-				</div>
-				<p className="m-0 text-sm text-muted-foreground">
-					<span className="text-foreground">{event.actorName}</span>
-					<span className="text-muted-foreground"> → {target}</span>
+				<p className="m-0 font-medium text-foreground">
+					{t(actionLabelKey(event.action))}
 				</p>
-				{!event.success && event.error ? (
-					<p className="m-0 font-mono text-xs text-destructive">
-						{event.error}
-					</p>
-				) : null}
+				<p className="m-0 text-sm text-muted-foreground">
+					{t("audit.actorTarget", {
+						actor: event.actorName,
+						target,
+					})}
+				</p>
 			</div>
 			<time
 				dateTime={event.at}
@@ -104,21 +89,17 @@ export function AuditEventsPanel({ events }: AuditEventsPanelProps) {
 	const { t } = useI18n();
 	const [query, setQuery] = useState("");
 	const [actionFilter, setActionFilter] = useState<ActionFilter>("all");
-	const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
 	const filtered = useMemo(() => {
 		return events.filter((event) => {
 			if (actionFilter !== "all" && event.action !== actionFilter) {
 				return false;
 			}
-			if (statusFilter === "ok" && !event.success) return false;
-			if (statusFilter === "failed" && event.success) return false;
 			return matchesQuery(event, query, t(actionLabelKey(event.action)));
 		});
-	}, [actionFilter, events, query, statusFilter, t]);
+	}, [actionFilter, events, query, t]);
 
-	const hasFilters =
-		Boolean(query.trim()) || actionFilter !== "all" || statusFilter !== "all";
+	const hasFilters = Boolean(query.trim()) || actionFilter !== "all";
 
 	if (events.length === 0) {
 		return (
@@ -147,45 +128,26 @@ export function AuditEventsPanel({ events }: AuditEventsPanelProps) {
 						data-shortcut="search"
 					/>
 				</div>
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-					<label className="flex min-w-0 flex-1 flex-col gap-1.5 sm:max-w-[14rem]">
-						<span className="font-mono text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
-							{t("audit.filterAction")}
-						</span>
-						<select
-							className={selectClassName}
-							value={actionFilter}
-							onChange={(event) =>
-								setActionFilter(event.target.value as ActionFilter)
-							}
-							aria-label={t("audit.filterAction")}
-						>
-							<option value="all">{t("audit.filterActionAll")}</option>
-							{AUDIT_ACTIONS.map((action) => (
-								<option key={action} value={action}>
-									{t(actionLabelKey(action))}
-								</option>
-							))}
-						</select>
-					</label>
-					<label className="flex min-w-0 flex-1 flex-col gap-1.5 sm:max-w-[11rem]">
-						<span className="font-mono text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
-							{t("audit.filterStatus")}
-						</span>
-						<select
-							className={selectClassName}
-							value={statusFilter}
-							onChange={(event) =>
-								setStatusFilter(event.target.value as StatusFilter)
-							}
-							aria-label={t("audit.filterStatus")}
-						>
-							<option value="all">{t("audit.filterStatusAll")}</option>
-							<option value="ok">{t("audit.status.ok")}</option>
-							<option value="failed">{t("audit.status.failed")}</option>
-						</select>
-					</label>
-				</div>
+				<label className="flex min-w-0 flex-col gap-1.5 sm:max-w-[14rem] sm:flex-1">
+					<span className="font-mono text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
+						{t("audit.filterAction")}
+					</span>
+					<select
+						className={selectClassName}
+						value={actionFilter}
+						onChange={(event) =>
+							setActionFilter(event.target.value as ActionFilter)
+						}
+						aria-label={t("audit.filterAction")}
+					>
+						<option value="all">{t("audit.filterActionAll")}</option>
+						{AUDIT_ACTIONS.map((action) => (
+							<option key={action} value={action}>
+								{t(actionLabelKey(action))}
+							</option>
+						))}
+					</select>
+				</label>
 			</div>
 
 			<section className="surface-panel min-w-0 overflow-hidden">

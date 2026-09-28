@@ -1,21 +1,14 @@
-import {
-	ChevronLeft,
-	ChevronRight,
-	Search,
-	ShieldOff,
-	Trash2,
-	X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Tooltip } from "#/components/ui/tooltip";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
-import type { OffboardingCandidate } from "#/lib/members";
 import {
 	daysSinceMembershipRevoked,
 	isOffboardingLeavingWatchlist,
+	type OffboardingCandidate,
 	type OffboardingStage,
 } from "#/lib/offboarding";
 import { cn } from "#/lib/utils";
@@ -198,31 +191,24 @@ export function OffboardingStageTable({
 										</span>
 									) : null}
 								</button>
-								<Tooltip
-									label={
+								<Button
+									type="button"
+									size="sm"
+									variant={
+										stage === "revoke_membership" ? "outline" : "destructive"
+									}
+									disabled={watchlist}
+									title={
 										watchlist
 											? t("offboarding.action.revokeWatchlist")
-											: actionLabel
+											: undefined
 									}
+									aria-label={`${actionLabel}: ${candidate.name}`}
+									onClick={() => onAction(candidate)}
+									className="shrink-0 opacity-70 transition-opacity group-hover:opacity-100"
 								>
-									<Button
-										type="button"
-										size="icon-sm"
-										variant={
-											stage === "revoke_membership" ? "outline" : "destructive"
-										}
-										disabled={watchlist}
-										aria-label={`${actionLabel}: ${candidate.name}`}
-										onClick={() => onAction(candidate)}
-										className="shrink-0 opacity-70 transition-opacity group-hover:opacity-100"
-									>
-										{stage === "revoke_membership" ? (
-											<ShieldOff className="size-3.5" aria-hidden />
-										) : (
-											<Trash2 className="size-3.5" aria-hidden />
-										)}
-									</Button>
-								</Tooltip>
+									{actionLabel}
+								</Button>
 							</li>
 						);
 					})

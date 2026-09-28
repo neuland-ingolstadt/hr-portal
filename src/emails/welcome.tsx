@@ -16,6 +16,13 @@ import {
 	Text,
 } from "@react-email/components";
 
+/** Light-theme Neuland primary (matches app `--primary` in light mode). */
+const BRAND_GREEN = "#2e8f5c";
+const AMBIENT = "#f5f8f5";
+const BORDER = "#e5e5e5";
+const MUTED = "#666666";
+const FG = "#1a1a1a";
+
 export type WelcomeEmailProps = {
 	firstName: string;
 	username: string;
@@ -39,93 +46,182 @@ export function WelcomeEmail({
 					Willkommen bei Neuland Ingolstadt — deine Zugangsdaten und erste
 					Schritte
 				</Preview>
-				<Body className="bg-white font-sans py-[40px]">
-					<Container className="bg-gray-50 rounded-[12px] p-[32px] mx-auto my-0 max-w-[600px] shadow-[0_8px_30px_rgba(0,0,0,0.12)]">
-						<Section className="mb-[32px] p-[24px] text-center">
+				<Body
+					className="font-sans py-[40px]"
+					style={{ backgroundColor: AMBIENT }}
+				>
+					<Container
+						className="mx-auto my-0 max-w-[600px] p-[32px]"
+						style={{
+							backgroundColor: "#ffffff",
+							border: `1px solid ${BORDER}`,
+							borderTop: `3px solid ${BRAND_GREEN}`,
+						}}
+					>
+						<Section className="mb-[28px] text-center">
 							<Img
 								src="https://neuland-ingolstadt.de/favicon.svg"
 								alt="Neuland Logo"
-								width="120"
+								width="72"
 								height="auto"
-								className="w-[120px] h-auto mx-auto mb-[16px]"
+								className="w-[72px] h-auto mx-auto mb-[16px]"
 							/>
-							<Heading className="text-[28px] font-bold m-0">
-								Willkommen bei Neuland!
+							<Text
+								className="m-0 mb-[8px] text-[11px] font-semibold uppercase tracking-[0.12em]"
+								style={{ color: MUTED, fontFamily: "ui-monospace, monospace" }}
+							>
+								Neuland Ingolstadt e.V.
+							</Text>
+							<Heading
+								className="text-[26px] font-semibold m-0 tracking-[0.02em]"
+								style={{ color: FG, fontFamily: "ui-monospace, monospace" }}
+							>
+								Willkommen bei Neuland
 							</Heading>
 						</Section>
 
-						<Heading className="text-[24px] font-bold text-blue-500 m-0 mb-[16px]">
+						<Heading
+							className="text-[20px] font-semibold m-0 mb-[12px]"
+							style={{ color: BRAND_GREEN }}
+						>
 							Hallo {firstName}!
 						</Heading>
 
-						<Text className="text-[16px] leading-[24px] text-gray-700 mb-[24px]">
+						<Text
+							className="text-[16px] leading-[24px] mb-[24px]"
+							style={{ color: "#404040" }}
+						>
 							Herzlich willkommen bei Neuland Ingolstadt! Wir freuen uns, dass
 							du Teil unseres Vereins geworden bist. In dieser E-Mail findest du
 							alle wichtigen Informationen, die du für den Start benötigst.
 						</Text>
 
-						<Section className="bg-gray-100 border border-gray-300 rounded-[8px] p-[24px] mb-[32px]">
-							<Text className="text-[18px] font-bold m-0 mb-[16px]">
+						<Section
+							className="p-[20px] mb-[28px]"
+							style={{
+								backgroundColor: AMBIENT,
+								border: `1px solid ${BORDER}`,
+							}}
+						>
+							<Text
+								className="text-[12px] font-semibold m-0 mb-[12px] uppercase tracking-[0.1em]"
+								style={{
+									color: MUTED,
+									fontFamily: "ui-monospace, monospace",
+								}}
+							>
 								Deine Zugangsdaten
 							</Text>
-							<Text className="text-[16px] leading-[24px] text-gray-700 m-0 mb-[8px] font-mono">
-								<span className="inline-block font-bold mr-[8px] mt-[12px]">
-									Username:
+							<Text
+								className="text-[15px] leading-[24px] m-0 mb-[6px]"
+								style={{
+									color: FG,
+									fontFamily: "ui-monospace, monospace",
+								}}
+							>
+								<span
+									className="inline-block font-semibold mr-[8px]"
+									style={{ color: MUTED }}
+								>
+									Username
 								</span>
 								<span>{username}</span>
 							</Text>
-							<Text className="text-[16px] leading-[24px] text-gray-700 m-0 font-mono">
-								<span className="inline-block font-bold mr-[8px]">
-									Passwort:
+							<Text
+								className="text-[15px] leading-[24px] m-0"
+								style={{
+									color: FG,
+									fontFamily: "ui-monospace, monospace",
+								}}
+							>
+								<span
+									className="inline-block font-semibold mr-[8px]"
+									style={{ color: MUTED }}
+								>
+									Passwort
 								</span>
 								<span>{password}</span>
 							</Text>
 						</Section>
 
-						<Section className="mb-[32px]">
-							<Text className="text-[22px] font-bold text-blue-600 mb-[16px]">
+						<Section className="mb-[28px]">
+							<Text
+								className="text-[12px] font-semibold mb-[16px] uppercase tracking-[0.1em]"
+								style={{
+									color: MUTED,
+									fontFamily: "ui-monospace, monospace",
+								}}
+							>
 								Deine nächsten Schritte
 							</Text>
 
-							<Row className="mb-[24px]">
-								<Column className="pr-[16px] w-[60px] align-top">
-									<Text className="bg-blue-600 text-white text-[18px] font-bold rounded-full w-[40px] h-[40px] leading-[40px] text-center m-0">
+							<Row className="mb-[20px]">
+								<Column className="pr-[14px] w-[48px] align-top">
+									<Text
+										className="text-[15px] font-semibold w-[36px] h-[36px] leading-[36px] text-center m-0"
+										style={{
+											backgroundColor: BRAND_GREEN,
+											color: "#ffffff",
+											fontFamily: "ui-monospace, monospace",
+										}}
+									>
 										1
 									</Text>
 								</Column>
 								<Column>
-									<Text className="text-[18px] font-bold text-gray-800 m-0 mb-[8px]">
+									<Text
+										className="text-[16px] font-semibold m-0 mb-[6px]"
+										style={{ color: FG }}
+									>
 										Wiki erkunden
 									</Text>
-									<Text className="text-[16px] leading-[24px] text-gray-700 mb-[16px]">
+									<Text
+										className="text-[15px] leading-[22px] mb-[12px]"
+										style={{ color: "#404040" }}
+									>
 										In unserem Wiki findest du alle wichtigen Infos und
 										Ressourcen:
 									</Text>
 									<Button
 										href="https://outline.neuland.ing/collection/willkommen-93i4XP8TGL/overview"
-										className="bg-blue-600 hover:bg-blue-700 rounded-[6px] text-white font-bold py-[12px] px-[24px] text-[16px] no-underline text-center inline-block box-border mb-[8px] shadow-[0_4px_6px_rgba(37,99,235,0.25)] transition-all w-full"
+										className="text-white font-semibold py-[12px] px-[20px] text-[15px] no-underline text-center inline-block box-border mb-[4px] w-full"
+										style={{ backgroundColor: BRAND_GREEN }}
 									>
 										Zum Wiki →
 									</Button>
 								</Column>
 							</Row>
 
-							<Row className="mb-[24px]">
-								<Column className="pr-[16px] w-[60px] align-top">
-									<Text className="bg-green-500 text-white text-[18px] font-bold rounded-full w-[40px] h-[40px] leading-[40px] text-center m-0">
+							<Row className="mb-[20px]">
+								<Column className="pr-[14px] w-[48px] align-top">
+									<Text
+										className="text-[15px] font-semibold w-[36px] h-[36px] leading-[36px] text-center m-0"
+										style={{
+											backgroundColor: BRAND_GREEN,
+											color: "#ffffff",
+											fontFamily: "ui-monospace, monospace",
+										}}
+									>
 										2
 									</Text>
 								</Column>
 								<Column>
-									<Text className="text-[18px] font-bold text-gray-800 m-0 mb-[8px]">
+									<Text
+										className="text-[16px] font-semibold m-0 mb-[6px]"
+										style={{ color: FG }}
+									>
 										Signal-Gruppe beitreten
 									</Text>
-									<Text className="text-[16px] leading-[24px] text-gray-700 mb-[16px]">
+									<Text
+										className="text-[15px] leading-[22px] mb-[12px]"
+										style={{ color: "#404040" }}
+									>
 										Bleib mit anderen Mitgliedern verbunden und erhalte Updates:
 									</Text>
 									<Button
 										href="https://signal.group/#CjQKIJuYv3MToYxwinSiy0dBcELEHBd5ABfjxPnAeJTvouUjEhCWu3aGb0C5fqxfiJBjs7-l"
-										className="bg-green-500 hover:bg-green-600 rounded-[6px] text-white font-bold py-[12px] px-[24px] text-[16px] no-underline text-center inline-block box-border mb-[8px] shadow-[0_4px_6px_rgba(16,185,129,0.25)] transition-all w-full"
+										className="text-white font-semibold py-[12px] px-[20px] text-[15px] no-underline text-center inline-block box-border mb-[4px] w-full"
+										style={{ backgroundColor: BRAND_GREEN }}
 									>
 										Signal-Gruppe beitreten →
 									</Button>
@@ -133,22 +229,36 @@ export function WelcomeEmail({
 							</Row>
 
 							<Row>
-								<Column className="pr-[16px] w-[60px] align-top">
-									<Text className="bg-purple-500 text-white text-[18px] font-bold rounded-full w-[40px] h-[40px] leading-[40px] text-center m-0">
+								<Column className="pr-[14px] w-[48px] align-top">
+									<Text
+										className="text-[15px] font-semibold w-[36px] h-[36px] leading-[36px] text-center m-0"
+										style={{
+											backgroundColor: BRAND_GREEN,
+											color: "#ffffff",
+											fontFamily: "ui-monospace, monospace",
+										}}
+									>
 										3
 									</Text>
 								</Column>
 								<Column>
-									<Text className="text-[18px] font-bold text-gray-800 m-0 mb-[8px]">
+									<Text
+										className="text-[16px] font-semibold m-0 mb-[6px]"
+										style={{ color: FG }}
+									>
 										Kurze Umfrage ausfüllen
 									</Text>
-									<Text className="text-[16px] leading-[24px] text-gray-700 mb-[16px]">
+									<Text
+										className="text-[15px] leading-[22px] mb-[12px]"
+										style={{ color: "#404040" }}
+									>
 										Hilf uns, dich besser kennenzulernen und Neuland zu
 										verbessern:
 									</Text>
 									<Button
 										href="https://cloud.neuland.ing/apps/forms/s/ryYX7B2eH9QDpdEBxP8y2FBE"
-										className="bg-purple-500 hover:bg-purple-600 rounded-[6px] text-white font-bold py-[12px] px-[24px] text-[16px] no-underline text-center inline-block box-border mb-[8px] shadow-[0_4px_6px_rgba(139,92,246,0.25)] transition-all w-full"
+										className="text-white font-semibold py-[12px] px-[20px] text-[15px] no-underline text-center inline-block box-border mb-[4px] w-full"
+										style={{ backgroundColor: BRAND_GREEN }}
 									>
 										Zur Umfrage →
 									</Button>
@@ -156,79 +266,140 @@ export function WelcomeEmail({
 							</Row>
 						</Section>
 
-						<Section className="bg-gray-100 p-[24px] rounded-[8px] mb-[32px]">
-							<Text className="text-[18px] font-bold text-gray-800 m-0 mb-[8px]">
+						<Section
+							className="p-[20px] mb-[28px]"
+							style={{
+								backgroundColor: AMBIENT,
+								border: `1px solid ${BORDER}`,
+							}}
+						>
+							<Text
+								className="text-[16px] font-semibold m-0 mb-[6px]"
+								style={{ color: FG }}
+							>
 								Neuland-Stammtisch
 							</Text>
-							<Text className="text-[16px] leading-[24px] text-gray-700 m-0">
+							<Text
+								className="text-[15px] leading-[22px] m-0"
+								style={{ color: "#404040" }}
+							>
 								Wir treffen uns regelmäßig zum Austausch über Coding, Tech und
 								mehr! Die Termine werden in der Signal-Gruppe angekündigt. Wir
 								würden uns sehr freuen, dich bald persönlich kennenzulernen!
 							</Text>
 						</Section>
 
-						<Hr className="border-t border-gray-200 my-[32px]" />
+						<Hr
+							className="my-[28px]"
+							style={{ borderColor: BORDER, borderTop: `1px solid ${BORDER}` }}
+						/>
 
-						<Text className="text-[16px] leading-[24px] text-gray-700 mb-[16px]">
+						<Text
+							className="text-[15px] leading-[22px] mb-[12px]"
+							style={{ color: "#404040" }}
+						>
 							Bis bald bei Neuland!
 						</Text>
 
-						<Text className="text-[16px] leading-[24px] text-gray-700 mb-[8px]">
+						<Text
+							className="text-[15px] leading-[22px] mb-[4px]"
+							style={{ color: "#404040" }}
+						>
 							Viele Grüße
 						</Text>
 
-						<Text className="text-[16px] leading-[24px] text-blue-500 font-bold m-0">
+						<Text
+							className="text-[15px] leading-[22px] font-semibold m-0"
+							style={{ color: BRAND_GREEN }}
+						>
 							Felix, Nico und Ronja
 						</Text>
 
-						<Section className="mt-[12px]">
-							<Hr className="border-t border-gray-200 my-[32px]" />
+						<Section className="mt-[24px]">
+							<Hr
+								className="my-[24px]"
+								style={{
+									borderColor: BORDER,
+									borderTop: `1px solid ${BORDER}`,
+								}}
+							/>
 
-							<Section className="bg-gray-100 p-[24px] rounded-[8px] border border-gray-200">
+							<Section
+								className="p-[20px]"
+								style={{
+									backgroundColor: AMBIENT,
+									border: `1px solid ${BORDER}`,
+								}}
+							>
 								<Row>
 									<Column>
 										<Img
 											src="https://neuland-ingolstadt.de/favicon.svg"
 											alt="Neuland Logo"
-											width="80"
+											width="48"
 											height="auto"
-											className="w-[80px] h-auto mb-[16px]"
+											className="w-[48px] h-auto mb-[12px]"
 										/>
 
-										<Text className="text-[16px] leading-[24px] text-gray-700 font-bold m-0 mb-[8px]">
+										<Text
+											className="text-[14px] leading-[20px] font-semibold m-0 mb-[6px]"
+											style={{ color: FG }}
+										>
 											Neuland Ingolstadt e.V.
 										</Text>
 
-										<Text className="text-[14px] leading-[22px] text-gray-600 m-0">
+										<Text
+											className="text-[13px] leading-[20px] m-0"
+											style={{ color: MUTED }}
+										>
 											Esplanade 10
 										</Text>
-										<Text className="text-[14px] leading-[22px] text-gray-600 m-0 mb-[16px]">
+										<Text
+											className="text-[13px] leading-[20px] m-0 mb-[12px]"
+											style={{ color: MUTED }}
+										>
 											85049 Ingolstadt
 										</Text>
 
-										<Text className="text-[14px] leading-[22px] text-gray-600 m-0">
+										<Text className="text-[13px] leading-[20px] m-0">
 											<Link
 												href="mailto:info@neuland-ingolstadt.de"
-												className="text-blue-500 no-underline hover:underline"
+												className="no-underline"
+												style={{ color: BRAND_GREEN }}
 											>
 												info@neuland-ingolstadt.de
 											</Link>
 										</Text>
 
-										<Hr className="border-t border-gray-200 my-[16px]" />
+										<Hr
+											className="my-[14px]"
+											style={{
+												borderColor: BORDER,
+												borderTop: `1px solid ${BORDER}`,
+											}}
+										/>
 
-										<Text className="text-[14px] leading-[22px] text-gray-600 m-0">
-											<span className="text-gray-500">Vorstände:</span> Felix
+										<Text
+											className="text-[13px] leading-[20px] m-0"
+											style={{ color: MUTED }}
+										>
+											<span style={{ color: "#888888" }}>Vorstände:</span> Felix
 											Weber, Nico Märtin, Ronja Meitz
 										</Text>
 
-										<Text className="text-[14px] leading-[22px] text-gray-600 m-0">
-											<span className="text-gray-500">Registergericht:</span>{" "}
+										<Text
+											className="text-[13px] leading-[20px] m-0"
+											style={{ color: MUTED }}
+										>
+											<span style={{ color: "#888888" }}>Registergericht:</span>{" "}
 											Amtsgericht Ingolstadt
 										</Text>
-										<Text className="text-[14px] leading-[22px] text-gray-600 m-0">
-											<span className="text-gray-500">Registernummer:</span> VR
-											201088
+										<Text
+											className="text-[13px] leading-[20px] m-0"
+											style={{ color: MUTED }}
+										>
+											<span style={{ color: "#888888" }}>Registernummer:</span>{" "}
+											VR 201088
 										</Text>
 									</Column>
 								</Row>
@@ -236,8 +407,8 @@ export function WelcomeEmail({
 						</Section>
 					</Container>
 
-					<Container className="max-w-[600px] mx-auto mt-[32px] text-center">
-						<Text className="text-[14px] text-gray-500 m-0">
+					<Container className="max-w-[600px] mx-auto mt-[24px] text-center">
+						<Text className="text-[13px] m-0" style={{ color: MUTED }}>
 							© {new Date().getFullYear()} Neuland Ingolstadt e.V. Alle Rechte
 							vorbehalten.
 						</Text>

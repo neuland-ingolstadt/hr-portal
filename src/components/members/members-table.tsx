@@ -22,7 +22,7 @@ import {
 	Search,
 	X,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -30,6 +30,7 @@ import { Input } from "#/components/ui/input";
 import {
 	groupBadgeVariant,
 	isRessortGroup,
+	partitionEditableGroups,
 	ressortLabelKey,
 	sortGroupsForDisplay,
 } from "#/lib/groups";
@@ -65,8 +66,19 @@ function initials(name: string): string {
 	return `${parts[0][0] ?? ""}${parts[parts.length - 1][0] ?? ""}`.toUpperCase();
 }
 
+/** Apply profile group edits without reintroducing list-omitted groups (e.g. Mitglieder). */
+function applyAssignableToMember(member: Member, nextGroups: string[]): Member {
+	const { readonly } = partitionEditableGroups(member.groups);
+	const { assignable } = partitionEditableGroups(nextGroups);
+	return {
+		...member,
+		groups: sortGroupsForDisplay([...readonly, ...assignable]),
+	};
+}
+
 export function MembersTable({ members, availableGroups }: MembersTableProps) {
 	const { t } = useI18n();
+	const [rows, setRows] = useState(members);
 	const [sorting, setSorting] = useState<SortingState>([
 		{ id: "name", desc: false },
 	]);
@@ -76,6 +88,10 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 	const [groupQuery, setGroupQuery] = useState("");
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [profileOpen, setProfileOpen] = useState(false);
+
+	useEffect(() => {
+		setRows(members);
+	}, [members]);
 
 	const openProfile = useCallback((id: string) => {
 		setProfileId(id);
@@ -87,23 +103,39 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 		if (!open) setProfileId(null);
 	}, []);
 
+	const applyGroupsChange = useCallback((id: string, groups: string[]) => {
+		setRows((current) =>
+			current.map((member) =>
+				member.id === id ? applyAssignableToMember(member, groups) : member,
+			),
+		);
+	}, []);
+
+	const filterGroups = useMemo(() => {
+		const names = new Set(availableGroups);
+		for (const member of rows) {
+			for (const group of member.groups) names.add(group);
+		}
+		return sortGroupsForDisplay([...names]);
+	}, [availableGroups, rows]);
+
 	const groupCounts = useMemo(() => {
 		const counts = new Map<string, number>();
-		for (const member of members) {
+		for (const member of rows) {
 			for (const group of member.groups) {
 				counts.set(group, (counts.get(group) ?? 0) + 1);
 			}
 		}
 		return counts;
-	}, [members]);
+	}, [rows]);
 
 	const visibleGroups = useMemo(() => {
 		const q = groupQuery.trim().toLowerCase();
 		const base = q
-			? availableGroups.filter((group) => group.toLowerCase().includes(q))
-			: availableGroups;
+			? filterGroups.filter((group) => group.toLowerCase().includes(q))
+			: filterGroups;
 		return sortGroupsForDisplay(base);
-	}, [availableGroups, groupQuery]);
+	}, [filterGroups, groupQuery]);
 
 	const columns = useMemo<ColumnDef<typeof features, Member>[]>(
 		() => [
@@ -186,7 +218,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 
 	const table = useTable({
 		features,
-		data: members,
+		data: rows,
 		columns,
 		state: { sorting, columnFilters },
 		onSortingChange: setSorting,
@@ -512,6 +544,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 				memberId={profileId}
 				open={profileOpen}
 				onOpenChange={handleProfileOpenChange}
+				onGroupsChange={applyGroupsChange}
 			/>
 		</>
 	);

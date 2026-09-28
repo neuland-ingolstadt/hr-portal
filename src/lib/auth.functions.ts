@@ -1,11 +1,7 @@
 import { redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import type { AppRole, SessionUser } from "#/lib/auth";
-import {
-	createMockSession,
-	getSessionUser,
-	requireAppAccess,
-} from "#/lib/auth.server";
+import { createMockSession, getSessionUser } from "#/lib/auth.server";
 import { serverConfig } from "#/lib/config";
 
 export const getCurrentUserFn = createServerFn({ method: "GET" }).handler(
@@ -26,14 +22,6 @@ export const getAuthStatusFn = createServerFn({ method: "GET" }).handler(
 					serverConfig.authentik.clientSecret,
 			),
 		};
-	},
-);
-
-/** Example protected server fn — every createServerFn that needs auth uses requireAppAccess. */
-export const getProtectedHomeFn = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const user = await requireAppAccess();
-		return { user };
 	},
 );
 

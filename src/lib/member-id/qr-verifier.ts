@@ -150,14 +150,13 @@ function parseCBOR(data: Uint8Array): QRPayload {
 	}
 
 	const decodedObj = decoded as Record<string, unknown>;
-	const { sub, name, iat, exp, t } = decodedObj;
+	const { sub, name: nameRaw, iat, exp, t } = decodedObj;
 
 	if (!sub || typeof sub !== "string") {
 		throw new Error("Missing or invalid 'sub' field");
 	}
-	if (!name || typeof name !== "string") {
-		throw new Error("Missing or invalid 'name' field");
-	}
+	const name =
+		typeof nameRaw === "string" && nameRaw.trim() ? nameRaw.trim() : undefined;
 	if (typeof iat !== "number") {
 		throw new Error("Missing or invalid 'iat' field");
 	}

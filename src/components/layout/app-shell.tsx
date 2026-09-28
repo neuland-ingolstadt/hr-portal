@@ -1,9 +1,9 @@
 import { Menu } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { AppSidebar } from "#/components/layout/app-sidebar";
+import { HelpSheet } from "#/components/layout/help-sheet";
 import {
 	KeyboardShortcuts,
-	KeyboardShortcutsHelpButton,
 	openKeyboardShortcutsHelp,
 } from "#/components/layout/keyboard-shortcuts";
 import { LegalFooter } from "#/components/layout/legal-footer";
@@ -72,13 +72,10 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 				/>
 			</div>
 
-			<MobileNavSheet
-				open={mobileOpen}
-				onOpenChange={setMobileOpen}
-				onOpenShortcuts={openKeyboardShortcutsHelp}
-			/>
+			<MobileNavSheet open={mobileOpen} onOpenChange={setMobileOpen} />
 
 			<KeyboardShortcuts onToggleSidebar={handleToggleSidebar} />
+			<HelpSheet />
 
 			<div className="flex min-h-screen min-w-0 flex-1 flex-col">
 				<header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-card px-4 md:hidden">
@@ -96,10 +93,6 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 					<span className="font-mono text-sm font-semibold tracking-wide">
 						Neuland HR
 					</span>
-					<KeyboardShortcutsHelpButton
-						onOpen={openKeyboardShortcutsHelp}
-						className="ml-auto"
-					/>
 				</header>
 
 				<main

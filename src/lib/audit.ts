@@ -5,6 +5,7 @@ export const AUDIT_ACTIONS = [
 	"member.create",
 	"member.groups.update",
 	"member.onboarding_stage.update",
+	"member.onboarding_contact.update",
 	"offboarding.revoke_mitglieder",
 	"offboarding.delete_account",
 ] as const;
@@ -28,8 +29,6 @@ export type AuditEvent = {
 	targetId: string | null;
 	/** Human-readable target (name, email, …). */
 	targetLabel: string | null;
-	success: boolean;
-	error: string | null;
 	meta: AuditMeta | null;
 };
 
@@ -46,6 +45,8 @@ export const AUDIT_ACTION_LABEL_KEYS = {
 	"member.groups.update": "audit.action.member.groups.update",
 	"member.onboarding_stage.update":
 		"audit.action.member.onboarding_stage.update",
+	"member.onboarding_contact.update":
+		"audit.action.member.onboarding_contact.update",
 	"offboarding.revoke_mitglieder": "audit.action.offboarding.revoke_mitglieder",
 	"offboarding.delete_account": "audit.action.offboarding.delete_account",
 } as const;

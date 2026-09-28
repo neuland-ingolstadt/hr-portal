@@ -1,33 +1,27 @@
 import { randomBytes } from "node:crypto";
+import { OnboardingContactAssignedEmail } from "#/emails/onboarding-contact-assigned";
 import { WelcomeEmail } from "#/emails/welcome";
-import { invalidateDirectoryCache } from "#/lib/authentik-members.server";
+import {
+	type AuthentikPaginated,
+	type AuthentikUser,
+	authentikAuthHeaders,
+	authentikFetch,
+	isAuthentikApiConfigured,
+	resolveAuthentikGroupIdByName,
+} from "#/lib/authentik-api.server";
+import {
+	invalidateDirectoryCache,
+	resolveOnboardingContactRecipient,
+} from "#/lib/authentik-members.server";
 import { sendEmail } from "#/lib/azure-email.server";
 import { serverConfig } from "#/lib/config";
 import type { CreateMemberResult, NewMemberInput } from "#/lib/onboarding";
-
-type AuthentikGroup = {
-	pk?: number | string;
-	name?: string;
-	group_uuid?: string;
-	uuid?: string;
-};
-
-type AuthentikUser = {
-	pk?: number;
-	uuid?: string;
-	name?: string;
-	username?: string;
-	email?: string;
-};
-
-type AuthentikPaginated<T> = {
-	results?: T[];
-};
+import { firstNameFromDisplayName } from "#/lib/onboarding";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Username slug matching membership-tools (`firstname.lastname`). */
-export function normalizeUsernamePart(text: string): string {
+function normalizeUsernamePart(text: string): string {
 	return text
 		.toLowerCase()
 		.replace(/prof\./gi, "")
@@ -60,81 +54,23 @@ function parseNewMemberInput(input: NewMemberInput): NewMemberInput | null {
 	return { firstName, lastName, email };
 }
 
-function isAuthentikApiConfigured(): boolean {
-	const { apiUrl, apiToken } = serverConfig.authentik;
-	return Boolean(apiUrl && apiToken);
-}
-
-function apiBase(): string {
-	return serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
-}
-
-function authHeaders(json = false): HeadersInit {
-	const headers: Record<string, string> = {
-		Authorization: `Bearer ${serverConfig.authentik.apiToken}`,
-		Accept: "application/json",
-	};
-	if (json) headers["Content-Type"] = "application/json";
-	return headers;
-}
-
-async function authentikFetch<T>(
-	path: string,
-	init?: RequestInit & { responseType?: "json" | "none" },
-): Promise<T> {
-	const url = `${apiBase()}${path}`;
-	const response = await fetch(url, init);
-	if (!response.ok) {
-		const detail = await response.text().catch(() => "");
-		throw new Error(
-			`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
-		);
-	}
-	if (init?.responseType === "none" || response.status === 204) {
-		return undefined as T;
-	}
-	return (await response.json()) as T;
-}
-
 async function getUserByUsername(
 	username: string,
 ): Promise<AuthentikUser | null> {
 	const body = await authentikFetch<AuthentikPaginated<AuthentikUser>>(
 		`/api/v3/core/users/?username=${encodeURIComponent(username)}&page_size=5`,
-		{ headers: authHeaders() },
+		{ headers: authentikAuthHeaders() },
 	);
 	return body.results?.[0] ?? null;
 }
 
-async function getGroupIdByName(name: string): Promise<string | null> {
-	const expected = name.trim().toLowerCase();
-	if (!expected) return null;
-
-	const body = await authentikFetch<AuthentikPaginated<AuthentikGroup>>(
-		`/api/v3/core/groups/?name=${encodeURIComponent(name)}&page_size=5`,
-		{ headers: authHeaders() },
-	);
-
-	const group =
-		body.results?.find(
-			(entry) => entry.name?.trim().toLowerCase() === expected,
-		) ?? body.results?.[0];
-	if (!group) return null;
-
-	return (
-		group.group_uuid ??
-		group.uuid ??
-		(group.pk != null ? String(group.pk) : null)
-	);
-}
-
 async function setUserPassword(
-	userPk: number,
+	userPk: number | string,
 	password: string,
 ): Promise<void> {
 	await authentikFetch(`/api/v3/core/users/${userPk}/set_password/`, {
 		method: "POST",
-		headers: authHeaders(true),
+		headers: authentikAuthHeaders(true),
 		body: JSON.stringify({ password }),
 		responseType: "none",
 	});
@@ -170,7 +106,8 @@ export async function createMemberAccount(
 
 		let groupId: string | undefined;
 		if (defaultGroupName) {
-			groupId = (await getGroupIdByName(defaultGroupName)) ?? undefined;
+			groupId =
+				(await resolveAuthentikGroupIdByName(defaultGroupName)) ?? undefined;
 			if (!groupId) {
 				console.warn(
 					`[onboarding] default group not found: ${defaultGroupName}`,
@@ -194,7 +131,7 @@ export async function createMemberAccount(
 
 		const created = await authentikFetch<AuthentikUser>("/api/v3/core/users/", {
 			method: "POST",
-			headers: authHeaders(true),
+			headers: authentikAuthHeaders(true),
 			body: JSON.stringify({
 				username,
 				name: `${user.firstName} ${user.lastName}`,
@@ -242,4 +179,51 @@ export async function createMemberAccount(
 		}
 		return { success: false, error: "create_failed" };
 	}
+}
+
+/**
+ * Privacy-minimal staff mail when Betreuung is assigned to someone else.
+ * Never throws — returns false when recipient/Azure is missing or send fails.
+ */
+export async function notifyOnboardingContactAssigned(input: {
+	contactId: string;
+	/** Mentee display name — only the first name is put in the mail. */
+	menteeDisplayName: string;
+	assignedByName: string;
+}): Promise<boolean> {
+	const recipient = await resolveOnboardingContactRecipient(input.contactId);
+	if (!recipient) {
+		console.warn("[onboarding.contact] notify skipped — no recipient email", {
+			contactId: input.contactId,
+		});
+		return false;
+	}
+
+	const onboardingUrl = new URL("/onboarding", serverConfig.appUrl).toString();
+	const mentorFirstName = firstNameFromDisplayName(recipient.name);
+	const menteeFirstName = firstNameFromDisplayName(input.menteeDisplayName);
+	const assignedByName =
+		input.assignedByName.trim() || "Jemand aus dem HR-Team";
+
+	const sent = await sendEmail(
+		{
+			address: recipient.email,
+			displayName: recipient.name,
+		},
+		"Neue Onboarding-Betreuung zugewiesen",
+		OnboardingContactAssignedEmail({
+			mentorFirstName,
+			menteeFirstName,
+			assignedByName,
+			onboardingUrl,
+		}),
+	);
+
+	if (!sent) {
+		console.warn("[onboarding.contact] notify email was not sent", {
+			contactId: input.contactId,
+		});
+	}
+
+	return sent;
 }

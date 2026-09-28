@@ -13,7 +13,6 @@ export type CreateMemberResult =
 	| { success: false; error: CreateMemberError };
 
 export type CreateMemberError =
-	| "unauthorized"
 	| "invalid_input"
 	| "authentik_api_missing"
 	| "username_exists"
@@ -44,6 +43,12 @@ export type OnboardingStageLabelKey =
 export const ONBOARDING_STAGE_ATTR = "onboardingStage" as const;
 
 /**
+ * Authentik attribute key for the HR/staff onboarding contact (Betreuung).
+ * Value is the contact's Authentik user UUID (OIDC `uuid` claim / user.uuid).
+ */
+export const ONBOARDING_CONTACT_ATTR = "onboardingContact" as const;
+
+/**
  * Parse / clamp an Authentik attribute value to 0–4.
  * Missing or invalid → 0 (new).
  */
@@ -68,6 +73,34 @@ export function isOnboardingStage(value: unknown): value is OnboardingStage {
 	);
 }
 
+/** Staff person as point of contact for a Mitglied's onboarding (Betreuung). */
+export type OnboardingContactRef = {
+	/** Authentik user UUID (OIDC `uuid` claim). */
+	id: string;
+	name: string;
+	username: string | null;
+};
+
+/**
+ * Parse Authentik contact id (UUID string).
+ * Missing / blank → null.
+ */
+export function parseOnboardingContactId(value: unknown): string | null {
+	if (typeof value !== "string") return null;
+	const id = value.trim();
+	return id.length > 0 ? id : null;
+}
+
+/** Match contact id against the viewer's Authentik UUID(s). */
+export function contactIdMatchesAnyViewer(
+	contactId: string | null | undefined,
+	viewerContactIds: readonly string[],
+): boolean {
+	if (!contactId || viewerContactIds.length === 0) return false;
+	const needle = contactId.trim().toLowerCase();
+	return viewerContactIds.some((id) => id.trim().toLowerCase() === needle);
+}
+
 /** MVP: Mitglieder whose Authentik account was created recently. */
 export type RecentOnboardingMember = {
 	id: string;
@@ -77,6 +110,12 @@ export type RecentOnboardingMember = {
 	dateJoined: string;
 	/** Human onboarding stage from Authentik `attributes.onboardingStage`. */
 	onboardingStage: OnboardingStage;
+	/** Contact Authentik UUID from `attributes.onboardingContact`. */
+	onboardingContactId: string | null;
+	/** Display name when resolved (e.g. after assign). */
+	onboardingContactName: string | null;
+	/** True when `onboardingContactId` matches the current session user. */
+	onboardingContactIsMe?: boolean;
 };
 
 export type RecentOnboardingMembersResult = {
@@ -84,6 +123,17 @@ export type RecentOnboardingMembersResult = {
 	/** Lookback window in weeks. */
 	weeks: number;
 	source: "authentik" | "mock";
+	/** Current viewer's Authentik user UUID(s) for the “mine” filter. */
+	viewerContactIds: string[];
+};
+
+export type OnboardingContactsResult = {
+	contacts: OnboardingContactRef[];
+	source: "authentik" | "mock";
+	/** Authentik UUID to store for “assign to me”. */
+	myContactId: string | null;
+	/** Same as `RecentOnboardingMembersResult.viewerContactIds`. */
+	viewerContactIds: string[];
 };
 
 export type UpdateMemberOnboardingStageError =
@@ -96,6 +146,32 @@ export type UpdateMemberOnboardingStageError =
 export type UpdateMemberOnboardingStageResult =
 	| { success: true; profile: MemberProfile }
 	| { success: false; error: UpdateMemberOnboardingStageError };
+
+export type UpdateMemberOnboardingContactError =
+	| "invalid_id"
+	| "invalid_contact"
+	| "user_not_found"
+	| "authentik_api_missing"
+	| "update_failed";
+
+export type UpdateMemberOnboardingContactResult =
+	| {
+			success: true;
+			profile: MemberProfile;
+			/**
+			 * Mentor notify attempt: `true` sent, `false` failed/skipped,
+			 * `null` not attempted (self-assign or clear).
+			 */
+			notifyEmailSent: boolean | null;
+	  }
+	| { success: false; error: UpdateMemberOnboardingContactError };
+
+/** First token of a display name — privacy-minimal mentee label in mail. */
+export function firstNameFromDisplayName(name: string): string {
+	const trimmed = name.trim();
+	if (!trimmed) return "Mitglied";
+	return trimmed.split(/\s+/)[0] ?? trimmed;
+}
 
 /** Default onboarding MVP lookback. */
 export const RECENT_ONBOARDING_WEEKS = 12;

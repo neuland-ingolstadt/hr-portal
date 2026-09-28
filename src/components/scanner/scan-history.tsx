@@ -19,23 +19,94 @@ function formatTime(timestamp: number, locale: string): string {
 	});
 }
 
+type DeduplicatedScan = {
+	name: string;
+	sub: string;
+	scannedAt: string;
+};
+
+/** Successful scans only, one entry per member (`sub`), oldest first. */
+function deduplicatedScans(entries: ScanHistoryEntry[]): DeduplicatedScan[] {
+	const seen = new Set<string>();
+	const scans: DeduplicatedScan[] = [];
+	for (const entry of [...entries].reverse()) {
+		if (!entry.success || seen.has(entry.sub)) continue;
+		seen.add(entry.sub);
+		scans.push({
+			name: entry.name,
+			sub: entry.sub,
+			scannedAt: new Date(entry.timestamp).toISOString(),
+		});
+	}
+	return scans;
+}
+
+function downloadText(filename: string, content: string, mime: string) {
+	const blob = new Blob([content], { type: mime });
+	const url = URL.createObjectURL(blob);
+	const anchor = document.createElement("a");
+	anchor.href = url;
+	anchor.download = filename;
+	anchor.click();
+	URL.revokeObjectURL(url);
+}
+
+function downloadScansJson(scans: DeduplicatedScan[]) {
+	downloadText(
+		"scan-history.json",
+		`${JSON.stringify(scans, null, 2)}\n`,
+		"application/json",
+	);
+}
+
+function downloadNamesMd(scans: DeduplicatedScan[]) {
+	const body =
+		scans.length === 0
+			? ""
+			: `${scans.map((scan) => `- ${scan.name}`).join("\n")}\n`;
+	downloadText("scan-names.md", body, "text/markdown");
+}
+
 export function ScanHistoryList({ entries, onClear }: ScanHistoryListProps) {
 	const { t, locale } = useI18n();
 
 	if (entries.length === 0) return null;
 
+	const scans = deduplicatedScans(entries);
+	const canDownload = scans.length > 0;
+
 	return (
 		<section className="surface-panel space-y-3 p-4 sm:p-5">
-			<div className="flex items-center justify-between gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2">
 				<p className="font-mono text-[0.65rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
 					{t("scanner.historyTitle")}
 					<span className="ml-2 font-normal normal-case tracking-normal">
 						({entries.length})
 					</span>
 				</p>
-				<Button type="button" variant="ghost" size="sm" onClick={onClear}>
-					{t("scanner.historyClear")}
-				</Button>
+				<div className="flex flex-wrap items-center gap-1">
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						disabled={!canDownload}
+						onClick={() => downloadScansJson(scans)}
+					>
+						{t("scanner.historyDownloadJson")}
+					</Button>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						disabled={!canDownload}
+						onClick={() => downloadNamesMd(scans)}
+					>
+						{t("scanner.historyDownloadMd")}
+					</Button>
+					<Button type="button" variant="ghost" size="sm" onClick={onClear}>
+						{t("scanner.historyClear")}
+					</Button>
+				</div>
 			</div>
 			<p className="text-xs text-muted-foreground">
 				{t("scanner.historyHint")}
@@ -67,7 +138,9 @@ export function ScanHistoryList({ entries, onClear }: ScanHistoryListProps) {
 							<span
 								className={cn(
 									"min-w-0 flex-1 truncate",
-									duplicate ? "text-white" : "text-foreground/80",
+									duplicate
+										? "text-sky-700 dark:text-sky-300"
+										: "text-foreground/80",
 								)}
 							>
 								{entry.name}

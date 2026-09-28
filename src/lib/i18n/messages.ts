@@ -35,6 +35,7 @@ const de = {
 	"audit.status.ok": "Erfolgreich",
 	"audit.status.failed": "Fehlgeschlagen",
 	"audit.targetNone": "—",
+	"audit.actorTarget": "von {actor} · {target}",
 	"audit.searchPlaceholder": "Akteur, Ziel oder Fehler suchen…",
 	"audit.filterAction": "Aktion",
 	"audit.filterActionAll": "Alle Aktionen",
@@ -46,6 +47,8 @@ const de = {
 	"audit.action.member.create": "Konto manuell angelegt",
 	"audit.action.member.groups.update": "Gruppen geändert",
 	"audit.action.member.onboarding_stage.update": "Onboarding-Stufe geändert",
+	"audit.action.member.onboarding_contact.update":
+		"Onboarding-Betreuung geändert",
 	"audit.action.offboarding.revoke_mitglieder": "Mitglieder-Rolle entfernt",
 	"audit.action.offboarding.delete_account": "Konto gelöscht",
 	"shortcuts.title": "Tastenkürzel",
@@ -54,7 +57,123 @@ const de = {
 	"shortcuts.sectionGo": "Gehe zu",
 	"shortcuts.focusSearch": "Suche fokussieren",
 	"shortcuts.toggleSidebar": "Seitenleiste umschalten",
-	"shortcuts.showHelp": "Tastenkürzel anzeigen",
+	"shortcuts.showHelp": "Hilfe öffnen",
+	"help.open": "Hilfe öffnen",
+	"help.sheetTitle": "Dokumentation",
+	"help.shortcutsCta": "Tastenkürzel anzeigen",
+	"help.home.title": "Portal-Überblick",
+	"help.home.lead":
+		"Kurzanleitung für das Neuland HR Portal: Rollen, Module und wo du was findest.",
+	"help.home.intro":
+		"Dieses Portal ist die Bedienoberfläche für Mitgliederverwaltung und HR-Abläufe. Authentik bleibt die einzige Quelle für Nutzer, Gruppen und Zugang: es gibt keine lokale Mitglieder-Datenbank. Was du siehst und tun darfst, hängt von deiner Authentik-Gruppenzugehörigkeit ab.",
+	"help.home.s1.heading": "Zugang und Rollen",
+	"help.home.s1.body":
+		"Zugang haben die Rollen HR, Vorstand und Admin. Die Zuordnung kommt aus konfigurierbaren Authentik-Gruppen. Admin hat im Portal dieselben Rechte wie Vorstand (elevated). Ohne passende Gruppe landest du auf der Seite „Kein Zugang“.",
+	"help.home.s2.heading": "Was HR nutzen kann",
+	"help.home.s2.body":
+		"HR sieht Home, Mitgliederverzeichnis, Scanner und Onboarding. Dort kannst du Profile öffnen, Onboarding-Stufen setzen und Ausweise scannen. Bewerbungen, Offboarding und Audit sind für HR nicht sichtbar und serverseitig gesperrt.",
+	"help.home.s3.heading": "Was Vorstand und Admin zusätzlich können",
+	"help.home.s3.body":
+		"Elevated-Rollen sehen zusätzlich Bewerbungen (EasyVerein annehmen), Offboarding (Mitglieder-Rolle entziehen und Konten löschen), das Audit-Log sowie E-Mail-Adressen im Verzeichnis und Ressort-Gruppen im Profil.",
+	"help.home.s4.heading": "Hilfe und Tastenkürzel",
+	"help.home.s4.body":
+		"Mit „?“ (Taste oder Knopf in der Kopfzeile) öffnest du diese Dokumentation zum aktuellen Modul. Die Tastenkürzel-Liste bleibt über das Tastatur-Symbol in der Seitenleiste erreichbar (z. B. „f“ für Suche und „g“ plus Buchstabe für Navigation).",
+	"help.members.title": "Mitglieder",
+	"help.members.lead":
+		"Authentik-Nutzer:innen durchsuchen, Profile öffnen und Onboarding-Fortschritt pflegen.",
+	"help.members.intro":
+		"Das Verzeichnis listet Nutzer:innen direkt aus Authentik. Es ist kein CRM und speichert keine eigenen Stammdaten. Änderungen an Gruppen oder Onboarding-Stufe schreiben zurück nach Authentik (Attribute bzw. Gruppenmitgliedschaft).",
+	"help.members.s1.heading": "Verzeichnis und Suche",
+	"help.members.s1.body":
+		"Filtere nach Name oder E-Mail. E-Mail-Adressen im Verzeichnis sieht nur Vorstand/Admin; HR arbeitet mit Namen und Gruppen. Ein Klick auf eine Zeile öffnet das Profil als Sheet von rechts.",
+	"help.members.s2.heading": "Profilinhalt",
+	"help.members.s2.body":
+		"Im Profil findest du Stammdaten, Gruppen (inkl. Ressorts), Connect-Integrationen und die Onboarding-Stufe. Wo vorhanden, ist die EasyVerein-Mitglieds-ID als Attribut hinterlegt: sie verknüpft Authentik mit EasyVerein für Offboarding und Annahme.",
+	"help.members.s3.heading": "Onboarding-Stufe",
+	"help.members.s3.body":
+		"Die Stufe (0–4) steuert die Gruppierung auf der Onboarding-Seite: neu, Gespräch, Projekt, engagiert, fertig. Du kannst sie hier im Profil oder auf der Onboarding-Karte setzen. Das ist ein menschlicher Fortschrittsmarker, keine Checkliste und keine automatische Queue.",
+	"help.members.s4.heading": "Gruppen bearbeiten",
+	"help.members.s4.body":
+		"Nur Vorstand/Admin können Ressort-Gruppen im Profil ändern. Geschützte Gruppen (u. a. HR, Vorstand, Admin, Ehrenmitglied, technical-users, mitglieder) dürfen über das Portal nicht verändert werden: das verhindert versehentliche Rechte- oder Mitgliedschaftsänderungen.",
+	"help.scanner.title": "Scanner",
+	"help.scanner.lead":
+		"Mitgliedsausweis-QR prüfen und bei Treffer das Profil öffnen.",
+	"help.scanner.intro":
+		"Der Scanner verifiziert signierte Member-IDs mit dem öffentlichen Schlüssel der Ausweis-Infrastruktur. Er dient der Kontrolle vor Ort (Events, Zugang), nicht der Bewerberannahme.",
+	"help.scanner.s1.heading": "Scannen",
+	"help.scanner.s1.body":
+		"Nutze die Kamera oder gib den Code manuell ein. Ohne ladbaren öffentlichen Schlüssel ist der Scanner nicht verfügbar: dann Schlüssel erneut laden bzw. die Konfiguration prüfen.",
+	"help.scanner.s2.heading": "Ergebnis",
+	"help.scanner.s2.body":
+		"Bei gültiger Signatur siehst du Name und Status. Stimmt der Eintrag mit einem Authentik-Nutzer überein, kannst du das Mitgliederprofil direkt öffnen.",
+	"help.scanner.s3.heading": "Lokale Historie",
+	"help.scanner.s3.body":
+		"Die Scan-Historie wird nur auf diesem Gerät im Browser gespeichert und nicht mit dem Server synchronisiert. Du kannst sie jederzeit leeren.",
+	"help.applications.title": "Bewerbungen",
+	"help.applications.lead":
+		"Offene EasyVerein-Anträge annehmen: Authentik-Konto, Willkommensmail und Mitgliedschaftsabschluss.",
+	"help.applications.intro":
+		"Diese Seite ist nur für Vorstand und Admin. Sie listet EasyVerein-Mitglieder mit is_application=true. Ablehnen ist im Portal noch nicht vorgesehen: dafür EasyVerein direkt nutzen.",
+	"help.applications.s1.heading": "Liste und Suche",
+	"help.applications.s1.body":
+		"Die Liste kommt live aus der EasyVerein-API. Suche nach Name oder E-Mail. Fehlt das API-Token, erscheint ein Konfigurationsfehler statt einer leeren Liste.",
+	"help.applications.s2.heading": "Antrag annehmen",
+	"help.applications.s2.body":
+		"Beim Annehmen legt das Portal zuerst den Authentik-Nutzer an (inkl. easyVereinMemberId), sendet die Willkommensmail und aktualisiert danach EasyVerein (Antrag schließen, Beitrittsdatum setzen falls fehlend). Schlägt EasyVerein nach erfolgreichem Authentik-Schritt fehl, bleibt der Hinweis zur manuellen Nacharbeit.",
+	"help.applications.s3.heading": "SEPA-Mandat",
+	"help.applications.s3.body":
+		"Ist eine IBAN vorhanden und noch kein SEPA-Mandat gesetzt, versucht das Portal nach der Annahme automatisch ein Mandat zu setzen (Datum = Antragsdatum oder heute, Referenz NL{memberId}-YYYYMMDD). Ein Fehler beim Mandat bricht die Annahme nicht ab: es erscheint nur ein Hinweis.",
+	"help.applications.s4.heading": "Manuell anlegen",
+	"help.applications.s4.body":
+		"Über „Manuell anlegen“ im Kopf kannst du in Sonderfällen ein Authentik-Konto ohne offenen EasyVerein-Antrag erzeugen (z. B. Altbestand). Der normale Weg für neue Mitglieder bleibt die Annahme aus dieser Liste.",
+	"help.onboarding.title": "Onboarding",
+	"help.onboarding.lead":
+		"Neue Authentik-Konten der letzten Wochen nach menschlichem Fortschritt gruppieren.",
+	"help.onboarding.intro":
+		"Onboarding ist kein Aufgaben-Queue und kein Checklisten-Workflow. Es zeigt Mitglieder mit Authentik-Konto der letzten 12 Wochen, gruppiert nach attributes.onboardingStage. Optional kannst du eine betreuende HR-/Staff-Person (attributes.onboardingContact) zuweisen. Neue Konten legst du bevorzugt über Bewerbungen an.",
+	"help.onboarding.s1.heading": "Zeitfenster und Karten",
+	"help.onboarding.s1.body":
+		"Nur Konten aus den letzten zwölf Wochen erscheinen hier. Die Karten sind nach Stufe gruppiert; der farbige Rand oben visualisiert den Fortschritt. Klick öffnet dasselbe Profil-Sheet wie im Mitgliederverzeichnis. Filter: alle / meine / ohne Betreuung.",
+	"help.onboarding.s2.heading": "Stufen 0–4",
+	"help.onboarding.s2.body":
+		"0 neu · 1 Gespräch · 2 Projekt · 3 engagiert · 4 fertig. Die Bedeutungen sind teamseitig festgelegt; das Portal speichert nur die Zahl in Authentik. Anpassen geht am Slider im Profil.",
+	"help.onboarding.s3.heading": "Betreuung zuweisen",
+	"help.onboarding.s3.body":
+		"Im Profil kannst du eine Person aus HR, Vorstand oder Admin als Ansprechpartner setzen (oder dich selbst). Das ist nur ein Kontakt-Hinweis — keine Aufgabenliste und keine Fristen. Die Zuweisung landet in Authentik und im Audit-Log.",
+	"help.onboarding.s4.heading": "Empfohlener Ablauf",
+	"help.onboarding.s4.body":
+		"Mitgliedsantrag in Bewerbungen annehmen → Person erscheint nach date_joined hier → Betreuung zuweisen → Stufe im Alltag fortschreiben. Manuelles Anlegen ist für Ausnahmen gedacht, nicht für den Standardprozess.",
+	"help.offboarding.title": "Offboarding",
+	"help.offboarding.lead":
+		"Zwei-Stufen-Pipeline in Authentik: Mitglieder-Rolle widerrufen, danach Konto löschen.",
+	"help.offboarding.intro":
+		"Nur Vorstand/Admin. EasyVerein wird nur lesend geprüft: Schreibzugriffe laufen nicht über diese Seite. Ziel ist, ausgetretene oder unverbundene Mitglieder-Konten kontrolliert aus Authentik zu entfernen, ohne fremde Nicht-Mitglieder-Konten zu treffen.",
+	"help.offboarding.s1.heading": "Stufe 1: Mitglieder widerrufen",
+	"help.offboarding.s1.body":
+		"Kandidaten sind Mitglieder-Konten ohne easyVereinMemberId oder mit verknüpfter EasyVerein-ID, die ausgetreten / gelöscht / nicht mehr auffindbar ist (inkl. Papierkorb-Snapshot, Cache ca. 5 Min.). Ein zukünftiges Austrittsdatum allein landet nur auf der Watchlist. Der Widerruf entfernt die Mitglieder-Gruppe und setzt attributes.membershipRevokedAt.",
+	"help.offboarding.s2.heading": "Stufe 2: Konto löschen",
+	"help.offboarding.s2.body":
+		"Löschkandidaten sind nur Konten mit gesetztem membershipRevokedAt. „Kein Mitglieder mehr“ allein reicht nicht: so werden zufällige Nicht-Mitglieder-Konten nicht gelöscht. Die Löschung ist unwiderruflich (Authentik DELETE).",
+	"help.offboarding.s3.heading": "Prozess starten",
+	"help.offboarding.s3.body":
+		"Der Button „Prozess starten“ läuft nicht automatisch beim Öffnen und nicht per Cron. Er widerruft fällige Stufe-1-Kandidaten und löscht Stufe-2-Konten nach Ablauf der Schonfrist (OFFBOARDING_DELETE_GRACE_DAYS, Standard 14 Tage). Pro Zeile bleiben Einzelaktionen verfügbar. Dich selbst kannst du nicht als Ziel wählen.",
+	"help.offboarding.s4.heading": "Sicherheit der Aktionen",
+	"help.offboarding.s4.body":
+		"Jede Mutation prüft erneut, ob die ID noch in der aktuellen Kandidatenmenge liegt. Watchlist-Einträge und beliebige IDs werden abgelehnt. Bestätigungsdialoge erklären die Folgen vor dem Ausführen.",
+	"help.audit.title": "Audit",
+	"help.audit.lead":
+		"Nachvollziehen, welche Person im Portal welche Aktion ausgelöst hat.",
+	"help.audit.intro":
+		"Technische Authentik-API-Aufrufe laufen mit dem Service-Token. Das Audit-Log speichert zusätzlich die OIDC-Session-Person als Akteur, damit du weißt, wer im Portal geklickt hat, nicht nur welches Systemkonto geschrieben hat.",
+	"help.audit.s1.heading": "Wer darf das sehen",
+	"help.audit.s1.body":
+		"Nur Vorstand und Admin. HR hat keinen Menüpunkt und keinen API-Zugang. Das Log ist append-only (JSONL) und kein Identitäts- oder Mitglieder-Store.",
+	"help.audit.s2.heading": "Welche Aktionen",
+	"help.audit.s2.body":
+		"Protokolliert werden u. a. Antrag annehmen, manuelles Konto anlegen, Gruppenänderungen, Onboarding-Stufe und -Betreuung sowie Offboarding-Widerruf und Kontolöschung. Filtere nach Aktionstyp oder suche nach Akteur und Ziel.",
+	"help.audit.s3.heading": "Betrieb",
+	"help.audit.s3.body":
+		"Die Datei liegt unter AUDIT_LOG_PATH (Standard data/audit.jsonl). In Produktion sollte der Pfad persistent gemountet sein. Zusätzlich werden [audit]-Zeilen nach stdout geschrieben.",
 	"footer.imprint": "Impressum",
 	"footer.privacy": "Datenschutz",
 	"footer.build": "Build",
@@ -89,13 +208,14 @@ const de = {
 	"home.openOnboarding": "Onboarding öffnen",
 	"home.signedInAs": "Angemeldet als {email}",
 	"home.statMembers": "Mitglieder",
-	"home.statGroups": "Gruppen",
-	"home.statAccess": "Dein Zugang",
+	"home.statRessort": "Mit Ressort",
+	"home.statOnboarding": "Im Onboarding",
 	"home.statMock": "Lokale Beispieldaten",
 	"home.statUnavailable": "Konnten gerade nicht geladen werden",
-	"home.statGroupsHint": "Im Verzeichnis",
-	"home.statAccessHint": "Deine aktuelle Rolle",
 	"home.statMembersHint": "Aktive Vereinsmitglieder",
+	"home.statRessortHint": "Mindestens ein Ressort zugewiesen",
+	"home.statOnboardingHint":
+		"Neue Konten (12 Wochen), noch nicht abgeschlossen",
 	"home.actionMembersTitle": "Mitglieder",
 	"home.actionMembersDesc":
 		"Mitgliederverzeichnis durchsuchen, filtern und sortieren.",
@@ -109,6 +229,9 @@ const de = {
 		"Mitglieder-Rollen entziehen und Authentik-Konten nach Austritt löschen.",
 	"home.profileHint":
 		"Profil und Rollen werden zentral über dein Neuland-Konto gesteuert.",
+	"home.pendingCount": "{count} offen",
+	"home.pendingCountZero": "Keine offenen",
+	"home.pendingCountUnavailable": "Anzahl unklar",
 	"applications.eyebrow": "Abläufe",
 	"applications.title": "Bewerbungen",
 	"applications.lead":
@@ -148,8 +271,19 @@ const de = {
 	"applications.acceptCancel": "Abbrechen",
 	"applications.acceptDone": "Schließen",
 	"applications.acceptSubmitting": "Wird angenommen…",
+	"applications.acceptSubmittingHint": "Das kann ein paar Sekunden dauern.",
+	"applications.acceptStepAccount": "Authentik-Konto wird angelegt…",
+	"applications.acceptStepEmail": "Willkommensmail wird gesendet…",
+	"applications.acceptStepEasyVerein": "EasyVerein wird aktualisiert…",
+	"applications.acceptStepSepa": "SEPA-Mandat wird gesetzt…",
 	"applications.acceptSuccess":
 		"Antrag angenommen. Konto „{username}“ wurde angelegt.",
+	"applications.acceptSepaNoIban":
+		"Kein IBAN: SEPA-Mandat wurde nicht gesetzt. Bitte in EasyVerein nachziehen.",
+	"applications.acceptSepaNoContact":
+		"Kein EasyVerein-Kontakt: SEPA-Mandat wurde nicht gesetzt.",
+	"applications.acceptSepaFailed":
+		"SEPA-Mandat konnte nicht gesetzt werden: bitte in EasyVerein nachziehen.",
 	"applications.manualCreate": "Konto manuell anlegen",
 	"applications.manualCreateTitle": "Konto manuell anlegen",
 	"applications.manualCreateLead":
@@ -167,12 +301,20 @@ const de = {
 	"onboarding.bulletTrack": "Fortschritt für HR & Vorstand",
 	"onboarding.recent.title": "Neu in den letzten {weeks} Wochen",
 	"onboarding.recent.lead":
-		"Mitglieder nach Authentik-Kontoanlage (date_joined). Klicke eine Karte fürs Profil.",
+		"Mitglieder nach Authentik-Kontoanlage. Klicke eine Karte fürs Profil.",
 	"onboarding.recent.joined": "Konto seit {date}",
+	"onboarding.recent.contact": "Betreuung: {name}",
+	"onboarding.recent.contactAssigned": "Betreut",
+	"onboarding.recent.contactNone": "Keine Betreuung",
 	"onboarding.recent.count": "{count} neu",
 	"onboarding.recent.empty":
 		"Keine neuen Mitgliederkonten in den letzten {weeks} Wochen.",
 	"onboarding.recent.loading": "Neue Mitglieder werden geladen…",
+	"onboarding.loadingHint":
+		"Neue Authentik-Konten der letzten Wochen — gruppiert nach Einstiegsfortschritt und Betreuung.",
+	"onboarding.loadingStepAccounts": "Neue Authentik-Konten werden geladen…",
+	"onboarding.loadingStepMitglieder": "Mitglieder-Gruppe wird abgeglichen…",
+	"onboarding.loadingStepStages": "Onboarding-Stufen werden aufgebaut…",
 	"onboarding.recent.mockHint":
 		"Lokale Mock-Daten — Authentik-API ist nicht konfiguriert.",
 	"onboarding.recent.errorApiMissing":
@@ -180,6 +322,11 @@ const de = {
 	"onboarding.recent.errorLoad":
 		"Neue Mitglieder konnten nicht geladen werden.",
 	"onboarding.recent.retry": "Erneut versuchen",
+	"onboarding.filter.label": "Nach Betreuung filtern",
+	"onboarding.filter.all": "Alle",
+	"onboarding.filter.mine": "Meine",
+	"onboarding.filter.unassigned": "Ohne Betreuung",
+	"onboarding.filter.empty": "Keine Einträge für diesen Filter.",
 	"onboarding.stage.new": "Neu",
 	"onboarding.stage.conversation": "Gespräch",
 	"onboarding.stage.project": "Projekt",
@@ -220,14 +367,14 @@ const de = {
 	"offboarding.lead":
 		"Austritte sauber abwickeln: Zugänge, Übergaben und Dokumentation.",
 	"offboarding.leadLive":
-		"Zwei Authentik-Schritte: Mitglieder-Gruppe entfernen, danach Konto nach Karenzfrist löschen. EasyVerein bleibt unverändert.",
+		"Zwei Authentik-Schritte: Mitglieder-Gruppe entfernen, danach Konto nach Schonfrist löschen. EasyVerein bleibt unverändert.",
 	"offboarding.process.title": "Fällige Aktionen ausführen",
 	"offboarding.process.lead":
 		"Entfernt die Mitglieder-Gruppe bei Konten mit wirksamem Austritt oder fehlender EasyVerein-ID. Löscht Konten, deren Zugang seit mindestens {days} Tagen entzogen ist. Zukünftige Austrittsdaten werden übersprungen.",
 	"offboarding.process.button": "Prozess starten",
 	"offboarding.process.running": "Prozess läuft…",
 	"offboarding.process.confirm":
-		"Mitglieder-Rollen bei fälligen Konten entfernen und Konten nach abgelaufener Karenz löschen?",
+		"Mitglieder-Rollen bei fälligen Konten entfernen und Konten nach abgelaufener Schonfrist löschen?",
 	"offboarding.process.result":
 		"{revoked} Rollen entfernt, {deleted} Konten gelöscht. Übersprungen (zukünftiger Austritt): {skipped}. Fehler: {errors}.",
 	"offboarding.process.error":
@@ -237,9 +384,9 @@ const de = {
 	"offboarding.process.nothingDue.leaving":
 		"{count} mit zukünftigem Austritt — Prozess greift erst am Austrittstag.",
 	"offboarding.process.nothingDue.grace":
-		"{count} warten noch auf die {days}-Tage-Karenz nach Entzug des Zugangs.",
+		"{count} warten noch auf die {days}-Tage-Schonfrist nach Entzug des Zugangs.",
 	"offboarding.process.nothingDue.both":
-		"{leaving} mit zukünftigem Austritt, {grace} noch in der {days}-Tage-Karenz — derzeit nichts fällig.",
+		"{leaving} mit zukünftigem Austritt, {grace} noch in der {days}-Tage-Schonfrist — derzeit nichts fällig.",
 	"offboarding.process.phaseRevoke": "Mitglieder-Rolle entfernen",
 	"offboarding.process.phaseDelete": "Konto löschen",
 	"offboarding.process.progressCount": "{done} von {total}",
@@ -255,6 +402,12 @@ const de = {
 	"offboarding.candidatesPrev": "Vorherige Seite",
 	"offboarding.candidatesNext": "Nächste Seite",
 	"offboarding.candidatesLoading": "Kandidaten werden geladen…",
+	"offboarding.loadingHint":
+		"Das kann etwas dauern: EasyVerein und Authentik werden abgeglichen.",
+	"offboarding.loadingStepAuthentik": "Authentik-Konten werden geladen…",
+	"offboarding.loadingStepEasyVerein":
+		"EasyVerein-Mitgliedschaften werden abgeglichen…",
+	"offboarding.loadingStepCandidates": "Offboarding-Listen werden aufgebaut…",
 	"offboarding.candidatesEmpty": "Keine Offboarding-Kandidaten gefunden.",
 	"offboarding.candidatesError":
 		"Kandidaten konnten nicht geladen werden. Bitte versuche es erneut.",
@@ -286,15 +439,15 @@ const de = {
 	"offboarding.stage2.badge": "Konto löschen",
 	"offboarding.stage2.title": "Authentik-Konto löschen",
 	"offboarding.stage2.lead":
-		"Nur Konten mit entzogenem Zugang. Löschung nach Karenz oder manuell.",
+		"Nur Konten mit entzogenem Zugang. Löschung nach Schonfrist oder manuell.",
 	"offboarding.stage2.irreversible": "Unwiderruflich: Konto wird gelöscht.",
 	"offboarding.stage2.listTitle": "Authentik-Konto löschen",
 	"offboarding.stage2.listLead":
-		"Nach Schritt 1. Prozess löscht erst nach Karenz; Einzelaktion jederzeit möglich.",
+		"Nach Schritt 1. Prozess löscht erst nach Schonfrist; Einzelaktion jederzeit möglich.",
 	"offboarding.stage2.empty": "Keine Einträge.",
 	"offboarding.action.revoke": "Rolle entfernen",
 	"offboarding.action.revokeWatchlist": "Erst nach Austrittsdatum möglich",
-	"offboarding.action.delete": "Löschen",
+	"offboarding.action.delete": "Konto löschen",
 	"offboarding.dialogCancel": "Abbrechen",
 	"offboarding.dialogDone": "Fertig",
 	"offboarding.revoke.title": "Mitglieder-Rolle entfernen",
@@ -404,11 +557,26 @@ const de = {
 	"profile.onboardingSave": "Stufe speichern",
 	"profile.onboardingSaving": "Wird gespeichert…",
 	"profile.onboardingSaved": "Onboarding-Stufe aktualisiert.",
+	"profile.onboardingContact": "Betreuung",
+	"profile.onboardingContactHint":
+		"Ansprechpartner aus HR, Vorstand oder Admin.",
+	"profile.onboardingContactNone": "Keine Betreuung",
+	"profile.onboardingContactAssignMe": "Mir zuweisen",
+	"profile.onboardingContactSaving": "Betreuung wird gespeichert…",
+	"profile.onboardingContactSaved": "Betreuung aktualisiert.",
+	"profile.onboardingContactNotified":
+		"Betreuung aktualisiert. Benachrichtigung gesendet.",
+	"profile.onboardingContactNotifyFailed":
+		"Betreuung aktualisiert. Benachrichtigung konnte nicht gesendet werden.",
 	"profile.errorOnboardingInvalid": "Ungültige Onboarding-Stufe.",
 	"profile.errorOnboardingNotFound": "Benutzer nicht gefunden.",
 	"profile.errorOnboardingApi": "Authentik-API ist nicht konfiguriert.",
 	"profile.errorOnboardingFailed":
 		"Onboarding-Stufe konnte nicht gespeichert werden.",
+	"profile.errorContactInvalid": "Ungültige Betreuungsperson.",
+	"profile.errorContactNotFound": "Benutzer nicht gefunden.",
+	"profile.errorContactApi": "Authentik-API ist nicht konfiguriert.",
+	"profile.errorContactFailed": "Betreuung konnte nicht gespeichert werden.",
 	"ressort.management": "Management",
 	"ressort.designMarketing": "Design & Marketing",
 	"ressort.engineering": "Engineering",
@@ -469,6 +637,8 @@ const de = {
 	"scanner.publicKeyRetry": "Schlüssel erneut laden",
 	"scanner.historyTitle": "Lokale Historie",
 	"scanner.historyHint": "Nur auf diesem Gerät gespeichert.",
+	"scanner.historyDownloadJson": "JSON",
+	"scanner.historyDownloadMd": "Markdown",
 	"scanner.historyClear": "Leeren",
 	"error.oauth_session_missing":
 		"Sitzung abgelaufen. Bitte melde dich erneut an.",
@@ -517,6 +687,7 @@ const en: Record<MessageKey, string> = {
 	"audit.status.ok": "Succeeded",
 	"audit.status.failed": "Failed",
 	"audit.targetNone": "—",
+	"audit.actorTarget": "by {actor} · {target}",
 	"audit.searchPlaceholder": "Search actor, target, or error…",
 	"audit.filterAction": "Action",
 	"audit.filterActionAll": "All actions",
@@ -528,6 +699,7 @@ const en: Record<MessageKey, string> = {
 	"audit.action.member.create": "Account created manually",
 	"audit.action.member.groups.update": "Groups updated",
 	"audit.action.member.onboarding_stage.update": "Onboarding stage updated",
+	"audit.action.member.onboarding_contact.update": "Onboarding contact updated",
 	"audit.action.offboarding.revoke_mitglieder": "Mitglieder role removed",
 	"audit.action.offboarding.delete_account": "Account deleted",
 	"shortcuts.title": "Keyboard shortcuts",
@@ -536,7 +708,122 @@ const en: Record<MessageKey, string> = {
 	"shortcuts.sectionGo": "Go to",
 	"shortcuts.focusSearch": "Focus search",
 	"shortcuts.toggleSidebar": "Toggle sidebar",
-	"shortcuts.showHelp": "Show keyboard shortcuts",
+	"shortcuts.showHelp": "Open help",
+	"help.open": "Open help",
+	"help.sheetTitle": "Documentation",
+	"help.shortcutsCta": "Show keyboard shortcuts",
+	"help.home.title": "Portal overview",
+	"help.home.lead":
+		"Quick guide to the Neuland HR portal: roles, modules, and where to find what.",
+	"help.home.intro":
+		"This portal is the UI for membership admin and HR workflows. Authentik remains the only source of truth for users, groups, and access: there is no local member database. What you see and can do depends on your Authentik group membership.",
+	"help.home.s1.heading": "Access and roles",
+	"help.home.s1.body":
+		"Access is granted to HR, board (Vorstand), and admin. Mapping comes from configurable Authentik groups. Admin has the same in-app permissions as board (elevated). Without a matching group you land on the no-access page.",
+	"help.home.s2.heading": "What HR can use",
+	"help.home.s2.body":
+		"HR sees home, the member directory, scanner, and onboarding. There you can open profiles, set onboarding stages, and scan IDs. Applications, offboarding, and audit are hidden from HR and blocked on the server.",
+	"help.home.s3.heading": "What board and admin get extra",
+	"help.home.s3.body":
+		"Elevated roles also see applications (accept EasyVerein), offboarding (revoke Mitglieder and delete accounts), the audit log, email addresses in the directory, and ressort group editing on profiles.",
+	"help.home.s4.heading": "Help and shortcuts",
+	"help.home.s4.body":
+		"Press “?” (key or the header button) to open this documentation for the current module. The keyboard-shortcut list stays available via the keyboard icon in the sidebar (e.g. “f” for search and “g” plus a letter for navigation).",
+	"help.members.title": "Members",
+	"help.members.lead":
+		"Browse Authentik users, open profiles, and keep onboarding progress up to date.",
+	"help.members.intro":
+		"The directory lists users directly from Authentik. It is not a CRM and does not store its own master data. Group or onboarding-stage changes write back to Authentik (attributes or group membership).",
+	"help.members.s1.heading": "Directory and search",
+	"help.members.s1.body":
+		"Filter by name or email. Email addresses in the directory are visible to board/admin only; HR works with names and groups. Click a row to open the profile as a sheet from the right.",
+	"help.members.s2.heading": "Profile contents",
+	"help.members.s2.body":
+		"The profile shows core data, groups (including ressorts), Connect integrations, and onboarding stage. When present, the EasyVerein member id is stored as an attribute: it links Authentik to EasyVerein for offboarding and accept.",
+	"help.members.s3.heading": "Onboarding stage",
+	"help.members.s3.body":
+		"The stage (0–4) controls grouping on the onboarding page: new, conversation, project, engaging, done. Set it here on the profile or on the onboarding card. It is a human progress marker, not a checklist and not an automated queue.",
+	"help.members.s4.heading": "Editing groups",
+	"help.members.s4.body":
+		"Only board/admin can change ressort groups on the profile. Protected groups (including HR, Vorstand, Admin, Ehrenmitglied, technical-users, mitglieder) cannot be changed through the portal: that prevents accidental privilege or membership changes.",
+	"help.scanner.title": "Scanner",
+	"help.scanner.lead":
+		"Verify membership-card QR codes and open the matching profile on a hit.",
+	"help.scanner.intro":
+		"The scanner verifies signed member IDs with the public key from the card infrastructure. It is for on-site checks (events, access), not for accepting applicants.",
+	"help.scanner.s1.heading": "Scanning",
+	"help.scanner.s1.body":
+		"Use the camera or enter the code manually. Without a loadable public key the scanner is unavailable: reload the key or check configuration.",
+	"help.scanner.s2.heading": "Result",
+	"help.scanner.s2.body":
+		"On a valid signature you see name and status. If the entry matches an Authentik user, you can open the member profile directly.",
+	"help.scanner.s3.heading": "Local history",
+	"help.scanner.s3.body":
+		"Scan history is stored only in this browser on this device and is not synced to the server. You can clear it at any time.",
+	"help.applications.title": "Applications",
+	"help.applications.lead":
+		"Accept open EasyVerein applications: Authentik account, welcome mail, and membership close-out.",
+	"help.applications.intro":
+		"This page is board/admin only. It lists EasyVerein members with is_application=true. Declining is not in the portal yet: use EasyVerein directly for that.",
+	"help.applications.s1.heading": "List and search",
+	"help.applications.s1.body":
+		"The list comes live from the EasyVerein API. Search by name or email. If the API token is missing, you get a configuration error instead of an empty list.",
+	"help.applications.s2.heading": "Accepting an application",
+	"help.applications.s2.body":
+		"On accept the portal first creates the Authentik user (including easyVereinMemberId), sends the welcome mail, then updates EasyVerein (close application, set join date if missing). If EasyVerein fails after a successful Authentik create, you get a hint to finish manually.",
+	"help.applications.s3.heading": "SEPA mandate",
+	"help.applications.s3.body":
+		"When an IBAN is present and no SEPA mandate is set yet, the portal tries to set a mandate after accept (date = application date or today, reference NL{memberId}-YYYYMMDD). A mandate failure does not roll back accept: you only see an alert.",
+	"help.applications.s4.heading": "Manual create",
+	"help.applications.s4.body":
+		"“Manual create” in the header lets you create an Authentik account without an open EasyVerein application (e.g. legacy cases). The normal path for new members remains accepting from this list.",
+	"help.onboarding.title": "Onboarding",
+	"help.onboarding.lead":
+		"Group recent Authentik accounts by human progress over the last weeks.",
+	"help.onboarding.intro":
+		"Onboarding is not a task queue and not a checklist workflow. It shows members whose Authentik account was created in the last 12 weeks, grouped by attributes.onboardingStage. Optionally assign a staff contact (attributes.onboardingContact). Prefer creating new accounts via Applications.",
+	"help.onboarding.s1.heading": "Time window and cards",
+	"help.onboarding.s1.body":
+		"Only accounts from the last twelve weeks appear here. Cards are grouped by stage; the top colour edge visualises progress. Click opens the same profile sheet as in the member directory. Filters: all / mine / unassigned.",
+	"help.onboarding.s2.heading": "Stages 0–4",
+	"help.onboarding.s2.body":
+		"0 new · 1 conversation · 2 project · 3 engaging · 4 done. Meanings are defined by the team; the portal only stores the number in Authentik. Adjust via the slider on the profile.",
+	"help.onboarding.s3.heading": "Assign a contact",
+	"help.onboarding.s3.body":
+		"On the profile you can set someone from HR, board, or admin as the point of contact (or assign yourself). This is contact metadata only — not a task list and not due dates. The assignment is stored in Authentik and written to the audit log.",
+	"help.onboarding.s4.heading": "Recommended flow",
+	"help.onboarding.s4.body":
+		"Accept the application under Applications → the person appears here after date_joined → assign a contact → advance the stage in day-to-day work. Manual create is for exceptions, not the default process.",
+	"help.offboarding.title": "Offboarding",
+	"help.offboarding.lead":
+		"Two-step Authentik pipeline: revoke the Mitglieder role, then delete the account.",
+	"help.offboarding.intro":
+		"Board/admin only. EasyVerein is checked read-only: this page does not write to EasyVerein. The goal is to remove left or unlinked member accounts from Authentik in a controlled way without touching unrelated non-member accounts.",
+	"help.offboarding.s1.heading": "Stage 1: revoke Mitglieder",
+	"help.offboarding.s1.body":
+		"Candidates are member accounts without easyVereinMemberId, or with a linked EasyVerein id that has left / been deleted / is missing (including wastebasket snapshot, ~5 min cache). A future resignation date alone stays on the watchlist. Revoke removes the Mitglieder group and sets attributes.membershipRevokedAt.",
+	"help.offboarding.s2.heading": "Stage 2: delete account",
+	"help.offboarding.s2.body":
+		"Delete candidates are only accounts with membershipRevokedAt set. “No longer Mitglieder” alone is not enough: that keeps random non-member accounts safe. Deletion is permanent (Authentik DELETE).",
+	"help.offboarding.s3.heading": "Start process",
+	"help.offboarding.s3.body":
+		"“Start process” does not run on page load and is not a cron job. It revokes due stage-1 candidates and deletes stage-2 accounts after the grace period (OFFBOARDING_DELETE_GRACE_DAYS, default 14). Per-row actions remain available. You cannot target yourself.",
+	"help.offboarding.s4.heading": "Action safety",
+	"help.offboarding.s4.body":
+		"Every mutation re-checks that the id is still in the current candidate set. Watchlist rows and arbitrary ids are rejected. Confirmation dialogs explain the consequences before running.",
+	"help.audit.title": "Audit",
+	"help.audit.lead": "See which person in the portal triggered which action.",
+	"help.audit.intro":
+		"Technical Authentik API calls use the service token. The audit log also records the OIDC session user as actor, so you know who clicked in the portal, not only which system account wrote the change.",
+	"help.audit.s1.heading": "Who can see it",
+	"help.audit.s1.body":
+		"Board and admin only. HR has no nav entry and no API access. The log is append-only (JSONL) and is not an identity or member store.",
+	"help.audit.s2.heading": "Which actions",
+	"help.audit.s2.body":
+		"Logged items include accepting applications, manual account create, group changes, onboarding-stage and contact updates, and offboarding revoke/delete. Filter by action type or search actor and target.",
+	"help.audit.s3.heading": "Operations",
+	"help.audit.s3.body":
+		"The file lives at AUDIT_LOG_PATH (default data/audit.jsonl). In production the path should be on a persistent volume. The app also emits [audit] lines to stdout.",
 	"footer.imprint": "Legal notice",
 	"footer.privacy": "Privacy",
 	"footer.build": "Build",
@@ -570,13 +857,13 @@ const en: Record<MessageKey, string> = {
 	"home.openOnboarding": "Open onboarding",
 	"home.signedInAs": "Signed in as {email}",
 	"home.statMembers": "Members",
-	"home.statGroups": "Groups",
-	"home.statAccess": "Your access",
+	"home.statRessort": "With ressort",
+	"home.statOnboarding": "In onboarding",
 	"home.statMock": "Local sample data",
 	"home.statUnavailable": "Could not be loaded right now",
-	"home.statGroupsHint": "In the directory",
-	"home.statAccessHint": "Your current role",
 	"home.statMembersHint": "Active club members",
+	"home.statRessortHint": "Assigned to at least one ressort",
+	"home.statOnboardingHint": "New accounts (12 weeks), not yet done",
 	"home.actionMembersTitle": "Members",
 	"home.actionMembersDesc": "Search, filter, and sort the members directory.",
 	"home.moduleOnboardingTitle": "Onboarding",
@@ -589,6 +876,9 @@ const en: Record<MessageKey, string> = {
 		"Revoke Mitglieder roles and delete Authentik accounts after departure.",
 	"home.profileHint":
 		"Profile and roles are managed centrally through your Neuland account.",
+	"home.pendingCount": "{count} open",
+	"home.pendingCountZero": "None open",
+	"home.pendingCountUnavailable": "Count unavailable",
 	"applications.eyebrow": "Workflows",
 	"applications.title": "Applications",
 	"applications.lead":
@@ -628,8 +918,19 @@ const en: Record<MessageKey, string> = {
 	"applications.acceptCancel": "Cancel",
 	"applications.acceptDone": "Close",
 	"applications.acceptSubmitting": "Accepting…",
+	"applications.acceptSubmittingHint": "This can take a few seconds.",
+	"applications.acceptStepAccount": "Creating Authentik account…",
+	"applications.acceptStepEmail": "Sending welcome email…",
+	"applications.acceptStepEasyVerein": "Updating EasyVerein…",
+	"applications.acceptStepSepa": "Setting SEPA mandate…",
 	"applications.acceptSuccess":
 		"Application accepted. Account “{username}” was created.",
+	"applications.acceptSepaNoIban":
+		"No IBAN: SEPA mandate was not set. Please finish that step in EasyVerein.",
+	"applications.acceptSepaNoContact":
+		"No EasyVerein contact: SEPA mandate was not set.",
+	"applications.acceptSepaFailed":
+		"SEPA mandate could not be set: please finish that step in EasyVerein.",
 	"applications.manualCreate": "Create account manually",
 	"applications.manualCreateTitle": "Create account manually",
 	"applications.manualCreateLead":
@@ -647,18 +948,31 @@ const en: Record<MessageKey, string> = {
 	"onboarding.bulletTrack": "Progress for HR & board",
 	"onboarding.recent.title": "New in the last {weeks} weeks",
 	"onboarding.recent.lead":
-		"Members by Authentik account creation (date_joined). Click a card for the profile.",
+		"Members by Authentik account creation. Click a card for the profile.",
 	"onboarding.recent.joined": "Account since {date}",
+	"onboarding.recent.contact": "Contact: {name}",
+	"onboarding.recent.contactAssigned": "Has contact",
+	"onboarding.recent.contactNone": "No contact",
 	"onboarding.recent.count": "{count} new",
 	"onboarding.recent.empty":
 		"No new member accounts in the last {weeks} weeks.",
 	"onboarding.recent.loading": "Loading new members…",
+	"onboarding.loadingHint":
+		"Recent Authentik accounts from the last weeks — grouped by onboarding progress and contact.",
+	"onboarding.loadingStepAccounts": "Loading recent Authentik accounts…",
+	"onboarding.loadingStepMitglieder": "Matching the Mitglieder group…",
+	"onboarding.loadingStepStages": "Building the onboarding stages…",
 	"onboarding.recent.mockHint":
 		"Local mock data — Authentik API is not configured.",
 	"onboarding.recent.errorApiMissing":
 		"Authentik API is not configured. Cannot load new members.",
 	"onboarding.recent.errorLoad": "Could not load new members.",
 	"onboarding.recent.retry": "Try again",
+	"onboarding.filter.label": "Filter by contact",
+	"onboarding.filter.all": "All",
+	"onboarding.filter.mine": "Mine",
+	"onboarding.filter.unassigned": "Unassigned",
+	"onboarding.filter.empty": "No entries for this filter.",
 	"onboarding.stage.new": "New",
 	"onboarding.stage.conversation": "Talk",
 	"onboarding.stage.project": "Project",
@@ -733,6 +1047,11 @@ const en: Record<MessageKey, string> = {
 	"offboarding.candidatesPrev": "Previous page",
 	"offboarding.candidatesNext": "Next page",
 	"offboarding.candidatesLoading": "Loading candidates…",
+	"offboarding.loadingHint":
+		"This can take a while: we cross-check EasyVerein with Authentik.",
+	"offboarding.loadingStepAuthentik": "Loading Authentik accounts…",
+	"offboarding.loadingStepEasyVerein": "Reconciling EasyVerein memberships…",
+	"offboarding.loadingStepCandidates": "Building offboarding lists…",
 	"offboarding.candidatesEmpty": "No offboarding candidates found.",
 	"offboarding.candidatesError":
 		"Candidates could not be loaded. Please try again.",
@@ -773,7 +1092,7 @@ const en: Record<MessageKey, string> = {
 	"offboarding.stage2.empty": "No entries.",
 	"offboarding.action.revoke": "Remove role",
 	"offboarding.action.revokeWatchlist": "Available after leave date",
-	"offboarding.action.delete": "Delete",
+	"offboarding.action.delete": "Delete account",
 	"offboarding.dialogCancel": "Cancel",
 	"offboarding.dialogDone": "Done",
 	"offboarding.revoke.title": "Remove Mitglieder role",
@@ -879,10 +1198,23 @@ const en: Record<MessageKey, string> = {
 	"profile.onboardingSave": "Save stage",
 	"profile.onboardingSaving": "Saving…",
 	"profile.onboardingSaved": "Onboarding stage updated.",
+	"profile.onboardingContact": "Contact",
+	"profile.onboardingContactHint": "Point of contact from HR, board, or admin.",
+	"profile.onboardingContactNone": "No contact",
+	"profile.onboardingContactAssignMe": "Assign to me",
+	"profile.onboardingContactSaving": "Saving contact…",
+	"profile.onboardingContactSaved": "Contact updated.",
+	"profile.onboardingContactNotified": "Contact updated. Notification sent.",
+	"profile.onboardingContactNotifyFailed":
+		"Contact updated. Notification could not be sent.",
 	"profile.errorOnboardingInvalid": "Invalid onboarding stage.",
 	"profile.errorOnboardingNotFound": "User not found.",
 	"profile.errorOnboardingApi": "Authentik API is not configured.",
 	"profile.errorOnboardingFailed": "Onboarding stage could not be saved.",
+	"profile.errorContactInvalid": "Invalid onboarding contact.",
+	"profile.errorContactNotFound": "User not found.",
+	"profile.errorContactApi": "Authentik API is not configured.",
+	"profile.errorContactFailed": "Onboarding contact could not be saved.",
 	"ressort.management": "Management",
 	"ressort.designMarketing": "Design & Marketing",
 	"ressort.engineering": "Engineering",
@@ -939,6 +1271,8 @@ const en: Record<MessageKey, string> = {
 	"scanner.publicKeyRetry": "Reload key",
 	"scanner.historyTitle": "Local history",
 	"scanner.historyHint": "Stored only on this device.",
+	"scanner.historyDownloadJson": "JSON",
+	"scanner.historyDownloadMd": "Markdown",
 	"scanner.historyClear": "Clear",
 	"error.oauth_session_missing": "Session expired. Please sign in again.",
 	"error.id_token_missing_sub": "Sign-in incomplete. Please try again.",

@@ -28,6 +28,10 @@ export const Route = createRootRoute({
 			},
 			{ title: "Neuland HR" },
 			{
+				name: "robots",
+				content: "noindex, nofollow, noarchive, nosnippet",
+			},
+			{
 				name: "theme-color",
 				content: "#020302",
 				media: "(prefers-color-scheme: dark)",
@@ -42,7 +46,12 @@ export const Route = createRootRoute({
 				content: "Internes HR-Portal der Neuland Ingolstadt e.V.",
 			},
 		],
-		links: [{ rel: "stylesheet", href: appCss }],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{ rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+			{ rel: "icon", href: "/favicon.ico", sizes: "any" },
+			{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+		],
 	}),
 	component: RootComponent,
 	shellComponent: RootDocument,

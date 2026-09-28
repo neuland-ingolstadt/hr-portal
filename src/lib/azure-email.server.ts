@@ -32,6 +32,7 @@ export async function sendEmail(
 		render(body, { plainText: true }),
 	]);
 
+	// No Reply-To — transactional mail; replies are not wanted.
 	const message: EmailMessage = {
 		senderAddress,
 		content: { subject, html, plainText },
@@ -43,6 +44,7 @@ export async function sendEmail(
 				},
 			],
 		},
+		replyTo: [],
 	};
 
 	try {

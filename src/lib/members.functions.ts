@@ -6,8 +6,6 @@ import {
 	getDirectoryStatsFromAuthentik,
 	getMemberProfileByUuid,
 	listMembersFromAuthentik,
-	listNonMitgliederAccountsFromAuthentik,
-	updateMemberOnboardingStage,
 } from "#/lib/authentik-members.server";
 import {
 	type UpdateMemberGroupsResult,
@@ -17,12 +15,8 @@ import type {
 	DirectoryStats,
 	MemberProfileResult,
 	MembersResult,
-	OffboardingCandidatesResult,
 } from "#/lib/members";
-import {
-	isOnboardingStage,
-	type UpdateMemberOnboardingStageResult,
-} from "#/lib/onboarding";
+import { requireNonEmptyStringField } from "#/lib/server-fn-validators";
 
 export const listMembersFn = createServerFn({ method: "GET" }).handler(
 	async (): Promise<MembersResult> => {
@@ -30,13 +24,6 @@ export const listMembersFn = createServerFn({ method: "GET" }).handler(
 		return listMembersFromAuthentik();
 	},
 );
-
-export const listOffboardingCandidatesFn = createServerFn({
-	method: "GET",
-}).handler(async (): Promise<OffboardingCandidatesResult> => {
-	await requireElevatedAccess();
-	return listNonMitgliederAccountsFromAuthentik();
-});
 
 export const getDirectoryStatsFn = createServerFn({ method: "GET" }).handler(
 	async (): Promise<DirectoryStats> => {
@@ -46,12 +33,7 @@ export const getDirectoryStatsFn = createServerFn({ method: "GET" }).handler(
 );
 
 export const getMemberProfileFn = createServerFn({ method: "GET" })
-	.validator((data: { id: string }) => {
-		if (!data?.id || typeof data.id !== "string" || !data.id.trim()) {
-			throw new Error("invalid_id");
-		}
-		return { id: data.id.trim() };
-	})
+	.validator((data: { id: string }) => requireNonEmptyStringField(data, "id"))
 	.handler(async ({ data }): Promise<MemberProfileResult> => {
 		const user = await requireAppAccess();
 		return getMemberProfileByUuid(data.id, {
@@ -61,9 +43,7 @@ export const getMemberProfileFn = createServerFn({ method: "GET" })
 
 export const updateMemberGroupsFn = createServerFn({ method: "POST" })
 	.validator((data: { id: string; groups: string[] }) => {
-		if (!data?.id || typeof data.id !== "string" || !data.id.trim()) {
-			throw new Error("invalid_id");
-		}
+		const { id } = requireNonEmptyStringField(data, "id");
 		if (!Array.isArray(data.groups)) {
 			throw new Error("invalid_groups");
 		}
@@ -71,48 +51,21 @@ export const updateMemberGroupsFn = createServerFn({ method: "POST" })
 			(group): group is string =>
 				typeof group === "string" && group.trim().length > 0,
 		);
-		return { id: data.id.trim(), groups };
+		return { id, groups };
 	})
 	.handler(async ({ data }): Promise<UpdateMemberGroupsResult> => {
 		const actor = await requireElevatedAccess();
 		const result = await updateMemberAssignableGroups(data.id, data.groups, {
 			includeEmail: true,
 		});
-		recordAudit({
-			actor,
-			action: "member.groups.update",
-			targetId: data.id,
-			targetLabel: result.success ? result.profile.name : null,
-			success: result.success,
-			error: result.success ? null : result.error,
-			meta: { groups: data.groups },
-		});
-		return result;
-	});
-
-export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
-	.validator((data: { id: string; stage: number }) => {
-		if (!data?.id || typeof data.id !== "string" || !data.id.trim()) {
-			throw new Error("invalid_id");
+		if (result.success) {
+			recordAudit({
+				actor,
+				action: "member.groups.update",
+				targetId: data.id,
+				targetLabel: result.profile.name,
+				meta: { groups: data.groups },
+			});
 		}
-		if (!isOnboardingStage(data.stage)) {
-			throw new Error("invalid_stage");
-		}
-		return { id: data.id.trim(), stage: data.stage };
-	})
-	.handler(async ({ data }): Promise<UpdateMemberOnboardingStageResult> => {
-		const user = await requireAppAccess();
-		const result = await updateMemberOnboardingStage(data.id, data.stage, {
-			includeEmail: hasElevatedAccess(user.roles),
-		});
-		recordAudit({
-			actor: user,
-			action: "member.onboarding_stage.update",
-			targetId: data.id,
-			targetLabel: result.success ? result.profile.name : null,
-			success: result.success,
-			error: result.success ? null : result.error,
-			meta: { stage: data.stage },
-		});
 		return result;
 	});

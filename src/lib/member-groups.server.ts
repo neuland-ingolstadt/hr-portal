@@ -1,4 +1,11 @@
 import {
+	authentikAuthHeaders,
+	authentikFetch,
+	isAuthentikApiConfigured,
+	resolveAuthentikGroupIdByName,
+	resolveAuthentikUserByUuidOrPk,
+} from "#/lib/authentik-api.server";
+import {
 	getMemberProfileByUuid,
 	invalidateDirectoryCache,
 	mockUpdateMemberAssignableGroups,
@@ -15,115 +22,9 @@ import type { MemberProfile } from "#/lib/members";
 
 export type { UpdateMemberGroupsError };
 
-type AuthentikPaginated<T> = {
-	results?: T[];
-};
-
-type AuthentikGroup = {
-	pk?: number | string;
-	name?: string;
-	group_uuid?: string;
-	uuid?: string;
-};
-
-type AuthentikUser = {
-	pk?: number;
-	uuid?: string;
-	name?: string;
-	username?: string;
-};
-
-const UUID_RE =
-	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export type UpdateMemberGroupsResult =
 	| { success: true; profile: MemberProfile }
 	| { success: false; error: UpdateMemberGroupsError };
-
-function isAuthentikApiConfigured(): boolean {
-	const { apiUrl, apiToken } = serverConfig.authentik;
-	return Boolean(apiUrl && apiToken);
-}
-
-function apiBase(): string {
-	return serverConfig.authentik.apiUrl?.replace(/\/$/, "") ?? "";
-}
-
-function authHeaders(json = false): HeadersInit {
-	const headers: Record<string, string> = {
-		Authorization: `Bearer ${serverConfig.authentik.apiToken}`,
-		Accept: "application/json",
-	};
-	if (json) headers["Content-Type"] = "application/json";
-	return headers;
-}
-
-async function authentikFetch<T>(
-	path: string,
-	init?: RequestInit & { responseType?: "json" | "none" },
-): Promise<T> {
-	const response = await fetch(`${apiBase()}${path}`, init);
-	if (!response.ok) {
-		const detail = await response.text().catch(() => "");
-		throw new Error(
-			`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
-		);
-	}
-	if (init?.responseType === "none" || response.status === 204) {
-		return undefined as T;
-	}
-	return (await response.json()) as T;
-}
-
-async function resolveUser(id: string): Promise<AuthentikUser | null> {
-	const sub = id.trim();
-	if (!sub) return null;
-
-	if (UUID_RE.test(sub)) {
-		const body = await authentikFetch<AuthentikPaginated<AuthentikUser>>(
-			`/api/v3/core/users/?uuid=${encodeURIComponent(sub)}&page_size=5`,
-			{ headers: authHeaders() },
-		);
-		return (
-			body.results?.find((entry) => entry.uuid === sub) ??
-			body.results?.[0] ??
-			null
-		);
-	}
-
-	try {
-		return await authentikFetch<AuthentikUser>(
-			`/api/v3/core/users/${encodeURIComponent(sub)}/`,
-			{ headers: authHeaders() },
-		);
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		if (message.includes("→ 404")) return null;
-		throw error;
-	}
-}
-
-async function resolveGroupIdByName(name: string): Promise<string | null> {
-	const expected = name.trim().toLowerCase();
-	if (!expected) return null;
-
-	const body = await authentikFetch<AuthentikPaginated<AuthentikGroup>>(
-		`/api/v3/core/groups/?name=${encodeURIComponent(name)}&page_size=5`,
-		{ headers: authHeaders() },
-	);
-
-	const group =
-		body.results?.find(
-			(entry) => entry.name?.trim().toLowerCase() === expected,
-		) ?? body.results?.[0];
-	if (!group) return null;
-
-	return (
-		group.group_uuid ??
-		group.uuid ??
-		(group.pk != null ? String(group.pk) : null)
-	);
-}
 
 function parseDesiredAssignable(
 	groups: string[],
@@ -158,13 +59,13 @@ function parseDesiredAssignable(
 
 async function setGroupMembership(
 	groupId: string,
-	userPk: number,
+	userPk: number | string,
 	action: "add" | "remove",
 ): Promise<void> {
 	const endpoint = action === "add" ? "add_user" : "remove_user";
 	await authentikFetch(`/api/v3/core/groups/${groupId}/${endpoint}/`, {
 		method: "POST",
-		headers: authHeaders(true),
+		headers: authentikAuthHeaders(true),
 		body: JSON.stringify({ pk: userPk }),
 		responseType: "none",
 	});
@@ -204,7 +105,7 @@ export async function updateMemberAssignableGroups(
 	}
 
 	try {
-		const user = await resolveUser(id);
+		const user = await resolveAuthentikUserByUuidOrPk(id);
 		if (!user || user.pk == null) {
 			return { success: false, error: "user_not_found" };
 		}
@@ -246,7 +147,7 @@ export async function updateMemberAssignableGroups(
 			if (isProtectedGroupName(groupName)) {
 				return { success: false, error: "protected_group" };
 			}
-			const groupId = await resolveGroupIdByName(groupName);
+			const groupId = await resolveAuthentikGroupIdByName(groupName);
 			if (!groupId) {
 				return { success: false, error: "group_not_found" };
 			}
@@ -257,7 +158,7 @@ export async function updateMemberAssignableGroups(
 			if (isProtectedGroupName(groupName)) {
 				return { success: false, error: "protected_group" };
 			}
-			const groupId = await resolveGroupIdByName(groupName);
+			const groupId = await resolveAuthentikGroupIdByName(groupName);
 			if (!groupId) {
 				return { success: false, error: "group_not_found" };
 			}

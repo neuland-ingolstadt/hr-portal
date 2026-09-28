@@ -9,6 +9,9 @@ type EasyVereinContactDetails = {
 	private_email?: string | null;
 	primary_email?: string | null;
 	company_email?: string | null;
+	iban?: string | null;
+	sepa_date?: string | null;
+	sepa_mandate?: string | null;
 };
 
 type EasyVereinMember = {
@@ -22,6 +25,14 @@ type EasyVereinMember = {
 	resignation_date?: string | null;
 	contact_details?: EasyVereinContactDetails | string | null;
 };
+
+/** Result of optional SEPA mandate write during application accept. */
+export type EasyVereinSepaMandateResult =
+	| { status: "set"; sepaDate: string; sepaMandate: string }
+	| { status: "already_set" }
+	| { status: "skipped_no_iban" }
+	| { status: "skipped_no_contact" }
+	| { status: "failed"; message: string };
 
 type EasyVereinPaginated<T> = {
 	next?: string | null;
@@ -48,6 +59,14 @@ export type EasyVereinMembershipSnapshot = {
 };
 
 const MEMBERSHIP_SNAPSHOT_TTL_MS = 5 * 60_000;
+/**
+ * Dashboard pending-count — stale-while-revalidate.
+ * Fresh: serve as-is. Soft-stale: serve + background refresh. Hard miss: await.
+ */
+const PENDING_COUNT_FRESH_MS = 5 * 60_000;
+const PENDING_COUNT_MAX_AGE_MS = 30 * 60_000;
+/** Id-only query — enough to count without contact nested payloads. */
+const PENDING_COUNT_QUERY = "{id,is_application}";
 
 let membershipSnapshotCache: {
 	expiresAt: number;
@@ -58,6 +77,36 @@ let membershipSnapshotCache: {
 	value: null,
 	inflight: null,
 };
+
+let pendingCountCache: {
+	fetchedAt: number;
+	value: number | null;
+	inflight: Promise<number> | null;
+} = {
+	fetchedAt: 0,
+	value: null,
+	inflight: null,
+};
+
+/** Drop cached pending count after accept (or when list is mutated). */
+export function invalidatePendingApplicationCountCache(): void {
+	pendingCountCache = { fetchedAt: 0, value: null, inflight: null };
+}
+
+function refreshPendingApplicationCount(): Promise<number> {
+	if (pendingCountCache.inflight) return pendingCountCache.inflight;
+
+	pendingCountCache.inflight = (async () => {
+		const count = await countPendingApplicationsUncached();
+		pendingCountCache.value = count;
+		pendingCountCache.fetchedAt = Date.now();
+		return count;
+	})().finally(() => {
+		pendingCountCache.inflight = null;
+	});
+
+	return pendingCountCache.inflight;
+}
 
 export function isEasyVereinConfigured(): boolean {
 	return Boolean(serverConfig.easyVerein.apiToken);
@@ -208,6 +257,54 @@ export async function listPendingApplications(): Promise<PendingApplication[]> {
 	return members.filter((m) => m.is_application).map(mapMember);
 }
 
+async function countPendingApplicationsUncached(): Promise<number> {
+	let total = 0;
+	let next: string | null = `/member?${new URLSearchParams({
+		limit: "100",
+		query: PENDING_COUNT_QUERY,
+		is_application: "true",
+		ordering: "application_date",
+	}).toString()}`;
+
+	while (next) {
+		const page: EasyVereinPaginated<EasyVereinMember> = await easyVereinFetch<
+			EasyVereinPaginated<EasyVereinMember>
+		>(next, {
+			headers: authHeaders(),
+		});
+		const results = page.results ?? [];
+		total += results.filter((m) => m.is_application).length;
+		next = page.next ?? null;
+	}
+
+	return total;
+}
+
+/**
+ * Lightweight pending-application count for the dashboard
+ * (id-only pages, SWR: fresh 5m / max 30m).
+ */
+export async function countPendingApplications(): Promise<number> {
+	if (!isEasyVereinConfigured()) {
+		throw new Error("easyverein_api_missing");
+	}
+
+	const now = Date.now();
+	const cached = pendingCountCache.value;
+	if (cached != null) {
+		const age = now - pendingCountCache.fetchedAt;
+		if (age < PENDING_COUNT_FRESH_MS) return cached;
+		if (age < PENDING_COUNT_MAX_AGE_MS) {
+			void refreshPendingApplicationCount().catch((err) => {
+				console.error("[easyverein] pending count refresh failed", err);
+			});
+			return cached;
+		}
+	}
+
+	return refreshPendingApplicationCount();
+}
+
 /**
  * All EasyVerein members (applications included unless `acceptedOnly`).
  * Used by the local `easyVereinMemberId` backfill script.
@@ -288,6 +385,113 @@ export async function acceptEasyVereinApplication(
 		headers: authHeaders(true),
 		body: JSON.stringify(body),
 	});
+}
+
+function resolveContactDetailsId(
+	contact: EasyVereinContactDetails | string | null | undefined,
+): number | null {
+	if (
+		contact &&
+		typeof contact === "object" &&
+		typeof contact.id === "number"
+	) {
+		return contact.id;
+	}
+	if (typeof contact === "string") {
+		const match = contact.match(/\/contact-details\/(\d+)/);
+		if (match) {
+			const id = Number.parseInt(match[1] ?? "", 10);
+			return Number.isInteger(id) && id > 0 ? id : null;
+		}
+	}
+	return null;
+}
+
+function isoDateOnly(value: string | null | undefined): string | null {
+	const raw = value?.trim();
+	if (!raw) return null;
+	return /^\d{4}-\d{2}-\d{2}/.test(raw) ? raw.slice(0, 10) : null;
+}
+
+/** Unique SEPA mandate reference (≤35 chars, creditor-unique). */
+export function buildSepaMandateReference(
+	memberId: number,
+	sepaDate: string,
+): string {
+	const compactDate = sepaDate.replaceAll("-", "");
+	return `NL${memberId}-${compactDate}`;
+}
+
+/**
+ * Optionally set EasyVerein SEPA mandate on the member's contact details.
+ * Only writes when IBAN is present and `sepa_mandate` is still empty.
+ * `sepa_date` defaults to `application_date`, else today.
+ */
+export async function ensureEasyVereinSepaMandate(
+	memberId: number,
+): Promise<EasyVereinSepaMandateResult> {
+	if (!isEasyVereinConfigured()) {
+		throw new Error("easyverein_api_missing");
+	}
+
+	const member = await easyVereinFetch<EasyVereinMember>(
+		`/member/${memberId}?${new URLSearchParams({
+			query:
+				"{id,application_date,join_date,contact_details{id,iban,sepa_date,sepa_mandate}}",
+		}).toString()}`,
+		{ headers: authHeaders() },
+	);
+
+	const contactId = resolveContactDetailsId(member.contact_details);
+	if (contactId == null) {
+		return { status: "skipped_no_contact" };
+	}
+
+	let contact: EasyVereinContactDetails;
+	if (
+		member.contact_details &&
+		typeof member.contact_details === "object" &&
+		"iban" in member.contact_details
+	) {
+		contact = member.contact_details;
+	} else {
+		contact = await easyVereinFetch<EasyVereinContactDetails>(
+			`/contact-details/${contactId}`,
+			{ headers: authHeaders() },
+		);
+	}
+
+	const iban = contact.iban?.replace(/\s+/g, "").trim() ?? "";
+	if (!iban) {
+		return { status: "skipped_no_iban" };
+	}
+
+	const existingMandate = contact.sepa_mandate?.trim();
+	if (existingMandate) {
+		return { status: "already_set" };
+	}
+
+	const sepaDate =
+		isoDateOnly(contact.sepa_date) ??
+		isoDateOnly(member.application_date) ??
+		todayIsoDate();
+	const sepaMandate = buildSepaMandateReference(memberId, sepaDate);
+
+	try {
+		await easyVereinFetch(`/contact-details/${contactId}`, {
+			method: "PATCH",
+			headers: authHeaders(true),
+			body: JSON.stringify({
+				sepa_date: sepaDate,
+				sepa_mandate: sepaMandate,
+			}),
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		return { status: "failed", message };
+	}
+
+	return { status: "set", sepaDate, sepaMandate };
 }
 
 async function paginateIds(
