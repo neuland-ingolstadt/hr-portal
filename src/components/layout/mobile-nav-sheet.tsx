@@ -3,8 +3,8 @@ import { LogOut } from "lucide-react";
 import { NeulandPalm } from "#/components/brand/neuland-palm";
 import { LanguageToggle } from "#/components/layout/language-toggle";
 import {
-	type NavItem,
 	bottomNavItems,
+	type NavItem,
 	navItemsForRoles,
 	overviewItems,
 	workflowItems,

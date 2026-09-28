@@ -195,7 +195,8 @@ export function RecentMembersGrid({
 	const moveMemberStage = useCallback(
 		(id: string, nextStage: OnboardingStage) => {
 			const prevStage =
-				stages[id] ?? members.find((member) => member.id === id)?.onboardingStage;
+				stages[id] ??
+				members.find((member) => member.id === id)?.onboardingStage;
 			if (prevStage === undefined || prevStage === nextStage) return;
 			applyStageChange(id, nextStage);
 			updateMemberOnboardingStageFn({ data: { id, stage: nextStage } })
@@ -336,86 +337,87 @@ export function RecentMembersGrid({
 										onDragLeave={handleStageDragLeave(stage)}
 										onDrop={handleStageDrop(stage)}
 									>
-									<div
-										id={headingId}
-										className="flex w-full items-center gap-2 text-left"
-									>
-										<h3 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-foreground">
-											{t(ONBOARDING_STAGE_LABEL_KEYS[stage])}
-										</h3>
-										<span className="font-mono text-xs tabular-nums text-muted-foreground">
-											{sectionMembers.length}
-										</span>
-									</div>
-
-									{sectionMembers.length === 0 ? (
 										<div
-											id={`onboarding-stage-panel-${stage}`}
-											className={cn(
-												"flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-border/60 px-4 py-5 text-center text-sm text-muted-foreground",
-												isDragOver && "border-foreground/60 text-foreground",
-											)}
+											id={headingId}
+											className="flex w-full items-center gap-2 text-left"
 										>
-											{t("onboarding.stage.empty")}
+											<h3 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight text-foreground">
+												{t(ONBOARDING_STAGE_LABEL_KEYS[stage])}
+											</h3>
+											<span className="font-mono text-xs tabular-nums text-muted-foreground">
+												{sectionMembers.length}
+											</span>
 										</div>
-									) : null}
 
-									{sectionMembers.length > 0 ? (
-										<section
-											id={`onboarding-stage-panel-${stage}`}
-											aria-labelledby={headingId}
-											className="flex flex-1 flex-col"
-										>
-											<ul
+										{sectionMembers.length === 0 ? (
+											<div
+												id={`onboarding-stage-panel-${stage}`}
 												className={cn(
-													"m-0 flex flex-1 list-none flex-col gap-2",
-													isDragOver && "outline-2 outline-dashed outline-foreground/40",
+													"flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-border/60 px-4 py-5 text-center text-sm text-muted-foreground",
+													isDragOver && "border-foreground/60 text-foreground",
 												)}
 											>
-												{sectionMembers.map((member) => {
-													const contact =
-														contacts[member.id] ??
-														({
-															id: member.onboardingContactId,
-															name: member.onboardingContactName,
-														} satisfies ContactState);
-													return (
-														<li key={member.id}>
-															<button
-																type="button"
-																draggable
-																onClick={() => openProfile(member.id)}
-																onDragStart={handleCardDragStart(member.id)}
-																onDragEnd={handleCardDragEnd}
-																className={cn(
-																	"relative flex w-full cursor-grab items-center gap-3 overflow-hidden rounded-md border border-border/60 bg-muted/40 px-2 py-2.5 text-left transition-colors hover:bg-background/60 active:cursor-grabbing sm:gap-4",
-																	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-																	draggingId === member.id && "opacity-40",
-																)}
-															>
-																<div className="min-w-0 flex-1 space-y-0.5">
-																	<p className="truncate text-sm font-semibold tracking-tight">
-																		{member.name}
-																	</p>
-																	{member.username ? (
-																		<p className="truncate font-mono text-xs text-muted-foreground">
-																			@{member.username}
+												{t("onboarding.stage.empty")}
+											</div>
+										) : null}
+
+										{sectionMembers.length > 0 ? (
+											<section
+												id={`onboarding-stage-panel-${stage}`}
+												aria-labelledby={headingId}
+												className="flex flex-1 flex-col"
+											>
+												<ul
+													className={cn(
+														"m-0 flex flex-1 list-none flex-col gap-2",
+														isDragOver &&
+															"outline-2 outline-dashed outline-foreground/40",
+													)}
+												>
+													{sectionMembers.map((member) => {
+														const contact =
+															contacts[member.id] ??
+															({
+																id: member.onboardingContactId,
+																name: member.onboardingContactName,
+															} satisfies ContactState);
+														return (
+															<li key={member.id}>
+																<button
+																	type="button"
+																	draggable
+																	onClick={() => openProfile(member.id)}
+																	onDragStart={handleCardDragStart(member.id)}
+																	onDragEnd={handleCardDragEnd}
+																	className={cn(
+																		"relative flex w-full cursor-grab items-center gap-3 overflow-hidden rounded-md border border-border/60 bg-muted/40 px-2 py-2.5 text-left transition-colors hover:bg-background/60 active:cursor-grabbing sm:gap-4",
+																		"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+																		draggingId === member.id && "opacity-40",
+																	)}
+																>
+																	<div className="min-w-0 flex-1 space-y-0.5">
+																		<p className="truncate text-sm font-semibold tracking-tight">
+																			{member.name}
 																		</p>
-																	) : null}
-																	<div className="sm:hidden xl:block">
+																		{member.username ? (
+																			<p className="truncate font-mono text-xs text-muted-foreground">
+																				@{member.username}
+																			</p>
+																		) : null}
+																		<div className="sm:hidden xl:block">
+																			<ContactBadge contact={contact} t={t} />
+																		</div>
+																	</div>
+																	<div className="hidden min-w-0 shrink sm:block sm:max-w-40 md:max-w-56 xl:hidden">
 																		<ContactBadge contact={contact} t={t} />
 																	</div>
-																</div>
-																<div className="hidden min-w-0 shrink sm:block sm:max-w-40 md:max-w-56 xl:hidden">
-																	<ContactBadge contact={contact} t={t} />
-																</div>
-															</button>
-														</li>
-													);
-												})}
-											</ul>
-										</section>
-									) : null}
+																</button>
+															</li>
+														);
+													})}
+												</ul>
+											</section>
+										) : null}
 									</section>
 								</div>
 							);
