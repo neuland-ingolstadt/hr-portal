@@ -1,6 +1,7 @@
 import { Check, ChevronDown, CircleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
+import { Badge } from "#/components/ui/badge";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type {
 	OnboardingContactRef,
@@ -42,6 +43,38 @@ function formatJoinedDate(iso: string, locale: string): string {
 		month: "short",
 		year: "numeric",
 	}).format(date);
+}
+
+function ContactBadge({
+	contact,
+	t,
+	className,
+}: {
+	contact: ContactState;
+	t: ReturnType<typeof useI18n>["t"];
+	className?: string;
+}) {
+	const label = contact.id
+		? contact.name
+			? t("onboarding.recent.contact", { name: contact.name })
+			: t("onboarding.recent.contactAssigned")
+		: t("onboarding.recent.contactNone");
+	return (
+		<Badge
+			variant={contact.id ? "muted" : undefined}
+			className={cn(
+				"gap-1 rounded-sm",
+				!contact.id &&
+					"border-amber-600/40 bg-amber-500/10 text-amber-700 dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-300",
+				className,
+			)}
+		>
+			{!contact.id ? (
+				<CircleAlert aria-hidden className="size-3 shrink-0" />
+			) : null}
+			<span className="truncate">{label}</span>
+		</Badge>
+	);
 }
 
 function groupByStage(
@@ -261,7 +294,7 @@ export function RecentMembersGrid({
 												!isOpen && "-rotate-90",
 											)}
 										/>
-										<h3 className="min-w-0 flex-1 text-sm font-semibold tracking-tight text-foreground">
+										<h3 className="min-w-0 flex-1 text-base font-semibold tracking-tight text-foreground">
 											{t(ONBOARDING_STAGE_LABEL_KEYS[stage])}
 										</h3>
 										<span className="font-mono text-xs tabular-nums text-muted-foreground">
@@ -272,7 +305,7 @@ export function RecentMembersGrid({
 									{isOpen && sectionMembers.length === 0 ? (
 										<div
 											id={`onboarding-stage-panel-${stage}`}
-											className="rounded-2xl border border-border/60 bg-muted/40 px-4 py-5 text-center text-sm text-muted-foreground"
+											className="rounded-md border border-border/60 bg-muted/40 px-4 py-5 text-center text-sm text-muted-foreground"
 										>
 											{t("onboarding.stage.empty")}
 										</div>
@@ -283,7 +316,7 @@ export function RecentMembersGrid({
 											id={`onboarding-stage-panel-${stage}`}
 											aria-labelledby={headingId}
 										>
-											<ul className="m-0 flex list-none flex-col divide-y divide-border/60 rounded-2xl border border-border/60 bg-muted/40 p-2">
+											<ul className="m-0 flex list-none flex-col divide-y divide-border/60 overflow-hidden rounded-md border border-border/60 bg-muted/40 p-2">
 												{sectionMembers.map((member) => {
 													const contact =
 														contacts[member.id] ??
@@ -313,54 +346,16 @@ export function RecentMembersGrid({
 																	</p>
 																	{member.username ? (
 																		<p className="truncate font-mono text-xs text-muted-foreground">
-																			{member.username}
+																			@{member.username}
 																		</p>
 																	) : null}
-																	<p
-																		className={cn(
-																			"flex items-center gap-1.5 text-xs text-muted-foreground sm:hidden",
-																			!contact.id && "text-amber-600 dark:text-amber-500",
-																		)}
-																	>
-																		{!contact.id ? (
-																			<CircleAlert
-																				aria-hidden
-																				className="size-3.5 shrink-0"
-																			/>
-																		) : null}
-																		<span className="truncate">
-																			{contact.id
-																				? contact.name
-																					? t("onboarding.recent.contact", {
-																							name: contact.name,
-																						})
-																					: t("onboarding.recent.contactAssigned")
-																				: t("onboarding.recent.contactNone")}
-																		</span>
-																	</p>
+																	<div className="sm:hidden">
+																		<ContactBadge contact={contact} t={t} />
+																	</div>
 																</div>
-																<p
-																	className={cn(
-																		"hidden w-40 shrink-0 items-center gap-1.5 text-xs text-muted-foreground sm:flex md:w-56",
-																		!contact.id && "text-amber-600 dark:text-amber-500",
-																	)}
-																>
-																	{!contact.id ? (
-																		<CircleAlert
-																			aria-hidden
-																			className="size-3.5 shrink-0"
-																		/>
-																	) : null}
-																	<span className="truncate">
-																		{contact.id
-																			? contact.name
-																				? t("onboarding.recent.contact", {
-																						name: contact.name,
-																					})
-																				: t("onboarding.recent.contactAssigned")
-																			: t("onboarding.recent.contactNone")}
-																	</span>
-																</p>
+																<div className="hidden w-40 shrink-0 sm:block md:w-56">
+																	<ContactBadge contact={contact} t={t} />
+																</div>
 																<p className="hidden shrink-0 text-right text-xs text-muted-foreground md:block md:w-44">
 																	{t("onboarding.recent.joined", {
 																		date: formatJoinedDate(
