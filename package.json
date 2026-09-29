@@ -32,7 +32,7 @@
     "@tailwindcss/vite": "4.3.3",
     "@tanstack/react-router": "latest",
     "@tanstack/react-start": "latest",
-    "@tanstack/react-table": "9",
+    "@tanstack/react-table": "9.2.4",
     "cborg": "6.1.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
-    "@tanstack/router-cli": "^1.167.39",
+    "@tanstack/router-cli": "1.167.39",
     "@types/bun": "^1.4.2",
     "@types/node": "26.6.3",
     "@types/pako": "3.0.0",
