@@ -49,7 +49,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
     "@tanstack/router-cli": "1.167.39",
-    "@types/bun": "^1.4.2",
+    "@types/bun": "1.4.2",
     "@types/node": "26.6.3",
     "@types/pako": "3.0.0",
     "@types/react": "19.3.0",
