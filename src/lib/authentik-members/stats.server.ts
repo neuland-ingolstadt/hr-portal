@@ -14,6 +14,7 @@ import {
 	authHeaders,
 	fetchGroupByName,
 	hasMitgliederGroup,
+	hasTechnicalUsersGroup,
 	matchesMitgliederGroup,
 	RESSORT_KEYS,
 	userPksFromGroup,
@@ -76,8 +77,8 @@ export function refreshDirectoryStats(): Promise<DirectoryStats> {
 
 export function mockDirectoryStats(): DirectoryStats {
 	const cutoff = weeksAgoDate(RECENT_ONBOARDING_WEEKS);
-	const active = activeMockMembers().filter((m) =>
-		hasMitgliederGroup(m.groups),
+	const active = activeMockMembers().filter(
+		(m) => hasMitgliederGroup(m.groups) && !hasTechnicalUsersGroup(m.groups),
 	);
 	let ressortMemberCount = 0;
 	let onboardingMemberCount = 0;
@@ -106,17 +107,21 @@ export async function computeDirectoryStatsUncached(): Promise<DirectoryStats> {
 
 	const cutoff = weeksAgoDate(RECENT_ONBOARDING_WEEKS);
 	const ressortNames = [...RESSORT_KEYS];
+	const technicalUsersName = serverConfig.groups.technicalUsers.trim();
 
-	// Group PK lists cover Mitglied/ressort. Onboarding needs date_joined + attributes
-	// (light users_obj omits both) - page recent /users/ in parallel.
+	// Group PK lists cover Mitglied/ressort/technical. Onboarding needs date_joined +
+	// attributes (light users_obj omits both) - page recent /users/ in parallel.
 	const [namedGroups, recentByPk] = await Promise.all([
 		Promise.all([
 			fetchGroupByName(mitgliederName),
+			technicalUsersName
+				? fetchGroupByName(technicalUsersName)
+				: Promise.resolve(null),
 			...ressortNames.map((name) => fetchGroupByName(name)),
 		]),
 		fetchUsersJoinedSince(cutoff),
 	]);
-	const [mitgliederGroup, ...ressortGroups] = namedGroups;
+	const [mitgliederGroup, technicalUsersGroup, ...ressortGroups] = namedGroups;
 
 	if (!mitgliederGroup || !matchesMitgliederGroup(mitgliederGroup.name)) {
 		console.warn(`[authentik] mitglieder group not found: ${mitgliederName}`);
@@ -128,7 +133,12 @@ export async function computeDirectoryStatsUncached(): Promise<DirectoryStats> {
 		};
 	}
 
-	const mitgliederPks = userPksFromGroup(mitgliederGroup);
+	const technicalPks = userPksFromGroup(technicalUsersGroup);
+	const mitgliederPks = new Set<string>();
+	for (const pk of userPksFromGroup(mitgliederGroup)) {
+		if (technicalPks.has(pk)) continue;
+		mitgliederPks.add(pk);
+	}
 
 	const ressortPks = new Set<string>();
 	for (const group of ressortGroups) {
@@ -163,7 +173,8 @@ export async function computeDirectoryStatsUncached(): Promise<DirectoryStats> {
 }
 
 /**
- * Dashboard KPIs: 5 group lookups + recent /users/ pages (SWR: fresh 5m / max 30m).
+ * Dashboard KPIs: mitglieder + technical-users + ressort group lookups + recent
+ * /users/ pages (SWR: fresh 5m / max 30m).
  * Avoids the full `groups/?include_users=true` directory dump.
  */
 export async function getDirectoryStatsFromAuthentik(): Promise<DirectoryStats> {

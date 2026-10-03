@@ -27,6 +27,7 @@ export type MembersResult = {
 };
 
 export type DirectoryStats = {
+	/** Mitglieder, excluding Authentik `technical-users`. */
 	memberCount: number;
 	/** Mitglieder assigned to at least one ressort group. */
 	ressortMemberCount: number;
