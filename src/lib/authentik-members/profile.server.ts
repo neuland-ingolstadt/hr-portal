@@ -18,6 +18,7 @@ import {
 	authHeaders,
 	buildGroupNameIndex,
 	displayName,
+	easyVereinMemberIdFromAttributes,
 	fetchAllPages,
 	resolveUserGroups,
 } from "#/lib/authentik-members/shared.server";
@@ -106,6 +107,7 @@ export function toMemberProfile(
 		onboardingContact:
 			onboardingContact ??
 			contactRefFromId(contactIdFromAttributes(user.attributes)),
+		easyVereinMemberId: easyVereinMemberIdFromAttributes(user.attributes),
 		authentikAdminUrl: admin.user,
 		authentikAdminGroupsUrl: admin.groups,
 		source,

@@ -25,15 +25,6 @@ export function OnboardingStageSlider({
 
 	return (
 		<div className={cn("space-y-3", className)}>
-			<div className="flex items-baseline justify-between gap-2">
-				<span className="text-sm text-muted-foreground">
-					{t("onboarding.stage.progress")}
-				</span>
-				<span className="font-medium tracking-tight text-foreground">
-					{t(ONBOARDING_STAGE_LABEL_KEYS[value])}
-				</span>
-			</div>
-
 			<div
 				role="radiogroup"
 				aria-label={t("profile.onboarding")}

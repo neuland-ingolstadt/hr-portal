@@ -59,6 +59,11 @@ export type MemberProfile = {
 	 */
 	onboardingContact: OnboardingContactRef | null;
 	/**
+	 * EasyVerein member pk from Authentik `attributes.easyVereinMemberId`.
+	 * `null` when missing / unset.
+	 */
+	easyVereinMemberId: number | null;
+	/**
 	 * Deep link into Authentik admin user detail (`/if/admin/#/identity/users/{pk}`).
 	 * `null` when PK or API base URL is unavailable (e.g. mock).
 	 */

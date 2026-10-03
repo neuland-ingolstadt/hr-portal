@@ -21,12 +21,13 @@ const GO_TARGETS: Record<string, string> = {
 	s: ROUTES.HOME, // Startseite
 	m: ROUTES.MEMBERS, // Mitglieder
 	q: ROUTES.SCANNER, // QR / Scanner
+	b: ROUTES.APPLICATIONS, // Bewerbungen (elevated)
 	e: ROUTES.ONBOARDING, // Eintritt
 	a: ROUTES.OFFBOARDING, // Austritt (elevated)
 	v: ROUTES.AUDIT, // Verlauf / audit (elevated)
 };
 
-const ELEVATED_GO_KEYS = new Set(["a", "v"]);
+const ELEVATED_GO_KEYS = new Set(["b", "a", "v"]);
 
 const appRouteApi = getRouteApi("/_app");
 
@@ -45,6 +46,7 @@ const GO_SHORTCUTS: ShortcutRow[] = [
 	{ keys: ["g", "s"], labelKey: "nav.home" },
 	{ keys: ["g", "m"], labelKey: "nav.members" },
 	{ keys: ["g", "q"], labelKey: "nav.scanner" },
+	{ keys: ["g", "b"], labelKey: "nav.applications" },
 	{ keys: ["g", "e"], labelKey: "nav.onboarding" },
 	{ keys: ["g", "a"], labelKey: "nav.offboarding" },
 	{ keys: ["g", "v"], labelKey: "nav.audit" },

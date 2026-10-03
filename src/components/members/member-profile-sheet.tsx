@@ -1,7 +1,9 @@
 import { getRouteApi } from "@tanstack/react-router";
 import {
+	Check,
 	CheckCircle2,
 	CircleDashed,
+	Copy,
 	ExternalLink,
 	Loader2,
 	Pencil,
@@ -550,13 +552,34 @@ function ProfileBody({
 					</div>
 					<dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
 						{profile.email ? (
-							<Field label={t("profile.fieldEmail")} value={profile.email} />
+							<Field
+								label={t("profile.fieldEmail")}
+								value={profile.email}
+								copyValue={profile.email}
+							/>
 						) : null}
 						<Field
 							label={t("profile.fieldUsername")}
 							value={profile.username ?? t("profile.empty")}
 							mono={Boolean(profile.username)}
+							copyValue={profile.username ?? undefined}
 						/>
+						<div className="space-y-1">
+							<dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+								{t("profile.fieldEasyVerein")}
+							</dt>
+							<dd className="text-sm text-foreground">
+								{profile.easyVereinMemberId != null ? (
+									<span className="font-mono text-xs tabular-nums">
+										{profile.easyVereinMemberId}
+									</span>
+								) : (
+									<Badge variant="destructive">
+										{t("profile.easyVereinMissing")}
+									</Badge>
+								)}
+							</dd>
+						</div>
 					</dl>
 				</div>
 			</section>
@@ -835,13 +858,38 @@ function Field({
 	label,
 	value,
 	mono,
+	copyValue,
 	className,
 }: {
 	label: string;
 	value: string;
 	mono?: boolean;
+	/** When set, shows a copy control for this clipboard payload. */
+	copyValue?: string;
 	className?: string;
 }) {
+	const { t } = useI18n();
+	const [copied, setCopied] = useState(false);
+	const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (copiedTimer.current) clearTimeout(copiedTimer.current);
+		};
+	}, []);
+
+	async function handleCopy() {
+		if (!copyValue) return;
+		try {
+			await navigator.clipboard.writeText(copyValue);
+			setCopied(true);
+			if (copiedTimer.current) clearTimeout(copiedTimer.current);
+			copiedTimer.current = setTimeout(() => setCopied(false), 1500);
+		} catch (err) {
+			console.error("[profile] clipboard write failed", err);
+		}
+	}
+
 	return (
 		<div className={cn("space-y-1", className)}>
 			<dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -849,11 +897,32 @@ function Field({
 			</dt>
 			<dd
 				className={cn(
-					"break-all text-sm text-foreground",
+					"flex min-w-0 items-start gap-1.5 text-sm text-foreground",
 					mono && "font-mono text-xs",
 				)}
 			>
-				{value}
+				<span className="min-w-0 flex-1 break-all">{value}</span>
+				{copyValue ? (
+					<button
+						type="button"
+						onClick={() => void handleCopy()}
+						aria-label={
+							copied ? t("profile.copied") : t("profile.copy", { label })
+						}
+						title={copied ? t("profile.copied") : t("profile.copy", { label })}
+						className={cn(
+							"inline-flex size-7 shrink-0 items-center justify-center text-muted-foreground transition-colors",
+							"hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+							copied && "text-primary",
+						)}
+					>
+						{copied ? (
+							<Check className="size-3.5" aria-hidden />
+						) : (
+							<Copy className="size-3.5" aria-hidden />
+						)}
+					</button>
+				) : null}
 			</dd>
 		</div>
 	);

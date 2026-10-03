@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Input } from "#/components/ui/input";
 import {
@@ -6,6 +6,8 @@ import {
 	AUDIT_ACTIONS,
 	type AuditAction,
 	type AuditEvent,
+	type AuditMeta,
+	type AuditMetaValue,
 } from "#/lib/audit";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
@@ -30,6 +32,35 @@ function actionLabelKey(action: AuditAction): MessageKey {
 	return AUDIT_ACTION_LABEL_KEYS[action];
 }
 
+function metaEntries(meta: AuditMeta | null): [string, AuditMetaValue][] {
+	if (!meta) return [];
+	return Object.entries(meta).sort(([a], [b]) => a.localeCompare(b, "en"));
+}
+
+function formatMetaValue(
+	value: AuditMetaValue,
+	t: (key: MessageKey) => string,
+): string {
+	if (value === null) return t("audit.metaEmpty");
+	if (typeof value === "boolean") {
+		return value ? t("audit.metaTrue") : t("audit.metaFalse");
+	}
+	if (Array.isArray(value)) {
+		return value.length > 0 ? value.join(", ") : t("audit.metaEmpty");
+	}
+	return String(value);
+}
+
+function metaSearchText(meta: AuditMeta | null): string {
+	return metaEntries(meta)
+		.flatMap(([key, value]) => {
+			if (value === null) return [key];
+			if (Array.isArray(value)) return [key, ...value];
+			return [key, String(value)];
+		})
+		.join("\n");
+}
+
 function matchesQuery(
 	event: AuditEvent,
 	query: string,
@@ -44,6 +75,7 @@ function matchesQuery(
 		event.action,
 		actionLabel,
 		...event.actorRoles,
+		metaSearchText(event.meta),
 	]
 		.join("\n")
 		.toLowerCase();
@@ -52,30 +84,81 @@ function matchesQuery(
 
 function AuditRow({ event }: { event: AuditEvent }) {
 	const { t, locale } = useI18n();
+	const [expanded, setExpanded] = useState(false);
+	const entries = metaEntries(event.meta);
+	const hasMeta = entries.length > 0;
 	const target =
 		event.targetLabel?.trim() ||
 		event.targetId?.trim() ||
 		t("audit.targetNone");
 
-	return (
-		<li className="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-5">
-			<div className="min-w-0 space-y-1">
-				<p className="m-0 font-medium text-foreground">
-					{t(actionLabelKey(event.action))}
-				</p>
-				<p className="m-0 text-sm text-muted-foreground">
-					{t("audit.actorTarget", {
-						actor: event.actorName,
-						target,
-					})}
-				</p>
+	const summary = (
+		<>
+			<div className="flex min-w-0 flex-1 items-start gap-2">
+				{hasMeta ? (
+					<ChevronDown
+						className={cn(
+							"mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform",
+							expanded && "rotate-180",
+						)}
+						aria-hidden
+					/>
+				) : (
+					<span className="mt-0.5 size-4 shrink-0" aria-hidden />
+				)}
+				<div className="min-w-0 space-y-1">
+					<p className="m-0 font-medium text-foreground">
+						{t(actionLabelKey(event.action))}
+					</p>
+					<p className="m-0 text-sm text-muted-foreground">
+						{t("audit.actorTarget", {
+							actor: event.actorName,
+							target,
+						})}
+					</p>
+				</div>
 			</div>
 			<time
 				dateTime={event.at}
-				className="shrink-0 font-mono text-xs text-muted-foreground sm:pt-0.5"
+				className="shrink-0 self-end font-mono text-xs text-muted-foreground sm:self-auto sm:pt-0.5"
 			>
 				{formatWhen(event.at, locale)}
 			</time>
+		</>
+	);
+
+	return (
+		<li>
+			{hasMeta ? (
+				<button
+					type="button"
+					aria-expanded={expanded}
+					onClick={() => setExpanded((current) => !current)}
+					className="flex w-full flex-col gap-2 px-4 py-3.5 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-5"
+				>
+					{summary}
+				</button>
+			) : (
+				<div className="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-5">
+					{summary}
+				</div>
+			)}
+			{hasMeta && expanded ? (
+				<div className="border-t border-border/70 bg-muted/20 px-4 py-3 sm:px-5 sm:pl-11">
+					<dl className="m-0 grid gap-2 sm:grid-cols-2">
+						{entries.map(([key, value]) => (
+							<div key={key} className="min-w-0 space-y-0.5">
+								<dt className="font-mono text-[0.65rem] font-semibold tracking-wide text-muted-foreground uppercase">
+									{key}
+								</dt>
+								<dd className="m-0 break-all font-mono text-xs text-foreground">
+									{formatMetaValue(value, t)}
+								</dd>
+							</div>
+						))}
+					</dl>
+				</div>
+			) : null}
 		</li>
 	);
 }

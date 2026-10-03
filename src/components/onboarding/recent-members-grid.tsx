@@ -3,6 +3,7 @@ import type { DragEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
+import { formatRelativeAge } from "#/lib/format-relative";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type {
 	OnboardingContactRef,
@@ -86,7 +87,7 @@ export function RecentMembersGrid({
 	members,
 	viewerContactIds,
 }: RecentMembersGridProps) {
-	const { t } = useI18n();
+	const { t, locale } = useI18n();
 	const viewerIds = viewerContactIds;
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [profileOpen, setProfileOpen] = useState(false);
@@ -381,6 +382,10 @@ export function RecentMembersGrid({
 																id: member.onboardingContactId,
 																name: member.onboardingContactName,
 															} satisfies ContactState);
+														const joinedAge = formatRelativeAge(
+															member.dateJoined,
+															locale,
+														);
 														return (
 															<li key={member.id}>
 																<button
@@ -399,9 +404,14 @@ export function RecentMembersGrid({
 																		<p className="truncate text-sm font-semibold tracking-tight">
 																			{member.name}
 																		</p>
-																		{member.username ? (
-																			<p className="truncate font-mono text-xs text-muted-foreground">
-																				@{member.username}
+																		{joinedAge ? (
+																			<p
+																				className="truncate text-xs text-muted-foreground"
+																				title={new Date(
+																					member.dateJoined,
+																				).toLocaleString(locale)}
+																			>
+																				{joinedAge}
 																			</p>
 																		) : null}
 																		<div className="sm:hidden xl:block">
