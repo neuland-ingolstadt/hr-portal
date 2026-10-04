@@ -210,14 +210,22 @@ export function WelcomeEmail({
 										className="text-[16px] font-semibold m-0 mb-[6px]"
 										style={{ color: FG }}
 									>
-										Signal-Gruppe beitreten
+										Signal-Gruppe & Discord beitreten
 									</Text>
 									<Text
 										className="text-[15px] leading-[22px] mb-[12px]"
 										style={{ color: "#404040" }}
 									>
-										Bleib mit anderen Mitgliedern verbunden und erhalte Updates:
+										Bleib mit anderen Mitgliedern verbunden und erhalte Updates
+										über unsere Signal-Gruppe oder unseren Discord-Server:
 									</Text>
+									<Button
+										href="https://discord.gg/Hep8pGy6Qs"
+										className="text-white font-semibold py-[12px] px-[20px] text-[15px] no-underline text-center inline-block box-border mb-[8px] w-full"
+										style={{ backgroundColor: BRAND_GREEN }}
+									>
+										Discord-Server beitreten →
+									</Button>
 									<Button
 										href="https://signal.group/#CjQKIJuYv3MToYxwinSiy0dBcELEHBd5ABfjxPnAeJTvouUjEhCWu3aGb0C5fqxfiJBjs7-l"
 										className="text-white font-semibold py-[12px] px-[20px] text-[15px] no-underline text-center inline-block box-border mb-[4px] w-full"
