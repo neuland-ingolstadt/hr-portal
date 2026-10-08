@@ -158,7 +158,7 @@ function ProcessPanel({
 					size="lg"
 					disabled={running || dueTotal === 0}
 					onClick={onStart}
-					className="shrink-0"
+					className="w-full shrink-0 sm:w-auto"
 				>
 					{running ? (
 						<>

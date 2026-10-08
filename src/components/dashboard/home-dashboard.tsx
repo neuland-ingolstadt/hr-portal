@@ -312,7 +312,7 @@ export function HomeDashboard({
 						/>
 						<div className="relative p-5 sm:p-7">
 							<div className="flex items-start justify-between gap-3">
-								<div className="min-w-0 space-y-3">
+								<div className="min-w-0 flex-1 space-y-3">
 									<p className="eyebrow mb-0">{t("home.eyebrow")}</p>
 									<h1 ref={titleRef} className="page-title text-balance">
 										{helloTitle}
@@ -324,7 +324,7 @@ export function HomeDashboard({
 										})}
 									</p>
 								</div>
-								<HelpTriggerButton className="shrink-0" />
+								<HelpTriggerButton className="hidden shrink-0 sm:inline-flex" />
 							</div>
 						</div>
 					</section>

@@ -46,8 +46,13 @@ function ApplicationsHeader({
 			<>
 				{meta ? <p className="page-meta m-0">{meta}</p> : null}
 				{onManualCreate ? (
-					<Button type="button" variant="outline" onClick={onManualCreate}>
-						<UserPlus className="size-4" aria-hidden />
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onManualCreate}
+						className="w-full justify-center whitespace-normal text-center sm:w-auto sm:whitespace-nowrap"
+					>
+						<UserPlus className="size-4 shrink-0" aria-hidden />
 						{t("applications.manualCreate")}
 					</Button>
 				) : null}

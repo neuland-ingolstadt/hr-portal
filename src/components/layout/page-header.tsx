@@ -68,7 +68,9 @@ export function StickyPageTitleBar({ title, stuck }: StickyPageTitleBarProps) {
 				<p className="min-w-0 truncate font-sans text-sm font-semibold tracking-tight text-foreground sm:text-[0.95rem]">
 					{title}
 				</p>
-				{stuck ? <HelpTriggerButton className="shrink-0" /> : null}
+				{stuck ? (
+					<HelpTriggerButton className="hidden shrink-0 md:inline-flex" />
+				) : null}
 			</div>
 		</div>
 	);
@@ -101,7 +103,7 @@ export function PageHeader({
 			<StickyPageTitleBar title={title} stuck={stuck} />
 			<header
 				className={cn(
-					"page-header flex flex-row items-start justify-between gap-3 sm:items-end",
+					"page-header flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
 					className,
 				)}
 			>
@@ -118,8 +120,11 @@ export function PageHeader({
 						)
 					) : null}
 				</div>
-				<div className="flex shrink-0 flex-wrap items-center gap-3 sm:pb-1">
-					<HelpTriggerButton />
+				<div
+					data-page-actions
+					className="flex w-full flex-wrap items-center gap-x-3 gap-y-2 sm:w-auto sm:justify-end sm:pb-1"
+				>
+					<HelpTriggerButton className="hidden sm:inline-flex" />
 					{end}
 				</div>
 			</header>

@@ -1,7 +1,7 @@
 import { Menu } from "lucide-react";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { AppSidebar } from "#/components/layout/app-sidebar";
-import { HelpSheet } from "#/components/layout/help-sheet";
+import { HelpSheet, HelpTriggerButton } from "#/components/layout/help-sheet";
 import {
 	KeyboardShortcuts,
 	openKeyboardShortcutsHelp,
@@ -90,9 +90,10 @@ export function AppShell({ children, mainClassName }: AppShellProps) {
 					>
 						<Menu aria-hidden />
 					</Button>
-					<span className="font-mono text-sm font-semibold tracking-wide">
+					<span className="min-w-0 flex-1 font-mono text-sm font-semibold tracking-wide">
 						Neuland HR
 					</span>
+					<HelpTriggerButton className="shrink-0" />
 				</header>
 
 				<main
