@@ -3,15 +3,17 @@ import { createServerFn } from "@tanstack/react-start";
 import type { AppRole, SessionUser } from "#/lib/auth";
 import { createMockSession, getSessionUser } from "#/lib/auth.server";
 import { serverConfig } from "#/lib/config";
+import { tracingMiddleware } from "#/lib/server-fn-tracing";
 
-export const getCurrentUserFn = createServerFn({ method: "GET" }).handler(
-	async (): Promise<SessionUser | null> => {
+export const getCurrentUserFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<SessionUser | null> => {
 		return getSessionUser();
-	},
-);
+	});
 
-export const getAuthStatusFn = createServerFn({ method: "GET" }).handler(
-	async () => {
+export const getAuthStatusFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
+	.handler(async () => {
 		const user = await getSessionUser();
 		return {
 			user,
@@ -22,10 +24,10 @@ export const getAuthStatusFn = createServerFn({ method: "GET" }).handler(
 					serverConfig.authentik.clientSecret,
 			),
 		};
-	},
-);
+	});
 
 export const mockLoginFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator((data: { role: AppRole }) => data)
 	.handler(async ({ data }) => {
 		await createMockSession(data.role);

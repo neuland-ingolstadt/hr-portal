@@ -4,6 +4,7 @@
  */
 
 import { serverConfig } from "#/lib/config";
+import { mergeTracingHeaders, withOutboundSpan } from "#/lib/tracing.server";
 
 export const AUTHENTIK_UUID_RE =
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -61,17 +62,31 @@ export async function authentikFetch<T>(
 	path: string,
 	init?: RequestInit & { responseType?: "json" | "none" },
 ): Promise<T> {
-	const response = await fetch(`${authentikApiBase()}${path}`, init);
-	if (!response.ok) {
-		const detail = await response.text().catch(() => "");
-		throw new Error(
-			`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
-		);
-	}
-	if (init?.responseType === "none" || response.status === 204) {
-		return undefined as T;
-	}
-	return (await response.json()) as T;
+	// Child span is "METHOD authentik" (method + fixed service label only -
+	// never the path, which may contain user UUIDs). Trace context is injected
+	// into the outbound request headers.
+	return withOutboundSpan(
+		"authentik",
+		init?.method ?? "GET",
+		async ({ span, traceHeaders }) => {
+			const response = await fetch(`${authentikApiBase()}${path}`, {
+				...init,
+				headers: mergeTracingHeaders(init?.headers, traceHeaders),
+			});
+			// Status code only - response bodies / paths may hold identifiers.
+			span?.setAttribute("http.response.status_code", response.status);
+			if (!response.ok) {
+				const detail = await response.text().catch(() => "");
+				throw new Error(
+					`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
+				);
+			}
+			if (init?.responseType === "none" || response.status === 204) {
+				return undefined as T;
+			}
+			return (await response.json()) as T;
+		},
+	);
 }
 
 /** Resolve by Authentik user UUID, or fall back to numeric/string PK path. */

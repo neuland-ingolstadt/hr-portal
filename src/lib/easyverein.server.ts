@@ -1,5 +1,6 @@
 import type { PendingApplication } from "#/lib/applications";
 import { serverConfig } from "#/lib/config";
+import { mergeTracingHeaders, withOutboundSpan } from "#/lib/tracing.server";
 
 type EasyVereinContactDetails = {
 	id?: number;
@@ -129,18 +130,32 @@ async function easyVereinFetch<T>(
 	path: string,
 	init?: RequestInit & { responseType?: "json" | "none" },
 ): Promise<T> {
-	const url = path.startsWith("http") ? path : `${apiBase()}${path}`;
-	const response = await fetch(url, init);
-	if (!response.ok) {
-		const detail = await response.text().catch(() => "");
-		throw new Error(
-			`EasyVerein ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
-		);
-	}
-	if (init?.responseType === "none" || response.status === 204) {
-		return undefined as T;
-	}
-	return (await response.json()) as T;
+	// Child span is "METHOD easyverein" (method + fixed service label only -
+	// never the path, which may contain member IDs). Trace context is injected
+	// into the outbound request headers.
+	return withOutboundSpan(
+		"easyverein",
+		init?.method ?? "GET",
+		async ({ span, traceHeaders }) => {
+			const url = path.startsWith("http") ? path : `${apiBase()}${path}`;
+			const response = await fetch(url, {
+				...init,
+				headers: mergeTracingHeaders(init?.headers, traceHeaders),
+			});
+			// Status code only - response bodies / paths may hold identifiers.
+			span?.setAttribute("http.response.status_code", response.status);
+			if (!response.ok) {
+				const detail = await response.text().catch(() => "");
+				throw new Error(
+					`EasyVerein ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
+				);
+			}
+			if (init?.responseType === "none" || response.status === 204) {
+				return undefined as T;
+			}
+			return (await response.json()) as T;
+		},
+	);
 }
 
 function todayIsoDate(): string {

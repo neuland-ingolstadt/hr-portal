@@ -18,42 +18,50 @@ import {
 	deleteAuthentikAccount,
 	revokeMitgliederGroup,
 } from "#/lib/offboarding.server";
+import { tracingMiddleware } from "#/lib/server-fn-tracing";
 import { requireNonEmptyStringField } from "#/lib/server-fn-validators";
 
 /** Prefetch Authentik directory into the offboarding cache. */
 export const warmOffboardingAuthentikFn = createServerFn({
 	method: "GET",
-}).handler(async (): Promise<{ ok: true }> => {
-	await requireElevatedAccess();
-	await warmActiveDirectoryForOffboarding();
-	return { ok: true };
-});
+})
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<{ ok: true }> => {
+		await requireElevatedAccess();
+		await warmActiveDirectoryForOffboarding();
+		return { ok: true };
+	});
 
 /** Prefetch EasyVerein membership snapshot (no-op when EV is not configured). */
 export const warmOffboardingEasyVereinFn = createServerFn({
 	method: "GET",
-}).handler(async (): Promise<{ reconciled: boolean }> => {
-	await requireElevatedAccess();
-	if (!isEasyVereinConfigured()) {
-		return { reconciled: false };
-	}
-	try {
-		await getEasyVereinMembershipSnapshot();
-		return { reconciled: true };
-	} catch (err) {
-		console.error("[offboarding] EasyVerein warm failed", err);
-		return { reconciled: false };
-	}
-});
+})
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<{ reconciled: boolean }> => {
+		await requireElevatedAccess();
+		if (!isEasyVereinConfigured()) {
+			return { reconciled: false };
+		}
+		try {
+			await getEasyVereinMembershipSnapshot();
+			return { reconciled: true };
+		} catch (err) {
+			console.error("[offboarding] EasyVerein warm failed", err);
+			return { reconciled: false };
+		}
+	});
 
 export const listOffboardingCandidatesFn = createServerFn({
 	method: "GET",
-}).handler(async (): Promise<OffboardingCandidatesResult> => {
-	await requireElevatedAccess();
-	return listNonMitgliederAccountsFromAuthentik();
-});
+})
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<OffboardingCandidatesResult> => {
+		await requireElevatedAccess();
+		return listNonMitgliederAccountsFromAuthentik();
+	});
 
 export const revokeMitgliederFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator((data: { memberId: string }) =>
 		requireNonEmptyStringField(data, "memberId"),
 	)
@@ -74,6 +82,7 @@ export const revokeMitgliederFn = createServerFn({ method: "POST" })
 	});
 
 export const deleteAccountFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator((data: { memberId: string }) =>
 		requireNonEmptyStringField(data, "memberId"),
 	)

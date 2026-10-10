@@ -16,23 +16,25 @@ import type {
 	MemberProfileResult,
 	MembersResult,
 } from "#/lib/members";
+import { tracingMiddleware } from "#/lib/server-fn-tracing";
 import { requireNonEmptyStringField } from "#/lib/server-fn-validators";
 
-export const listMembersFn = createServerFn({ method: "GET" }).handler(
-	async (): Promise<MembersResult> => {
+export const listMembersFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<MembersResult> => {
 		await requireAppAccess();
 		return listMembersFromAuthentik();
-	},
-);
+	});
 
-export const getDirectoryStatsFn = createServerFn({ method: "GET" }).handler(
-	async (): Promise<DirectoryStats> => {
+export const getDirectoryStatsFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<DirectoryStats> => {
 		await requireAppAccess();
 		return getDirectoryStatsFromAuthentik();
-	},
-);
+	});
 
 export const getMemberProfileFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
 	.validator((data: { id: string }) => requireNonEmptyStringField(data, "id"))
 	.handler(async ({ data }): Promise<MemberProfileResult> => {
 		const user = await requireAppAccess();
@@ -42,6 +44,7 @@ export const getMemberProfileFn = createServerFn({ method: "GET" })
 	});
 
 export const updateMemberGroupsFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator((data: { id: string; groups: string[] }) => {
 		const { id } = requireNonEmptyStringField(data, "id");
 		if (!Array.isArray(data.groups)) {

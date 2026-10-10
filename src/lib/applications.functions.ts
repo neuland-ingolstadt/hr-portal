@@ -12,6 +12,7 @@ import {
 } from "#/lib/applications.server";
 import { recordAudit } from "#/lib/audit.server";
 import { requireElevatedAccess } from "#/lib/auth.server";
+import { tracingMiddleware } from "#/lib/server-fn-tracing";
 
 function validateAcceptInput(
 	data: AcceptApplicationInput,
@@ -29,21 +30,24 @@ function validateAcceptInput(
 	return { memberId };
 }
 
-export const listApplicationsFn = createServerFn({ method: "GET" }).handler(
-	async (): Promise<ApplicationsResult> => {
+export const listApplicationsFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<ApplicationsResult> => {
 		await requireElevatedAccess();
 		return listApplications();
-	},
-);
+	});
 
 export const getPendingApplicationCountFn = createServerFn({
 	method: "GET",
-}).handler(async (): Promise<PendingApplicationCountResult> => {
-	await requireElevatedAccess();
-	return getPendingApplicationCount();
-});
+})
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<PendingApplicationCountResult> => {
+		await requireElevatedAccess();
+		return getPendingApplicationCount();
+	});
 
 export const acceptApplicationFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator(validateAcceptInput)
 	.handler(async ({ data }): Promise<AcceptApplicationResult> => {
 		const actor = await requireElevatedAccess();

@@ -28,6 +28,7 @@ import {
 	createMemberAccount,
 	notifyOnboardingContactAssigned,
 } from "#/lib/onboarding.server";
+import { tracingMiddleware } from "#/lib/server-fn-tracing";
 import { requireNonEmptyStringField } from "#/lib/server-fn-validators";
 
 function validateNewMember(data: NewMemberInput): NewMemberInput {
@@ -46,6 +47,7 @@ function validateNewMember(data: NewMemberInput): NewMemberInput {
 }
 
 export const createMemberFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator(validateNewMember)
 	.handler(async ({ data }): Promise<CreateMemberResult> => {
 		const actor = await requireElevatedAccess();
@@ -67,37 +69,40 @@ export const createMemberFn = createServerFn({ method: "POST" })
 	});
 
 /** Render the welcome template with sample props for in-app iframe preview. */
-export const previewWelcomeEmailFn = createServerFn({ method: "GET" }).handler(
-	async (): Promise<{ html: string }> => {
+export const previewWelcomeEmailFn = createServerFn({ method: "GET" })
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<{ html: string }> => {
 		await requireElevatedAccess();
 		const html = await render(WelcomeEmail(welcomeEmailPreviewProps));
 		return { html };
-	},
-);
+	});
 
 /** Mitglieder with Authentik accounts created in the last four months. */
 export const listRecentOnboardingMembersFn = createServerFn({
 	method: "GET",
-}).handler(async (): Promise<RecentOnboardingMembersResult> => {
-	const actor = await requireAppAccess();
-	const [result, viewer] = await Promise.all([
-		listRecentOnboardingMembersFromAuthentik(),
-		resolveViewerContactIds(actor),
-	]);
-	return {
-		...result,
-		viewerContactIds: viewer.viewerContactIds,
-		members: result.members.map((member) => ({
-			...member,
-			onboardingContactIsMe: contactIdMatchesAnyViewer(
-				member.onboardingContactId,
-				viewer.viewerContactIds,
-			),
-		})),
-	};
-});
+})
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<RecentOnboardingMembersResult> => {
+		const actor = await requireAppAccess();
+		const [result, viewer] = await Promise.all([
+			listRecentOnboardingMembersFromAuthentik(),
+			resolveViewerContactIds(actor),
+		]);
+		return {
+			...result,
+			viewerContactIds: viewer.viewerContactIds,
+			members: result.members.map((member) => ({
+				...member,
+				onboardingContactIsMe: contactIdMatchesAnyViewer(
+					member.onboardingContactId,
+					viewer.viewerContactIds,
+				),
+			})),
+		};
+	});
 
 export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
+	.middleware([tracingMiddleware])
 	.validator((data: { id: string; stage: number }) => {
 		const { id } = requireNonEmptyStringField(data, "id");
 		if (!isOnboardingStage(data.stage)) {
@@ -125,46 +130,49 @@ export const updateMemberOnboardingStageFn = createServerFn({ method: "POST" })
 /** HR / Vorstand / Admin accounts that can be onboarding contacts (not technical-users). */
 export const listOnboardingContactsFn = createServerFn({
 	method: "GET",
-}).handler(async (): Promise<OnboardingContactsResult> => {
-	const actor = await requireAppAccess();
-	const [result, viewer] = await Promise.all([
-		listOnboardingContactsFromAuthentik(),
-		resolveViewerContactIds(actor),
-	]);
+})
+	.middleware([tracingMiddleware])
+	.handler(async (): Promise<OnboardingContactsResult> => {
+		const actor = await requireAppAccess();
+		const [result, viewer] = await Promise.all([
+			listOnboardingContactsFromAuthentik(),
+			resolveViewerContactIds(actor),
+		]);
 
-	const contacts = [...result.contacts];
-	// Only surface “assign to me” when the viewer is already a staff contact,
-	// or we can resolve their UUID (server still re-checks on save).
-	const inPicker =
-		viewer.myContactId != null &&
-		contacts.some((entry) => entry.id === viewer.myContactId);
+		const contacts = [...result.contacts];
+		// Only surface “assign to me” when the viewer is already a staff contact,
+		// or we can resolve their UUID (server still re-checks on save).
+		const inPicker =
+			viewer.myContactId != null &&
+			contacts.some((entry) => entry.id === viewer.myContactId);
 
-	if (viewer.myContactId && !inPicker) {
-		console.info("[onboarding.contact] viewer not in staff picker", {
+		if (viewer.myContactId && !inPicker) {
+			console.info("[onboarding.contact] viewer not in staff picker", {
+				myContactId: viewer.myContactId,
+				sub: actor.sub,
+				pickerSize: contacts.length,
+			});
+			// Still add self so “Mir zuweisen” works; save path validates staff.
+			contacts.push({
+				id: viewer.myContactId,
+				name: actor.name || viewer.myContactId,
+				username: null,
+			});
+			contacts.sort((a, b) => a.name.localeCompare(b.name, "de"));
+		}
+
+		return {
+			contacts,
+			source: result.source,
 			myContactId: viewer.myContactId,
-			sub: actor.sub,
-			pickerSize: contacts.length,
-		});
-		// Still add self so “Mir zuweisen” works; save path validates staff.
-		contacts.push({
-			id: viewer.myContactId,
-			name: actor.name || viewer.myContactId,
-			username: null,
-		});
-		contacts.sort((a, b) => a.name.localeCompare(b.name, "de"));
-	}
-
-	return {
-		contacts,
-		source: result.source,
-		myContactId: viewer.myContactId,
-		viewerContactIds: viewer.viewerContactIds,
-	};
-});
+			viewerContactIds: viewer.viewerContactIds,
+		};
+	});
 
 export const updateMemberOnboardingContactFn = createServerFn({
 	method: "POST",
 })
+	.middleware([tracingMiddleware])
 	.validator((data: { id: string; contactId: string | null }) => {
 		const { id } = requireNonEmptyStringField(data, "id");
 		const contactId =
