@@ -2,10 +2,15 @@ import {
 	type AuthentikUser,
 	authentikAuthHeaders,
 	authentikFetch,
+	authentikGroupKey,
 	isAuthentikApiConfigured,
 	resolveAuthentikGroupIdByName,
 	resolveAuthentikUserByUuidOrPk,
 } from "#/lib/authentik-api.server";
+import {
+	easyVereinMemberIdFromAttributes,
+	membershipRevokedAtFromAttributes,
+} from "#/lib/authentik-members/shared.server";
 import {
 	invalidateDirectoryCache,
 	listNonMitgliederAccountsFromAuthentik,
@@ -13,6 +18,11 @@ import {
 	mockRevokeMitgliederMembership,
 } from "#/lib/authentik-members.server";
 import { serverConfig } from "#/lib/config";
+import {
+	classifyEasyVereinMemberStatus,
+	getEasyVereinMembershipSnapshot,
+	isEasyVereinConfigured,
+} from "#/lib/easyverein.server";
 import type {
 	DeleteAccountResult,
 	RevokeMitgliederResult,
@@ -39,11 +49,28 @@ function isSelfTarget(memberId: string, actorSub?: string): boolean {
 	return memberId.trim() === actorSub.trim();
 }
 
+/** Match Mitglieder group id against Authentik `user.groups` (UUIDs or objects). */
+function userHasGroupId(user: AuthentikUser, groupId: string): boolean {
+	const expected = groupId.trim();
+	if (!expected) return false;
+
+	for (const entry of user.groups ?? []) {
+		if (typeof entry === "string") {
+			if (entry === expected) return true;
+			continue;
+		}
+		if (!entry || typeof entry !== "object") continue;
+		const key = authentikGroupKey(entry);
+		if (key === expected) return true;
+		if (entry.pk != null && String(entry.pk) === expected) return true;
+	}
+	return false;
+}
+
 /**
- * Re-check against the same candidate list the UI uses.
- * Rejects watchlist (future resignation), technical users, and random IDs.
+ * AUTH_MOCK: cheap in-memory candidate check (same partition as the UI list).
  */
-async function assertOffboardingMutationAllowed(
+async function assertMockOffboardingMutationAllowed(
 	memberId: string,
 	action: "revoke" | "delete",
 ): Promise<boolean> {
@@ -62,6 +89,41 @@ async function assertOffboardingMutationAllowed(
 }
 
 /**
+ * Stage-2 gate without a full directory dump: user must already have
+ * `attributes.membershipRevokedAt` (same rule as the delete-stage list).
+ */
+function isDeleteEligibleUser(user: AuthentikUser): boolean {
+	return membershipRevokedAtFromAttributes(user.attributes) != null;
+}
+
+/**
+ * Stage-1 gate without a full directory dump: Mitglieder, not yet revoked,
+ * and EasyVerein says leave/missing (or no EV link). Watchlist / active stay out.
+ */
+async function isRevokeEligibleUser(
+	user: AuthentikUser,
+	mitgliederGroupId: string,
+): Promise<boolean> {
+	if (membershipRevokedAtFromAttributes(user.attributes)) return false;
+	if (!userHasGroupId(user, mitgliederGroupId)) return false;
+
+	const easyVereinId = easyVereinMemberIdFromAttributes(user.attributes);
+	if (easyVereinId == null) return true;
+
+	if (!isEasyVereinConfigured()) return false;
+
+	try {
+		const snapshot = await getEasyVereinMembershipSnapshot();
+		const status = classifyEasyVereinMemberStatus(easyVereinId, snapshot);
+		if (status.state === "active" || status.state === "leaving") return false;
+		return true;
+	} catch (err) {
+		console.error("[offboarding] revoke eligibility EV check failed", err);
+		return false;
+	}
+}
+
+/**
  * Stage 1: remove Authentik Mitglieder group only - no EasyVerein write.
  * Also stamps `attributes.membershipRevokedAt` for later grace-period checks.
  */
@@ -75,11 +137,10 @@ export async function revokeMitgliederGroup(
 		return { success: false, error: "not_eligible" };
 	}
 
-	const allowed = await assertOffboardingMutationAllowed(id, "revoke");
-	if (!allowed) return { success: false, error: "not_eligible" };
-
 	if (!isAuthentikApiConfigured()) {
 		if (serverConfig.authMock) {
+			const allowed = await assertMockOffboardingMutationAllowed(id, "revoke");
+			if (!allowed) return { success: false, error: "not_eligible" };
 			const ok = mockRevokeMitgliederMembership(id);
 			if (!ok) return { success: false, error: "user_not_found" };
 			return { success: true, name: id };
@@ -97,6 +158,9 @@ export async function revokeMitgliederGroup(
 		if (!groupId) {
 			return { success: false, error: "mitglieder_group_missing" };
 		}
+
+		const allowed = await isRevokeEligibleUser(user, groupId);
+		if (!allowed) return { success: false, error: "not_eligible" };
 
 		await authentikFetch(`/api/v3/core/groups/${groupId}/remove_user/`, {
 			method: "POST",
@@ -134,8 +198,8 @@ export async function revokeMitgliederGroup(
 
 /**
  * Stage 2: permanently delete the Authentik user account.
- * Only accounts already in the delete stage (`membershipRevokedAt` set).
- * No EasyVerein write.
+ * Only accounts with `membershipRevokedAt` set (same as the delete-stage list).
+ * No EasyVerein write. Does not reload the full directory for eligibility.
  */
 export async function deleteAuthentikAccount(
 	memberId: string,
@@ -147,11 +211,10 @@ export async function deleteAuthentikAccount(
 		return { success: false, error: "not_eligible" };
 	}
 
-	const allowed = await assertOffboardingMutationAllowed(id, "delete");
-	if (!allowed) return { success: false, error: "not_eligible" };
-
 	if (!isAuthentikApiConfigured()) {
 		if (serverConfig.authMock) {
+			const allowed = await assertMockOffboardingMutationAllowed(id, "delete");
+			if (!allowed) return { success: false, error: "not_eligible" };
 			const ok = mockDeleteAccount(id);
 			if (!ok) return { success: false, error: "user_not_found" };
 			return { success: true, name: id };
@@ -163,6 +226,10 @@ export async function deleteAuthentikAccount(
 		const user = await resolveAuthentikUserByUuidOrPk(id);
 		if (!user || user.pk == null) {
 			return { success: false, error: "user_not_found" };
+		}
+
+		if (!isDeleteEligibleUser(user)) {
+			return { success: false, error: "not_eligible" };
 		}
 
 		const name = user.name?.trim() || id;

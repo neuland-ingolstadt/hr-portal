@@ -61,6 +61,6 @@ Queues / checklist workflows, shared package with Connect, decline flow in EasyV
   2. **Delete account** - only accounts with `membershipRevokedAt` set (`DELETE /core/users/{pk}/`)
 - Step 1 reconciles linked Mitglieder against EasyVerein member + wastebasket snapshots (cached ~5 min).
 - Step 2 ignores “no Mitglieder” alone so random non-member accounts are not delete candidates.
-- Mutations re-check eligibility against that candidate set (reject watchlist / arbitrary IDs / self).
+- Mutations re-check the same eligibility rules per user (not a full directory dump): revoke = Mitglieder + EV leave/missing / no EV link (reject watchlist / active / self); delete = `membershipRevokedAt` set (reject arbitrary IDs / self).
 - **Prozess starten** (button, not on visit / not cron): auto-revokes due stage-1 candidates and hard-deletes stage-2 past `OFFBOARDING_DELETE_GRACE_DAYS` (default 14). Per-row actions remain available.
 - Desktop: both stage tables side by side.
