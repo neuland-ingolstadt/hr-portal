@@ -17,9 +17,7 @@ type EasyVereinContactDetails = {
 
 type EasyVereinMember = {
 	id: number;
-	email?: string | null;
 	email_or_user_name?: string | null;
-	name_for_sorting?: string | null;
 	is_application?: boolean;
 	application_date?: string | null;
 	join_date?: string | null;
@@ -41,7 +39,7 @@ type EasyVereinPaginated<T> = {
 };
 
 const MEMBER_LIST_QUERY =
-	"{id,email,email_or_user_name,name_for_sorting,is_application,application_date,join_date,contact_details{id,name,first_name,family_name,private_email,primary_email,company_email}}";
+	"{id,email_or_user_name,is_application,application_date,join_date,contact_details{id,name,first_name,family_name,private_email,primary_email,company_email}}";
 
 const MEMBER_STATUS_QUERY = "{id,resignation_date,is_application}";
 
@@ -171,7 +169,6 @@ function pickEmail(member: EasyVereinMember): string {
 		contact?.primary_email?.trim() ||
 		contact?.private_email?.trim() ||
 		contact?.company_email?.trim() ||
-		member.email?.trim() ||
 		member.email_or_user_name?.trim() ||
 		""
 	);
@@ -191,7 +188,6 @@ function contactParts(member: EasyVereinMember): {
 	const displayName =
 		contact?.name?.trim() ||
 		[firstName, lastName].filter(Boolean).join(" ") ||
-		member.name_for_sorting?.trim() ||
 		pickEmail(member) ||
 		`#${member.id}`;
 	return { firstName, lastName, displayName };
@@ -332,7 +328,7 @@ export async function listEasyVereinDirectoryMembers(options?: {
 	}
 
 	const params: Record<string, string> = {
-		ordering: "name_for_sorting",
+		ordering: "contact_details__family_name",
 	};
 	if (options?.acceptedOnly) {
 		params.is_application = "false";
