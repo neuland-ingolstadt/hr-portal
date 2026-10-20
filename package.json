@@ -59,7 +59,7 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "oxc-transform-react": "0.154.0",
-    "react-email": "6.11.1",
+    "react-email": "6.11.3",
     "typescript": "7.0.2",
     "vite": "8.3.4"
   }
