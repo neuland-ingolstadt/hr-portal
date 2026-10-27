@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@tanstack/router-cli": "1.167.45",
+    "@tanstack/router-cli": "1.167.46",
     "@types/bun": "1.4.4",
     "@types/node": "26.6.5",
     "@types/pako": "3.0.0",
