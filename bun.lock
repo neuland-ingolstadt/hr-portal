@@ -26,7 +26,7 @@
         "lucide-react": "1.61.0",
         "nitro": "3.0.260610-beta",
         "openid-client": "6.8.8",
-        "pako": "3.0.2",
+        "pako": "3.0.3",
         "react": "19.3.1",
         "react-dom": "19.3.1",
         "tailwind-merge": "3.7.0",
@@ -753,7 +753,7 @@
 
     "oxc-transform-react": ["oxc-transform-react@0.155.0", "", { "optionalDependencies": { "@oxc-transform-react/binding-android-arm-eabi": "0.155.0", "@oxc-transform-react/binding-android-arm64": "0.155.0", "@oxc-transform-react/binding-darwin-arm64": "0.155.0", "@oxc-transform-react/binding-darwin-x64": "0.155.0", "@oxc-transform-react/binding-freebsd-x64": "0.155.0", "@oxc-transform-react/binding-linux-arm-gnueabihf": "0.155.0", "@oxc-transform-react/binding-linux-arm-musleabihf": "0.155.0", "@oxc-transform-react/binding-linux-arm64-gnu": "0.155.0", "@oxc-transform-react/binding-linux-arm64-musl": "0.155.0", "@oxc-transform-react/binding-linux-ppc64-gnu": "0.155.0", "@oxc-transform-react/binding-linux-riscv64-gnu": "0.155.0", "@oxc-transform-react/binding-linux-riscv64-musl": "0.155.0", "@oxc-transform-react/binding-linux-s390x-gnu": "0.155.0", "@oxc-transform-react/binding-linux-x64-gnu": "0.155.0", "@oxc-transform-react/binding-linux-x64-musl": "0.155.0", "@oxc-transform-react/binding-openharmony-arm64": "0.155.0", "@oxc-transform-react/binding-win32-arm64-msvc": "0.155.0", "@oxc-transform-react/binding-win32-ia32-msvc": "0.155.0", "@oxc-transform-react/binding-win32-x64-msvc": "0.155.0" } }, "sha512-JsZb0yduU1JdSj1RrNov2Ysio68LW9VKa10vkAJehy3NsE6UZrfcjmTLrStBRVF40YKxN30I+Cq8zJxIXzLqHQ=="],
 
-    "pako": ["pako@3.0.2", "", {}, "sha512-uBv6IT2aT1A78iU6dpNEbf6+CyhlV/6g9JlJs9kpgjFGFhruIICVRysF/W0SLzXg5+hCl+KroH7e4YUyfEmgLg=="],
+    "pako": ["pako@3.0.3", "", {}, "sha512-tmrebBBYI5FOw8QICGwJNqE8fotC8R+gwcxOvoFNv+GKehOI6Lc6YBolNcQNnC4v96l1wt7rh102ifD4kVeZAQ=="],
 
     "parseley": ["parseley@0.12.1", "", { "dependencies": { "leac": "^0.6.0", "peberminta": "^0.9.0" } }, "sha512-e6qHKe3a9HWr0oMRVDTRhKce+bRO8VGQR3NyVwcjwrbhMmFCX9KszEV35+rn4AdilFAq9VPxP/Fe1wC9Qjd2lw=="],
 
