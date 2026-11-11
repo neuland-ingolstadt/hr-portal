@@ -8,9 +8,20 @@ export type NewMemberInput = {
 	easyVereinMemberId?: number;
 };
 
+/** Failure stage for structured logs / failed-accept audit (no PII). */
+export type CreateMemberStage =
+	| "lookup"
+	| "create_user"
+	| "set_password"
+	| "email";
+
 export type CreateMemberResult =
 	| { success: true; username: string; emailSent: boolean }
-	| { success: false; error: CreateMemberError };
+	| {
+			success: false;
+			error: CreateMemberError;
+			stage?: CreateMemberStage;
+	  };
 
 export type CreateMemberError =
 	| "invalid_input"

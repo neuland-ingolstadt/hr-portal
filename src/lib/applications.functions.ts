@@ -65,6 +65,18 @@ export const acceptApplicationFn = createServerFn({ method: "POST" })
 					sepaMandate: result.sepaMandate ?? null,
 				},
 			});
+		} else {
+			recordAudit({
+				actor,
+				action: "application.accept_failed",
+				targetId: String(data.memberId),
+				targetLabel: result.username ?? null,
+				meta: {
+					error: result.error,
+					stage: result.stage ?? null,
+					easyVereinAccepted: result.easyVereinAccepted ?? null,
+				},
+			});
 		}
 		return result;
 	});

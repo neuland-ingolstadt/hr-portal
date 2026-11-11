@@ -1,4 +1,6 @@
-import type { CreateMemberError } from "#/lib/onboarding";
+import type { CreateMemberError, CreateMemberStage } from "#/lib/onboarding";
+
+export type AcceptApplicationStage = CreateMemberStage | "easyverein_accept";
 
 export type PendingApplication = {
 	id: number;
@@ -54,4 +56,6 @@ export type AcceptApplicationResult =
 			emailSent?: boolean;
 			easyVereinAccepted?: boolean;
 			sepaMandate?: SepaMandateStatus;
+			/** Where the flow stopped (logs / failed-accept audit). */
+			stage?: AcceptApplicationStage;
 	  };

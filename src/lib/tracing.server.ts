@@ -94,6 +94,18 @@ function activeTracingContext(): Context {
 	return spanContextStorage.getStore() ?? context.active();
 }
 
+/**
+ * Active OTEL trace id for structured app logs (Loki ↔ Tempo).
+ * Empty string when tracing is off or no span is in scope.
+ */
+export function getActiveTraceId(): string {
+	if (!isTracingEnabled()) return "";
+	const span = trace.getSpan(activeTracingContext());
+	if (!span) return "";
+	const { traceId } = span.spanContext();
+	return isValidTraceId(traceId) ? traceId : "";
+}
+
 function runWithSpanContext<T>(span: Span, fn: () => T): T {
 	return spanContextStorage.run(
 		trace.setSpan(activeTracingContext(), span),

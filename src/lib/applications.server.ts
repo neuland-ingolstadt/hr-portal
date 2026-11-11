@@ -15,6 +15,7 @@ import {
 	listPendingApplications,
 } from "#/lib/easyverein.server";
 import { createMemberAccount } from "#/lib/onboarding.server";
+import { getActiveTraceId } from "#/lib/tracing.server";
 
 export async function listApplications(): Promise<ApplicationsResult> {
 	if (!isEasyVereinConfigured()) {
@@ -82,6 +83,7 @@ export async function acceptApplication(
 	} catch (error) {
 		console.error(
 			"[applications] EasyVerein accept failed after Authentik create",
+			{ traceId: getActiveTraceId(), stage: "easyverein_accept" },
 			error,
 		);
 		const message = error instanceof Error ? error.message : String(error);
@@ -104,6 +106,7 @@ export async function acceptApplication(
 			emailSent: createResult.emailSent,
 			easyVereinAccepted: false,
 			sepaMandate: null,
+			stage: "easyverein_accept",
 		};
 	}
 

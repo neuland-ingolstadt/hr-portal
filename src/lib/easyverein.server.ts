@@ -124,6 +124,18 @@ function authHeaders(json = false): HeadersInit {
 	return headers;
 }
 
+const EASYVEREIN_RETRY_ATTEMPTS = 3;
+const EASYVEREIN_RETRY_BACKOFF_MS = [200, 500] as const;
+
+/** Gateway blips / rate limits - safe to retry (accept PATCH is idempotent). */
+function isTransientEasyVereinFailure(status: number): boolean {
+	return status === 429 || status === 502 || status === 503 || status === 504;
+}
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function easyVereinFetch<T>(
 	path: string,
 	init?: RequestInit & { responseType?: "json" | "none" },
@@ -135,23 +147,48 @@ async function easyVereinFetch<T>(
 		"easyverein",
 		init?.method ?? "GET",
 		async ({ span, traceHeaders }) => {
+			const method = init?.method ?? "GET";
 			const url = path.startsWith("http") ? path : `${apiBase()}${path}`;
-			const response = await fetch(url, {
-				...init,
-				headers: mergeTracingHeaders(init?.headers, traceHeaders),
-			});
-			// Status code only - response bodies / paths may hold identifiers.
-			span?.setAttribute("http.response.status_code", response.status);
-			if (!response.ok) {
+			let lastError: Error | null = null;
+
+			for (let attempt = 1; attempt <= EASYVEREIN_RETRY_ATTEMPTS; attempt++) {
+				const response = await fetch(url, {
+					...init,
+					headers: mergeTracingHeaders(init?.headers, traceHeaders),
+				});
+				// Status code only - response bodies / paths may hold identifiers.
+				span?.setAttribute("http.response.status_code", response.status);
+
+				if (response.ok) {
+					if (attempt > 1) {
+						span?.setAttribute("http.response.retry_count", attempt - 1);
+					}
+					if (init?.responseType === "none" || response.status === 204) {
+						return undefined as T;
+					}
+					return (await response.json()) as T;
+				}
+
 				const detail = await response.text().catch(() => "");
-				throw new Error(
-					`EasyVerein ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
+				lastError = new Error(
+					`EasyVerein ${method} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
 				);
+
+				if (
+					attempt < EASYVEREIN_RETRY_ATTEMPTS &&
+					isTransientEasyVereinFailure(response.status)
+				) {
+					const backoff =
+						EASYVEREIN_RETRY_BACKOFF_MS[attempt - 1] ??
+						EASYVEREIN_RETRY_BACKOFF_MS[EASYVEREIN_RETRY_BACKOFF_MS.length - 1];
+					await sleep(backoff);
+					continue;
+				}
+
+				throw lastError;
 			}
-			if (init?.responseType === "none" || response.status === 204) {
-				return undefined as T;
-			}
-			return (await response.json()) as T;
+
+			throw lastError ?? new Error(`EasyVerein ${method} ${path} failed`);
 		},
 	);
 }

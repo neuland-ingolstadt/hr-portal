@@ -9,14 +9,20 @@ import {
 	isAuthentikApiConfigured,
 	resolveAuthentikGroupIdByName,
 } from "#/lib/authentik-api.server";
+import { easyVereinMemberIdFromAttributes } from "#/lib/authentik-members/shared.server";
 import {
 	invalidateDirectoryCache,
 	resolveOnboardingContactRecipient,
 } from "#/lib/authentik-members.server";
 import { sendEmail } from "#/lib/azure-email.server";
 import { serverConfig } from "#/lib/config";
-import type { CreateMemberResult, NewMemberInput } from "#/lib/onboarding";
+import type {
+	CreateMemberResult,
+	CreateMemberStage,
+	NewMemberInput,
+} from "#/lib/onboarding";
 import { firstNameFromDisplayName } from "#/lib/onboarding";
+import { getActiveTraceId } from "#/lib/tracing.server";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -54,6 +60,20 @@ function parseNewMemberInput(input: NewMemberInput): NewMemberInput | null {
 	return { firstName, lastName, email };
 }
 
+function logCreateMemberFailure(
+	stage: CreateMemberStage,
+	error: unknown,
+): void {
+	console.error(
+		"[onboarding] create member failed",
+		{
+			traceId: getActiveTraceId(),
+			stage,
+		},
+		error,
+	);
+}
+
 async function getUserByUsername(
 	username: string,
 ): Promise<AuthentikUser | null> {
@@ -76,28 +96,105 @@ async function setUserPassword(
 	});
 }
 
+async function finishMemberCredentials(input: {
+	userPk: number | string;
+	firstName: string;
+	lastName: string;
+	email: string;
+	username: string;
+	existingEmail?: string | null;
+	existingName?: string | null;
+}): Promise<CreateMemberResult> {
+	const password = generatePassword(16);
+
+	try {
+		await setUserPassword(input.userPk, password);
+	} catch (error) {
+		logCreateMemberFailure("set_password", error);
+		return { success: false, error: "create_failed", stage: "set_password" };
+	}
+
+	invalidateDirectoryCache();
+
+	let emailSent = false;
+	try {
+		emailSent = await sendEmail(
+			{
+				address: input.existingEmail?.trim() || input.email,
+				displayName:
+					input.existingName?.trim() || `${input.firstName} ${input.lastName}`,
+			},
+			"Willkommen bei Neuland Ingolstadt",
+			WelcomeEmail({
+				firstName: input.firstName,
+				username: input.username,
+				password,
+			}),
+		);
+	} catch (error) {
+		logCreateMemberFailure("email", error);
+		emailSent = false;
+	}
+
+	if (!emailSent) {
+		console.warn(
+			`[onboarding] user ${input.username} created but welcome email was not sent`,
+			{ traceId: getActiveTraceId(), stage: "email" },
+		);
+	}
+
+	return { success: true, username: input.username, emailSent };
+}
+
 /**
  * Create an Authentik account (membership-tools parity) and send the welcome mail.
  * Direct fetch for user create - @goauthentik/api create is unreliable.
+ *
+ * When `easyVereinMemberId` is set and a username already exists with the same
+ * EV id (partial accept), resume password + welcome mail instead of failing.
  */
 export async function createMemberAccount(
 	input: NewMemberInput,
 ): Promise<CreateMemberResult> {
 	const user = parseNewMemberInput(input);
 	if (!user) {
-		return { success: false, error: "invalid_input" };
+		return { success: false, error: "invalid_input", stage: "lookup" };
 	}
 
 	if (!isAuthentikApiConfigured()) {
-		return { success: false, error: "authentik_api_missing" };
+		return { success: false, error: "authentik_api_missing", stage: "lookup" };
 	}
 
 	const username = `${normalizeUsernamePart(user.firstName)}.${normalizeUsernamePart(user.lastName)}`;
+	const easyVereinMemberId =
+		typeof input.easyVereinMemberId === "number" &&
+		Number.isInteger(input.easyVereinMemberId) &&
+		input.easyVereinMemberId > 0
+			? input.easyVereinMemberId
+			: null;
 
 	try {
 		const existing = await getUserByUsername(username);
 		if (existing) {
-			return { success: false, error: "username_exists" };
+			const existingEvId = easyVereinMemberIdFromAttributes(
+				existing.attributes,
+			);
+			if (
+				easyVereinMemberId != null &&
+				existing.pk != null &&
+				existingEvId === easyVereinMemberId
+			) {
+				return finishMemberCredentials({
+					userPk: existing.pk,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					email: user.email,
+					username,
+					existingEmail: existing.email,
+					existingName: existing.name,
+				});
+			}
+			return { success: false, error: "username_exists", stage: "lookup" };
 		}
 
 		const defaultGroupName =
@@ -115,69 +212,66 @@ export async function createMemberAccount(
 			}
 		}
 
-		const password = generatePassword(16);
-
 		const attributes: Record<string, string | number> = {
 			firstName: user.firstName,
 			lastName: user.lastName,
 		};
-		if (
-			typeof input.easyVereinMemberId === "number" &&
-			Number.isInteger(input.easyVereinMemberId) &&
-			input.easyVereinMemberId > 0
-		) {
-			attributes.easyVereinMemberId = input.easyVereinMemberId;
+		if (easyVereinMemberId != null) {
+			attributes.easyVereinMemberId = easyVereinMemberId;
 		}
 
-		const created = await authentikFetch<AuthentikUser>("/api/v3/core/users/", {
-			method: "POST",
-			headers: authentikAuthHeaders(true),
-			body: JSON.stringify({
-				username,
-				name: `${user.firstName} ${user.lastName}`,
-				email: user.email,
-				path: serverConfig.authentikUserPath,
-				type: "internal",
-				groups: groupId ? [groupId] : [],
-				attributes,
-			}),
-		});
+		let created: AuthentikUser;
+		try {
+			created = await authentikFetch<AuthentikUser>("/api/v3/core/users/", {
+				method: "POST",
+				headers: authentikAuthHeaders(true),
+				body: JSON.stringify({
+					username,
+					name: `${user.firstName} ${user.lastName}`,
+					email: user.email,
+					path: serverConfig.authentikUserPath,
+					type: "internal",
+					groups: groupId ? [groupId] : [],
+					attributes,
+				}),
+			});
+		} catch (error) {
+			logCreateMemberFailure("create_user", error);
+			const message = error instanceof Error ? error.message : String(error);
+			if (message.toLowerCase().includes("already exists")) {
+				return {
+					success: false,
+					error: "username_exists",
+					stage: "create_user",
+				};
+			}
+			return { success: false, error: "create_failed", stage: "create_user" };
+		}
 
 		if (created.pk == null) {
-			throw new Error("Authentik user create returned no pk");
-		}
-
-		await setUserPassword(created.pk, password);
-		invalidateDirectoryCache();
-
-		const emailSent = await sendEmail(
-			{
-				address: created.email?.trim() || user.email,
-				displayName:
-					created.name?.trim() || `${user.firstName} ${user.lastName}`,
-			},
-			"Willkommen bei Neuland Ingolstadt",
-			WelcomeEmail({
-				firstName: user.firstName,
-				username,
-				password,
-			}),
-		);
-
-		if (!emailSent) {
-			console.warn(
-				`[onboarding] user ${username} created but welcome email was not sent`,
+			logCreateMemberFailure(
+				"create_user",
+				new Error("Authentik user create returned no pk"),
 			);
+			return { success: false, error: "create_failed", stage: "create_user" };
 		}
 
-		return { success: true, username, emailSent };
+		return finishMemberCredentials({
+			userPk: created.pk,
+			firstName: user.firstName,
+			lastName: user.lastName,
+			email: user.email,
+			username,
+			existingEmail: created.email,
+			existingName: created.name,
+		});
 	} catch (error) {
-		console.error("[onboarding] create member failed", error);
+		logCreateMemberFailure("lookup", error);
 		const message = error instanceof Error ? error.message : String(error);
 		if (message.toLowerCase().includes("already exists")) {
-			return { success: false, error: "username_exists" };
+			return { success: false, error: "username_exists", stage: "lookup" };
 		}
-		return { success: false, error: "create_failed" };
+		return { success: false, error: "create_failed", stage: "lookup" };
 	}
 }
 

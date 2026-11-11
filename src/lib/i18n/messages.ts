@@ -46,6 +46,7 @@ const de = {
 	"audit.metaFalse": "Nein",
 	"audit.metaEmpty": "-",
 	"audit.action.application.accept": "Antrag angenommen",
+	"audit.action.application.accept_failed": "Antrag annehmen fehlgeschlagen",
 	"audit.action.member.create": "Konto manuell angelegt",
 	"audit.action.member.groups.update": "Gruppen geändert",
 	"audit.action.member.onboarding_stage.update": "Onboarding-Stufe geändert",
@@ -352,7 +353,8 @@ const de = {
 		"Authentik-API ist nicht konfiguriert. Kontoanlage nicht möglich.",
 	"onboarding.create.errorUsernameExists":
 		"Ein Benutzer mit diesem Benutzernamen existiert bereits.",
-	"onboarding.create.errorFailed": "Konto konnte nicht angelegt werden.",
+	"onboarding.create.errorFailed":
+		"Kontoanlage fehlgeschlagen. Bitte erneut versuchen (Authentik war kurz nicht bereit).",
 	"onboarding.preview.open": "Mail-Vorschau",
 	"onboarding.preview.title": "Willkommensmail",
 	"onboarding.preview.lead":
@@ -700,6 +702,7 @@ const en: Record<MessageKey, string> = {
 	"audit.metaFalse": "No",
 	"audit.metaEmpty": "-",
 	"audit.action.application.accept": "Application accepted",
+	"audit.action.application.accept_failed": "Application accept failed",
 	"audit.action.member.create": "Account created manually",
 	"audit.action.member.groups.update": "Groups updated",
 	"audit.action.member.onboarding_stage.update": "Onboarding stage updated",
@@ -1000,7 +1003,8 @@ const en: Record<MessageKey, string> = {
 		"Authentik API is not configured. Account creation unavailable.",
 	"onboarding.create.errorUsernameExists":
 		"A user with this username already exists.",
-	"onboarding.create.errorFailed": "Could not create the account.",
+	"onboarding.create.errorFailed":
+		"Account creation failed. Please try again (Authentik was briefly unavailable).",
 	"onboarding.preview.open": "Email preview",
 	"onboarding.preview.title": "Welcome email",
 	"onboarding.preview.lead":

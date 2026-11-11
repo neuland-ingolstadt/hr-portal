@@ -58,6 +58,18 @@ export function authentikAuthHeaders(json = false): HeadersInit {
 	return headers;
 }
 
+const AUTHENTIK_RETRY_ATTEMPTS = 3;
+const AUTHENTIK_RETRY_BACKOFF_MS = [200, 500] as const;
+
+function isTransientAuthentikFailure(status: number, detail: string): boolean {
+	if (status === 503) return true;
+	return detail.toLowerCase().includes("authentik starting");
+}
+
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function authentikFetch<T>(
 	path: string,
 	init?: RequestInit & { responseType?: "json" | "none" },
@@ -69,22 +81,47 @@ export async function authentikFetch<T>(
 		"authentik",
 		init?.method ?? "GET",
 		async ({ span, traceHeaders }) => {
-			const response = await fetch(`${authentikApiBase()}${path}`, {
-				...init,
-				headers: mergeTracingHeaders(init?.headers, traceHeaders),
-			});
-			// Status code only - response bodies / paths may hold identifiers.
-			span?.setAttribute("http.response.status_code", response.status);
-			if (!response.ok) {
+			const method = init?.method ?? "GET";
+			let lastError: Error | null = null;
+
+			for (let attempt = 1; attempt <= AUTHENTIK_RETRY_ATTEMPTS; attempt++) {
+				const response = await fetch(`${authentikApiBase()}${path}`, {
+					...init,
+					headers: mergeTracingHeaders(init?.headers, traceHeaders),
+				});
+				// Status code only - response bodies / paths may hold identifiers.
+				span?.setAttribute("http.response.status_code", response.status);
+
+				if (response.ok) {
+					if (attempt > 1) {
+						span?.setAttribute("http.response.retry_count", attempt - 1);
+					}
+					if (init?.responseType === "none" || response.status === 204) {
+						return undefined as T;
+					}
+					return (await response.json()) as T;
+				}
+
 				const detail = await response.text().catch(() => "");
-				throw new Error(
-					`Authentik ${init?.method ?? "GET"} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
+				lastError = new Error(
+					`Authentik ${method} ${path} → ${response.status}: ${detail.slice(0, 300)}`,
 				);
+
+				if (
+					attempt < AUTHENTIK_RETRY_ATTEMPTS &&
+					isTransientAuthentikFailure(response.status, detail)
+				) {
+					const backoff =
+						AUTHENTIK_RETRY_BACKOFF_MS[attempt - 1] ??
+						AUTHENTIK_RETRY_BACKOFF_MS[AUTHENTIK_RETRY_BACKOFF_MS.length - 1];
+					await sleep(backoff);
+					continue;
+				}
+
+				throw lastError;
 			}
-			if (init?.responseType === "none" || response.status === 204) {
-				return undefined as T;
-			}
-			return (await response.json()) as T;
+
+			throw lastError ?? new Error(`Authentik ${method} ${path} failed`);
 		},
 	);
 }

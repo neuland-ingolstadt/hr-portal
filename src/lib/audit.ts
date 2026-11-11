@@ -2,6 +2,7 @@
 
 export const AUDIT_ACTIONS = [
 	"application.accept",
+	"application.accept_failed",
 	"member.create",
 	"member.groups.update",
 	"member.onboarding_stage.update",
@@ -41,6 +42,7 @@ export type AuditEventsResult = {
 /** i18n keys for action labels. */
 export const AUDIT_ACTION_LABEL_KEYS = {
 	"application.accept": "audit.action.application.accept",
+	"application.accept_failed": "audit.action.application.accept_failed",
 	"member.create": "audit.action.member.create",
 	"member.groups.update": "audit.action.member.groups.update",
 	"member.onboarding_stage.update":
