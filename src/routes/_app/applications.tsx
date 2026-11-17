@@ -8,6 +8,7 @@ import { UserPlus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { AcceptApplicationDialog } from "#/components/applications/accept-application-dialog";
 import { ApplicationsTable } from "#/components/applications/applications-table";
+import { DeclineApplicationDialog } from "#/components/applications/decline-application-dialog";
 import { ManualCreateMemberDialog } from "#/components/applications/manual-create-member-dialog";
 import { PageHeader } from "#/components/layout/page-header";
 import { Button } from "#/components/ui/button";
@@ -119,19 +120,36 @@ function ApplicationsBody({
 	const { t } = useI18n();
 	const router = useRouter();
 	const [selected, setSelected] = useState<PendingApplication | null>(null);
-	const [dialogOpen, setDialogOpen] = useState(false);
+	const [acceptOpen, setAcceptOpen] = useState(false);
+	const [declineOpen, setDeclineOpen] = useState(false);
 
 	const onAccept = useCallback((application: PendingApplication) => {
 		setSelected(application);
-		setDialogOpen(true);
+		setDeclineOpen(false);
+		setAcceptOpen(true);
 	}, []);
 
-	const onDialogOpenChange = useCallback((open: boolean) => {
-		setDialogOpen(open);
+	const onDecline = useCallback((application: PendingApplication) => {
+		setSelected(application);
+		setAcceptOpen(false);
+		setDeclineOpen(true);
+	}, []);
+
+	const onAcceptOpenChange = useCallback((open: boolean) => {
+		setAcceptOpen(open);
+		if (!open) setSelected(null);
+	}, []);
+
+	const onDeclineOpenChange = useCallback((open: boolean) => {
+		setDeclineOpen(open);
 		if (!open) setSelected(null);
 	}, []);
 
 	const onAccepted = useCallback(() => {
+		void router.invalidate();
+	}, [router]);
+
+	const onDeclined = useCallback(() => {
 		void router.invalidate();
 	}, [router]);
 
@@ -147,13 +165,20 @@ function ApplicationsBody({
 				<ApplicationsTable
 					applications={data.applications}
 					onAccept={onAccept}
+					onDecline={onDecline}
 				/>
 			)}
 			<AcceptApplicationDialog
 				application={selected}
-				open={dialogOpen}
-				onOpenChange={onDialogOpenChange}
+				open={acceptOpen}
+				onOpenChange={onAcceptOpenChange}
 				onAccepted={onAccepted}
+			/>
+			<DeclineApplicationDialog
+				application={selected}
+				open={declineOpen}
+				onOpenChange={onDeclineOpenChange}
+				onDeclined={onDeclined}
 			/>
 			<ManualCreateMemberDialog
 				open={manualCreateOpen}
