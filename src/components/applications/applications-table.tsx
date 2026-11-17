@@ -39,7 +39,6 @@ const features = tableFeatures({
 type ApplicationsTableProps = {
 	applications: PendingApplication[];
 	onAccept: (application: PendingApplication) => void;
-	onDecline: (application: PendingApplication) => void;
 };
 
 function initials(name: string): string {
@@ -63,7 +62,6 @@ function formatDate(value: string | null, locale: string): string {
 export function ApplicationsTable({
 	applications,
 	onAccept,
-	onDecline,
 }: ApplicationsTableProps) {
 	const { t, locale } = useI18n();
 	const [sorting, setSorting] = useState<SortingState>([
@@ -116,15 +114,7 @@ export function ApplicationsTable({
 					<span className="sr-only">{t("applications.colActions")}</span>
 				),
 				cell: ({ row }) => (
-					<div className="flex justify-end gap-2">
-						<Button
-							type="button"
-							size="sm"
-							variant="outline"
-							onClick={() => onDecline(row.original)}
-						>
-							{t("applications.decline")}
-						</Button>
+					<div className="flex justify-end">
 						<Button
 							type="button"
 							size="sm"
@@ -136,7 +126,7 @@ export function ApplicationsTable({
 				),
 			},
 		],
-		[locale, onAccept, onDecline, t],
+		[locale, onAccept, t],
 	);
 
 	const table = useTable({

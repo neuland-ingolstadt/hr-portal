@@ -8,7 +8,6 @@ import { UserPlus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { AcceptApplicationDialog } from "#/components/applications/accept-application-dialog";
 import { ApplicationsTable } from "#/components/applications/applications-table";
-import { DeclineApplicationDialog } from "#/components/applications/decline-application-dialog";
 import { ManualCreateMemberDialog } from "#/components/applications/manual-create-member-dialog";
 import { PageHeader } from "#/components/layout/page-header";
 import { Button } from "#/components/ui/button";
@@ -121,18 +120,10 @@ function ApplicationsBody({
 	const router = useRouter();
 	const [selected, setSelected] = useState<PendingApplication | null>(null);
 	const [acceptOpen, setAcceptOpen] = useState(false);
-	const [declineOpen, setDeclineOpen] = useState(false);
 
 	const onAccept = useCallback((application: PendingApplication) => {
 		setSelected(application);
-		setDeclineOpen(false);
 		setAcceptOpen(true);
-	}, []);
-
-	const onDecline = useCallback((application: PendingApplication) => {
-		setSelected(application);
-		setAcceptOpen(false);
-		setDeclineOpen(true);
 	}, []);
 
 	const onAcceptOpenChange = useCallback((open: boolean) => {
@@ -140,21 +131,15 @@ function ApplicationsBody({
 		if (!open) setSelected(null);
 	}, []);
 
-	const onDeclineOpenChange = useCallback((open: boolean) => {
-		setDeclineOpen(open);
-		if (!open) setSelected(null);
-	}, []);
-
 	const onAccepted = useCallback(() => {
 		void router.invalidate();
 	}, [router]);
 
-	const onDeclined = useCallback(() => {
-		void router.invalidate();
-	}, [router]);
-
 	return (
-		<>
+		<div className="space-y-4">
+			<p className="border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+				{t("applications.declineHint")}
+			</p>
 			{data.applications.length === 0 ? (
 				<div className="surface-panel flex min-h-64 items-center justify-center p-6">
 					<p className="text-sm text-muted-foreground">
@@ -165,7 +150,6 @@ function ApplicationsBody({
 				<ApplicationsTable
 					applications={data.applications}
 					onAccept={onAccept}
-					onDecline={onDecline}
 				/>
 			)}
 			<AcceptApplicationDialog
@@ -174,17 +158,11 @@ function ApplicationsBody({
 				onOpenChange={onAcceptOpenChange}
 				onAccepted={onAccepted}
 			/>
-			<DeclineApplicationDialog
-				application={selected}
-				open={declineOpen}
-				onOpenChange={onDeclineOpenChange}
-				onDeclined={onDeclined}
-			/>
 			<ManualCreateMemberDialog
 				open={manualCreateOpen}
 				onOpenChange={onManualCreateOpenChange}
 			/>
-		</>
+		</div>
 	);
 }
 

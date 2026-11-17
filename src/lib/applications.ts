@@ -60,23 +60,6 @@ export type AcceptApplicationResult =
 			stage?: AcceptApplicationStage;
 	  };
 
-/** Soft-delete pending EV application (wastebasket). Reason is audit-only. */
-export type DeclineApplicationInput = {
-	memberId: number;
-	reason: string;
-};
-
-export type DeclineApplicationError =
-	| "invalid_input"
-	| "easyverein_api_missing"
-	| "easyverein_not_found"
-	| "easyverein_not_pending"
-	| "easyverein_decline_failed";
-
-export type DeclineApplicationResult =
-	| { success: true; reason: string; displayName: string }
-	| { success: false; error: DeclineApplicationError };
-
 /** UI step index for the accept progress list (0 account … 3 SEPA). */
 export function acceptStageToStepIndex(
 	stage: AcceptApplicationStage | undefined,
@@ -93,19 +76,4 @@ export function acceptStageToStepIndex(
 		default:
 			return 0;
 	}
-}
-
-export const DECLINE_REASON_MIN_LENGTH = 3;
-export const DECLINE_REASON_MAX_LENGTH = 500;
-
-export function normalizeDeclineReason(raw: unknown): string | null {
-	if (typeof raw !== "string") return null;
-	const reason = raw.trim().replace(/\s+/g, " ");
-	if (
-		reason.length < DECLINE_REASON_MIN_LENGTH ||
-		reason.length > DECLINE_REASON_MAX_LENGTH
-	) {
-		return null;
-	}
-	return reason;
 }

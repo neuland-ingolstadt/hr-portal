@@ -2,16 +2,12 @@ import type {
 	AcceptApplicationInput,
 	AcceptApplicationResult,
 	ApplicationsResult,
-	DeclineApplicationInput,
-	DeclineApplicationResult,
 	PendingApplicationCountResult,
 	SepaMandateStatus,
 } from "#/lib/applications";
-import { normalizeDeclineReason } from "#/lib/applications";
 import {
 	acceptEasyVereinApplication,
 	countPendingApplications,
-	declineEasyVereinApplication,
 	ensureEasyVereinSepaMandate,
 	getPendingApplication,
 	invalidatePendingApplicationCountCache,
@@ -141,52 +137,5 @@ async function setSepaMandate(memberId: number): Promise<SepaMandateStatus> {
 			error,
 		);
 		return "failed";
-	}
-}
-
-/**
- * Soft-delete a pending EasyVerein application. No Authentik writes.
- * `reason` is validated here for the audit gate (not sent to EasyVerein).
- */
-export async function declineApplication(
-	input: DeclineApplicationInput,
-): Promise<DeclineApplicationResult> {
-	if (!isEasyVereinConfigured()) {
-		return { success: false, error: "easyverein_api_missing" };
-	}
-
-	const memberId = input.memberId;
-	if (!Number.isInteger(memberId) || memberId <= 0) {
-		return { success: false, error: "invalid_input" };
-	}
-
-	const reason = normalizeDeclineReason(input.reason);
-	if (!reason) {
-		return { success: false, error: "invalid_input" };
-	}
-
-	const pending = await getPendingApplication(memberId);
-	if (!pending) {
-		return { success: false, error: "easyverein_not_pending" };
-	}
-
-	try {
-		await declineEasyVereinApplication(memberId);
-		invalidatePendingApplicationCountCache();
-		return { success: true, reason, displayName: pending.displayName };
-	} catch (error) {
-		console.error(
-			"[applications] EasyVerein decline failed",
-			{ traceId: getActiveTraceId(), memberId },
-			error,
-		);
-		const message = error instanceof Error ? error.message : String(error);
-		if (message.includes("→ 404")) {
-			return { success: false, error: "easyverein_not_found" };
-		}
-		if (message.includes("easyverein_not_pending")) {
-			return { success: false, error: "easyverein_not_pending" };
-		}
-		return { success: false, error: "easyverein_decline_failed" };
 	}
 }

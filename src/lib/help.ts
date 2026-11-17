@@ -106,10 +106,6 @@ export const HELP_TOPICS: Record<HelpTopicId, HelpTopic> = {
 				headingKey: "help.applications.s4.heading",
 				bodyKey: "help.applications.s4.body",
 			},
-			{
-				headingKey: "help.applications.s5.heading",
-				bodyKey: "help.applications.s5.body",
-			},
 		],
 	},
 	onboarding: {

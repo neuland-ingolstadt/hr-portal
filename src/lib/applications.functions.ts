@@ -3,14 +3,10 @@ import type {
 	AcceptApplicationInput,
 	AcceptApplicationResult,
 	ApplicationsResult,
-	DeclineApplicationInput,
-	DeclineApplicationResult,
 	PendingApplicationCountResult,
 } from "#/lib/applications";
-import { normalizeDeclineReason } from "#/lib/applications";
 import {
 	acceptApplication,
-	declineApplication,
 	getPendingApplicationCount,
 	listApplications,
 } from "#/lib/applications.server";
@@ -32,26 +28,6 @@ function validateAcceptInput(
 		throw new Error("invalid_input");
 	}
 	return { memberId };
-}
-
-function validateDeclineInput(
-	data: DeclineApplicationInput,
-): DeclineApplicationInput {
-	if (!data || typeof data !== "object") {
-		throw new Error("invalid_input");
-	}
-	const memberId =
-		typeof data.memberId === "number"
-			? data.memberId
-			: Number.parseInt(String(data.memberId ?? ""), 10);
-	if (!Number.isInteger(memberId) || memberId <= 0) {
-		throw new Error("invalid_input");
-	}
-	const reason = normalizeDeclineReason(data.reason);
-	if (!reason) {
-		throw new Error("invalid_input");
-	}
-	return { memberId, reason };
 }
 
 export const listApplicationsFn = createServerFn({ method: "GET" })
@@ -99,36 +75,6 @@ export const acceptApplicationFn = createServerFn({ method: "POST" })
 					error: result.error,
 					stage: result.stage ?? null,
 					easyVereinAccepted: result.easyVereinAccepted ?? null,
-				},
-			});
-		}
-		return result;
-	});
-
-export const declineApplicationFn = createServerFn({ method: "POST" })
-	.middleware([tracingMiddleware])
-	.validator(validateDeclineInput)
-	.handler(async ({ data }): Promise<DeclineApplicationResult> => {
-		const actor = await requireElevatedAccess();
-		const result = await declineApplication(data);
-		if (result.success) {
-			recordAudit({
-				actor,
-				action: "application.decline",
-				targetId: String(data.memberId),
-				targetLabel: result.displayName,
-				meta: {
-					reason: result.reason,
-				},
-			});
-		} else {
-			recordAudit({
-				actor,
-				action: "application.decline_failed",
-				targetId: String(data.memberId),
-				targetLabel: null,
-				meta: {
-					error: result.error,
 				},
 			});
 		}

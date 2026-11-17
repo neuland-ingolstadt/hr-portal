@@ -118,21 +118,18 @@ const de = {
 	"help.applications.lead":
 		"Offene EasyVerein-Anträge annehmen: Authentik-Konto, Willkommensmail und Mitgliedschaftsabschluss.",
 	"help.applications.intro":
-		"Diese Seite ist nur für Vorstand und Admin. Sie listet EasyVerein-Mitglieder mit is_application=true. Annehmen legt Authentik + Willkommensmail an und schließt den Antrag; Ablehnen soft-löscht den Antrag in EasyVerein (Papierkorb) mit Begründung im Audit.",
+		"Diese Seite ist nur für Vorstand und Admin. Sie listet EasyVerein-Mitglieder mit is_application=true. Annehmen legt Authentik + Willkommensmail an und schließt den Antrag. Ablehnen ist im Portal nicht vorgesehen: dafür EasyVerein direkt nutzen.",
 	"help.applications.s1.heading": "Liste und Suche",
 	"help.applications.s1.body":
 		"Die Liste kommt live aus der EasyVerein-API. Suche nach Name oder E-Mail. Fehlt das API-Token, erscheint ein Konfigurationsfehler statt einer leeren Liste.",
 	"help.applications.s2.heading": "Antrag annehmen",
 	"help.applications.s2.body":
 		"Beim Annehmen legt das Portal zuerst den Authentik-Nutzer an (inkl. easyVereinMemberId), sendet die Willkommensmail und aktualisiert danach EasyVerein (Antrag schließen, Beitrittsdatum setzen falls fehlend). Bei Fehlern zeigt der Dialog die fehlgeschlagene Stufe und „Erneut versuchen“ — der Server setzt einen teilweisen Authentik-Create fort.",
-	"help.applications.s3.heading": "Antrag ablehnen",
+	"help.applications.s3.heading": "SEPA-Mandat",
 	"help.applications.s3.body":
-		"Ablehnen soft-löscht den EasyVerein-Antrag (Papierkorb). Es wird kein Authentik-Konto angelegt. Die Begründung (mind. 3 Zeichen) landet nur im Audit-Log, nicht in EasyVerein.",
-	"help.applications.s4.heading": "SEPA-Mandat",
-	"help.applications.s4.body":
 		"Ist eine IBAN vorhanden und noch kein SEPA-Mandat gesetzt, versucht das Portal nach der Annahme automatisch ein Mandat zu setzen (Datum = Antragsdatum oder heute, Referenz NL{memberId}-YYYYMMDD). Ein Fehler beim Mandat bricht die Annahme nicht ab: es erscheint nur ein Hinweis.",
-	"help.applications.s5.heading": "Manuell anlegen",
-	"help.applications.s5.body":
+	"help.applications.s4.heading": "Manuell anlegen",
+	"help.applications.s4.body":
 		"Über „Manuell anlegen“ im Kopf kannst du in Sonderfällen ein Authentik-Konto ohne offenen EasyVerein-Antrag erzeugen (z. B. Altbestand). Der normale Weg für neue Mitglieder bleibt die Annahme aus dieser Liste.",
 	"help.onboarding.title": "Onboarding",
 	"help.onboarding.lead":
@@ -178,7 +175,7 @@ const de = {
 		"Nur Vorstand und Admin. HR hat keinen Menüpunkt und keinen API-Zugang. Das Log ist append-only (JSONL) und kein Identitäts- oder Mitglieder-Store.",
 	"help.audit.s2.heading": "Welche Aktionen",
 	"help.audit.s2.body":
-		"Protokolliert werden u. a. Antrag annehmen und ablehnen, manuelles Konto anlegen, Gruppenänderungen, Onboarding-Stufe und -Betreuung sowie Offboarding-Widerruf und Kontolöschung. Filtere nach Aktionstyp oder suche nach Akteur und Ziel.",
+		"Protokolliert werden u. a. Antrag annehmen, manuelles Konto anlegen, Gruppenänderungen, Onboarding-Stufe und -Betreuung sowie Offboarding-Widerruf und Kontolöschung. Filtere nach Aktionstyp oder suche nach Akteur und Ziel.",
 	"help.audit.s3.heading": "Betrieb",
 	"help.audit.s3.body":
 		"Die Datei liegt unter AUDIT_LOG_PATH (Standard data/audit.jsonl). In Produktion sollte der Pfad persistent gemountet sein. Zusätzlich werden [audit]-Zeilen nach stdout geschrieben.",
@@ -246,8 +243,10 @@ const de = {
 		"Mitgliedsanträge sichten, entscheiden und Rückmeldungen nachverfolgen.",
 	"applications.leadLive":
 		"Offene EasyVerein-Anträge prüfen. Annehmen legt das Authentik-Konto an und sendet die Willkommensmail.",
+	"applications.declineHint":
+		"Ablehnen ist im Portal nicht vorgesehen — bitte den Antrag direkt in EasyVerein bearbeiten.",
 	"applications.bulletReview": "Anträge in einer Warteschlange prüfen",
-	"applications.bulletDecide": "Freigeben oder ablehnen mit Begründung",
+	"applications.bulletDecide": "Freigeben oder in EasyVerein ablehnen",
 	"applications.bulletNotify": "Bewerber:innen automatisch benachrichtigen",
 	"applications.bulletHistory": "Entscheidungen nachvollziehbar speichern",
 	"applications.colName": "Name",
@@ -271,9 +270,6 @@ const de = {
 	"applications.errorAcceptFailed": "Annahme ist fehlgeschlagen.",
 	"applications.errorAcceptPartial":
 		"Authentik-Konto „{username}“ wurde angelegt, aber EasyVerein konnte nicht aktualisiert werden. „Erneut versuchen“ setzt den EasyVerein-Schritt fort.",
-	"applications.errorDeclineFailed": "Ablehnung ist fehlgeschlagen.",
-	"applications.errorDeclineReason":
-		"Bitte eine Begründung mit mindestens 3 Zeichen angeben.",
 	"applications.accept": "Annehmen",
 	"applications.acceptTitle": "Antrag annehmen?",
 	"applications.acceptLead":
@@ -301,17 +297,6 @@ const de = {
 		"Kein EasyVerein-Kontakt: SEPA-Mandat wurde nicht gesetzt.",
 	"applications.acceptSepaFailed":
 		"SEPA-Mandat konnte nicht gesetzt werden: bitte in EasyVerein nachziehen.",
-	"applications.decline": "Ablehnen",
-	"applications.declineTitle": "Antrag ablehnen?",
-	"applications.declineLead":
-		"Der EasyVerein-Antrag wird soft-gelöscht (Papierkorb). Es wird kein Authentik-Konto angelegt.",
-	"applications.declineReasonLabel": "Begründung",
-	"applications.declineReasonPlaceholder": "Kurzer Kontext für das Audit-Log…",
-	"applications.declineConfirm": "Ja, ablehnen",
-	"applications.declineCancel": "Abbrechen",
-	"applications.declineDone": "Schließen",
-	"applications.declineSubmitting": "Wird abgelehnt…",
-	"applications.declineSuccess": "Antrag abgelehnt und aus der Liste entfernt.",
 	"applications.manualCreate": "Konto manuell anlegen",
 	"applications.manualCreateTitle": "Konto manuell anlegen",
 	"applications.manualCreateLead":
@@ -798,21 +783,18 @@ const en: Record<MessageKey, string> = {
 	"help.applications.lead":
 		"Accept open EasyVerein applications: Authentik account, welcome mail, and membership close-out.",
 	"help.applications.intro":
-		"This page is board/admin only. It lists EasyVerein members with is_application=true. Accept creates Authentik + welcome mail and closes the application; decline soft-deletes the EasyVerein application (wastebasket) with a reason in the audit log.",
+		"This page is board/admin only. It lists EasyVerein members with is_application=true. Accept creates Authentik + welcome mail and closes the application. Declining is not in the portal: use EasyVerein directly for that.",
 	"help.applications.s1.heading": "List and search",
 	"help.applications.s1.body":
 		"The list comes live from the EasyVerein API. Search by name or email. If the API token is missing, you get a configuration error instead of an empty list.",
 	"help.applications.s2.heading": "Accepting an application",
 	"help.applications.s2.body":
 		"On accept the portal first creates the Authentik user (including easyVereinMemberId), sends the welcome mail, then updates EasyVerein (close application, set join date if missing). On failure the dialog shows the failed step and “Try again” — the server resumes a partial Authentik create.",
-	"help.applications.s3.heading": "Declining an application",
+	"help.applications.s3.heading": "SEPA mandate",
 	"help.applications.s3.body":
-		"Decline soft-deletes the EasyVerein application (wastebasket). No Authentik account is created. The reason (at least 3 characters) is stored in the audit log only, not in EasyVerein.",
-	"help.applications.s4.heading": "SEPA mandate",
-	"help.applications.s4.body":
 		"When an IBAN is present and no SEPA mandate is set yet, the portal tries to set a mandate after accept (date = application date or today, reference NL{memberId}-YYYYMMDD). A mandate failure does not roll back accept: you only see an alert.",
-	"help.applications.s5.heading": "Manual create",
-	"help.applications.s5.body":
+	"help.applications.s4.heading": "Manual create",
+	"help.applications.s4.body":
 		"“Manual create” in the header lets you create an Authentik account without an open EasyVerein application (e.g. legacy cases). The normal path for new members remains accepting from this list.",
 	"help.onboarding.title": "Onboarding",
 	"help.onboarding.lead":
@@ -857,7 +839,7 @@ const en: Record<MessageKey, string> = {
 		"Board and admin only. HR has no nav entry and no API access. The log is append-only (JSONL) and is not an identity or member store.",
 	"help.audit.s2.heading": "Which actions",
 	"help.audit.s2.body":
-		"Logged items include accepting and declining applications, manual account create, group changes, onboarding-stage and contact updates, and offboarding revoke/delete. Filter by action type or search actor and target.",
+		"Logged items include accepting applications, manual account create, group changes, onboarding-stage and contact updates, and offboarding revoke/delete. Filter by action type or search actor and target.",
 	"help.audit.s3.heading": "Operations",
 	"help.audit.s3.body":
 		"The file lives at AUDIT_LOG_PATH (default data/audit.jsonl). In production the path should be on a persistent volume. The app also emits [audit] lines to stdout.",
@@ -922,8 +904,10 @@ const en: Record<MessageKey, string> = {
 		"Review membership applications, decide, and track follow-ups.",
 	"applications.leadLive":
 		"Review open EasyVerein applications. Accepting creates the Authentik account and sends the welcome email.",
+	"applications.declineHint":
+		"Declining is not available in this portal — please handle that directly in EasyVerein.",
 	"applications.bulletReview": "Review applications in a queue",
-	"applications.bulletDecide": "Approve or decline with a reason",
+	"applications.bulletDecide": "Approve here or decline in EasyVerein",
 	"applications.bulletNotify": "Notify applicants automatically",
 	"applications.bulletHistory": "Keep decisions auditable",
 	"applications.colName": "Name",
@@ -947,9 +931,6 @@ const en: Record<MessageKey, string> = {
 	"applications.errorAcceptFailed": "Accept failed.",
 	"applications.errorAcceptPartial":
 		"Authentik account “{username}” was created, but EasyVerein could not be updated. “Try again” continues the EasyVerein step.",
-	"applications.errorDeclineFailed": "Decline failed.",
-	"applications.errorDeclineReason":
-		"Please enter a reason with at least 3 characters.",
 	"applications.accept": "Accept",
 	"applications.acceptTitle": "Accept application?",
 	"applications.acceptLead":
@@ -977,18 +958,6 @@ const en: Record<MessageKey, string> = {
 		"No EasyVerein contact: SEPA mandate was not set.",
 	"applications.acceptSepaFailed":
 		"SEPA mandate could not be set: please finish that step in EasyVerein.",
-	"applications.decline": "Decline",
-	"applications.declineTitle": "Decline application?",
-	"applications.declineLead":
-		"Soft-deletes the EasyVerein application (wastebasket). No Authentik account is created.",
-	"applications.declineReasonLabel": "Reason",
-	"applications.declineReasonPlaceholder": "Short context for the audit log…",
-	"applications.declineConfirm": "Yes, decline",
-	"applications.declineCancel": "Cancel",
-	"applications.declineDone": "Close",
-	"applications.declineSubmitting": "Declining…",
-	"applications.declineSuccess":
-		"Application declined and removed from the list.",
 	"applications.manualCreate": "Create account manually",
 	"applications.manualCreateTitle": "Create account manually",
 	"applications.manualCreateLead":

@@ -435,35 +435,6 @@ export async function acceptEasyVereinApplication(
 	});
 }
 
-/**
- * Decline a pending application: soft-delete the EasyVerein member (wastebasket).
- * Matches the usual EV UI path for rejecting an application.
- */
-export async function declineEasyVereinApplication(
-	memberId: number,
-): Promise<void> {
-	if (!isEasyVereinConfigured()) {
-		throw new Error("easyverein_api_missing");
-	}
-
-	const existing = await easyVereinFetch<EasyVereinMember>(
-		`/member/${memberId}?${new URLSearchParams({
-			query: "{id,is_application}",
-		}).toString()}`,
-		{ headers: authHeaders() },
-	);
-
-	if (!existing.is_application) {
-		throw new Error("easyverein_not_pending");
-	}
-
-	await easyVereinFetch(`/member/${memberId}`, {
-		method: "DELETE",
-		headers: authHeaders(),
-		responseType: "none",
-	});
-}
-
 function resolveContactDetailsId(
 	contact: EasyVereinContactDetails | string | null | undefined,
 ): number | null {
