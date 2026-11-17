@@ -1,4 +1,4 @@
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button";
 import {
@@ -11,9 +11,11 @@ import {
 } from "#/components/ui/dialog";
 import type {
 	AcceptApplicationError,
+	AcceptApplicationStage,
 	PendingApplication,
 	SepaMandateStatus,
 } from "#/lib/applications";
+import { acceptStageToStepIndex } from "#/lib/applications";
 import { acceptApplicationFn } from "#/lib/applications.functions";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { MessageKey } from "#/lib/i18n/messages";
@@ -44,6 +46,13 @@ const ACCEPT_STEPS: MessageKey[] = [
 	"applications.acceptStepEmail",
 	"applications.acceptStepEasyVerein",
 	"applications.acceptStepSepa",
+];
+
+const ACCEPT_STEPS_DONE: MessageKey[] = [
+	"applications.acceptStepAccountDone",
+	"applications.acceptStepEmailDone",
+	"applications.acceptStepEasyVereinDone",
+	"applications.acceptStepSepaDone",
 ];
 
 /** Client-side step pacing while the single server call runs. */
@@ -77,6 +86,9 @@ export function AcceptApplicationDialog({
 	const [pending, setPending] = useState(false);
 	const [stepIndex, setStepIndex] = useState(0);
 	const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+	const [failedStage, setFailedStage] = useState<AcceptApplicationStage | null>(
+		null,
+	);
 	const [partialUsername, setPartialUsername] = useState<string | null>(null);
 	const [success, setSuccess] = useState<{
 		username: string;
@@ -87,6 +99,7 @@ export function AcceptApplicationDialog({
 	useEffect(() => {
 		if (!open) return;
 		setErrorKey(null);
+		setFailedStage(null);
 		setPartialUsername(null);
 		setSuccess(null);
 		setPending(false);
@@ -106,6 +119,7 @@ export function AcceptApplicationDialog({
 		if (!application) return;
 		setPending(true);
 		setErrorKey(null);
+		setFailedStage(null);
 		setPartialUsername(null);
 		setSuccess(null);
 
@@ -115,6 +129,9 @@ export function AcceptApplicationDialog({
 			});
 
 			if (!result.success) {
+				const stage = result.stage ?? null;
+				setFailedStage(stage);
+				setStepIndex(acceptStageToStepIndex(stage ?? undefined));
 				setErrorKey(ERROR_KEYS[result.error]);
 				if (result.username) {
 					setPartialUsername(result.username);
@@ -130,6 +147,7 @@ export function AcceptApplicationDialog({
 			});
 			onAccepted();
 		} catch {
+			setFailedStage(null);
 			setErrorKey("applications.errorAcceptFailed");
 		} finally {
 			setPending(false);
@@ -140,6 +158,10 @@ export function AcceptApplicationDialog({
 		success?.sepaMandate != null
 			? SEPA_ALERT_KEYS[success.sepaMandate]
 			: undefined;
+
+	const failedStepIndex =
+		failedStage != null ? acceptStageToStepIndex(failedStage) : null;
+	const showFailureSteps = !pending && errorKey != null && !success;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -179,26 +201,34 @@ export function AcceptApplicationDialog({
 						</dl>
 					) : null}
 
-					{pending ? (
+					{pending || showFailureSteps ? (
 						<div
 							className="grid gap-3 border border-border bg-muted/20 px-3 py-3"
 							aria-live="polite"
-							aria-busy="true"
+							aria-busy={pending}
 						>
-							<div className="h-1 overflow-hidden bg-muted">
-								<div className="h-full w-1/3 animate-accept-progress bg-primary" />
-							</div>
-							<ol className="grid gap-2.5 m-0 list-none p-0">
+							{pending ? (
+								<div className="h-1 overflow-hidden bg-muted">
+									<div className="h-full w-1/3 animate-accept-progress bg-primary" />
+								</div>
+							) : null}
+							<ol className="m-0 grid list-none gap-2.5 p-0">
 								{ACCEPT_STEPS.map((key, index) => {
-									const done = index < stepIndex;
-									const active = index === stepIndex;
+									const failed = showFailureSteps && failedStepIndex === index;
+									const done = pending
+										? index < stepIndex
+										: failedStepIndex != null && index < failedStepIndex;
+									const active = pending ? index === stepIndex : failed;
+									const labelKey =
+										done && !pending ? (ACCEPT_STEPS_DONE[index] ?? key) : key;
 									return (
 										<li
 											key={key}
 											className={cn(
 												"flex items-center gap-2.5 text-sm",
 												done && "text-foreground",
-												active && "font-medium text-foreground",
+												active && !failed && "font-medium text-foreground",
+												failed && "font-medium text-destructive",
 												!done && !active && "text-muted-foreground",
 											)}
 										>
@@ -206,26 +236,37 @@ export function AcceptApplicationDialog({
 												className={cn(
 													"flex size-5 shrink-0 items-center justify-center",
 													done && "text-primary",
-													active && "text-primary",
+													active && !failed && "text-primary",
+													failed && "text-destructive",
 												)}
 												aria-hidden
 											>
 												{done ? (
 													<Check className="size-4" strokeWidth={2.5} />
-												) : active ? (
+												) : failed ? (
+													<X className="size-4" strokeWidth={2.5} />
+												) : active && pending ? (
 													<Loader2 className="size-4 animate-spin" />
 												) : (
 													<span className="size-1.5 rounded-full bg-muted-foreground/40" />
 												)}
 											</span>
-											<span>{t(key)}</span>
+											<span>{t(labelKey)}</span>
 										</li>
 									);
 								})}
 							</ol>
-							<p className="m-0 text-xs text-muted-foreground">
-								{t("applications.acceptSubmittingHint")}
-							</p>
+							{pending ? (
+								<p className="m-0 text-xs text-muted-foreground">
+									{t("applications.acceptSubmittingHint")}
+								</p>
+							) : failedStepIndex != null ? (
+								<p className="m-0 text-xs text-muted-foreground">
+									{t("applications.acceptFailedAt", {
+										step: t(ACCEPT_STEPS[failedStepIndex] ?? ACCEPT_STEPS[0]),
+									})}
+								</p>
+							) : null}
 						</div>
 					) : null}
 
@@ -271,19 +312,35 @@ export function AcceptApplicationDialog({
 							>
 								{t("applications.acceptCancel")}
 							</Button>
-							<Button type="button" onClick={onConfirm} disabled={pending}>
-								{pending ? (
-									<>
-										<Loader2 className="size-4 animate-spin" aria-hidden />
-										{t(
-											ACCEPT_STEPS[stepIndex] ??
-												"applications.acceptSubmitting",
-										)}
-									</>
-								) : (
-									t("applications.acceptConfirm")
-								)}
-							</Button>
+							{errorKey ? (
+								<Button type="button" onClick={onConfirm} disabled={pending}>
+									{pending ? (
+										<>
+											<Loader2 className="size-4 animate-spin" aria-hidden />
+											{t(
+												ACCEPT_STEPS[stepIndex] ??
+													"applications.acceptSubmitting",
+											)}
+										</>
+									) : (
+										t("applications.acceptRetry")
+									)}
+								</Button>
+							) : (
+								<Button type="button" onClick={onConfirm} disabled={pending}>
+									{pending ? (
+										<>
+											<Loader2 className="size-4 animate-spin" aria-hidden />
+											{t(
+												ACCEPT_STEPS[stepIndex] ??
+													"applications.acceptSubmitting",
+											)}
+										</>
+									) : (
+										t("applications.acceptConfirm")
+									)}
+								</Button>
+							)}
 						</>
 					)}
 				</DialogFooter>

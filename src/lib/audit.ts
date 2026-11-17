@@ -3,6 +3,8 @@
 export const AUDIT_ACTIONS = [
 	"application.accept",
 	"application.accept_failed",
+	"application.decline",
+	"application.decline_failed",
 	"member.create",
 	"member.groups.update",
 	"member.onboarding_stage.update",
@@ -43,6 +45,8 @@ export type AuditEventsResult = {
 export const AUDIT_ACTION_LABEL_KEYS = {
 	"application.accept": "audit.action.application.accept",
 	"application.accept_failed": "audit.action.application.accept_failed",
+	"application.decline": "audit.action.application.decline",
+	"application.decline_failed": "audit.action.application.decline_failed",
 	"member.create": "audit.action.member.create",
 	"member.groups.update": "audit.action.member.groups.update",
 	"member.onboarding_stage.update":

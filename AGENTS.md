@@ -34,7 +34,8 @@
 ## Applications (EasyVerein)
 
 - `/applications` is Vorstand/Admin only. Lists members with `is_application=true` from EasyVerein.
-- Accept dialog: create Authentik user + welcome mail, then PATCH EasyVerein (`is_application=false`, set `join_date` if missing).
+- Accept dialog: create Authentik user + welcome mail, then PATCH EasyVerein (`is_application=false`, set `join_date` if missing). On failure, UI shows failed stage + retry (server resumes partial Authentik creates).
+- Decline dialog: soft-DELETE EasyVerein member (wastebasket); reason is audit-only (min 3 chars). No Authentik writes.
 - After accept, automatically set EasyVerein SEPA mandate when IBAN is present and `sepa_mandate` is empty (`sepa_date` = `application_date` or today; reference `NL{memberId}-{YYYYMMDD}`). Never fails the accept; UI alerts only when mandate could not be set.
 - Authentik user gets `attributes.easyVereinMemberId` for later linkage.
 - Manual Authentik create is a header action on `/applications` (edge cases without an EV application).
@@ -51,7 +52,7 @@
 
 ## Out of scope for now
 
-Queues / checklist workflows, shared package with Connect, decline flow in EasyVerein.
+Queues / checklist workflows, shared package with Connect.
 
 ## Offboarding
 
