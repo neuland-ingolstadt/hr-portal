@@ -1,15 +1,14 @@
 /** Client-safe CSV helpers for the members export. */
 
+import type { OnboardingStage } from "#/lib/onboarding";
+
 export type MemberExportRow = {
 	name: string;
 	email: string;
 	groups: string[];
-};
-
-export type MembersCsvHeaders = {
-	name: string;
-	email: string;
-	groups: string;
+	/** Authentik account creation date (`YYYY-MM-DD`), empty if unknown. */
+	createdAt: string;
+	onboardingStage: OnboardingStage;
 };
 
 /** Semicolon: German Excel opens it in columns without the import wizard. */
@@ -24,13 +23,25 @@ function escapeCell(value: string): string {
 	return /[";\r\n]/.test(safe) ? `"${safe.replaceAll('"', '""')}"` : safe;
 }
 
-export function buildMembersCsv(
-	rows: MemberExportRow[],
-	headers: MembersCsvHeaders,
-): string {
+/** Fixed English, machine-readable headers (not localised on purpose). */
+const HEADERS = [
+	"name",
+	"email",
+	"groups",
+	"created_at",
+	"onboarding_stage",
+] as const;
+
+export function buildMembersCsv(rows: MemberExportRow[]): string {
 	const lines = [
-		[headers.name, headers.email, headers.groups],
-		...rows.map((row) => [row.name, row.email, row.groups.join(", ")]),
+		HEADERS,
+		...rows.map((row) => [
+			row.name,
+			row.email,
+			row.groups.join(", "),
+			row.createdAt,
+			String(row.onboardingStage),
+		]),
 	].map((cells) => cells.map(escapeCell).join(SEPARATOR));
 	// BOM so Excel detects UTF-8 (umlauts).
 	return `﻿${lines.join("\r\n")}\r\n`;

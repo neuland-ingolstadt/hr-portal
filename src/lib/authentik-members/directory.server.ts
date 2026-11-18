@@ -7,8 +7,10 @@ import { onDirectoryInvalidate } from "#/lib/authentik-members/invalidation.serv
 import {
 	activeMockMembers,
 	MOCK_PROFILES,
+	MOCK_RECENT_JOINED,
 } from "#/lib/authentik-members/mock.server";
 import {
+	ATTR,
 	buildGroupNameIndex,
 	displayName,
 	fetchAllPages,
@@ -32,6 +34,8 @@ import type {
 	OffboardingCandidatesResult,
 	OffboardingReason,
 } from "#/lib/offboarding";
+import type { OnboardingStage } from "#/lib/onboarding";
+import { parseOnboardingStage } from "#/lib/onboarding";
 
 const DIRECTORY_CACHE_TTL_MS = 5 * 60_000;
 
@@ -224,7 +228,7 @@ export async function listMembersFromAuthentik(): Promise<MembersResult> {
 }
 
 /**
- * Name + email + groups for the given Mitglieder ids, in the requested order.
+ * Name + email + groups + Authentik creation date + onboarding stage for the given Mitglieder ids, in the requested order.
  * Includes email (PII): callers must be Vorstand/Admin. Uncached on purpose so
  * emails never sit in the shared directory cache.
  */
@@ -236,21 +240,30 @@ export async function exportMembersFromAuthentik(
 	const mitgliederName = serverConfig.groups.mitglieder.trim().toLowerCase();
 
 	const emailsByPk = new Map<string, string>();
+	const stagesByPk = new Map<string, OnboardingStage>();
+	const createdByPk = new Map<string, string>();
 	if (!isAuthentikApiConfigured()) {
 		if (!serverConfig.authMock) throw new Error("authentik_api_missing");
 		for (const [id, profile] of Object.entries(MOCK_PROFILES)) {
 			emailsByPk.set(id, profile.email);
+			stagesByPk.set(id, profile.onboardingStage);
+			const joined = MOCK_RECENT_JOINED[id];
+			if (joined) createdByPk.set(id, joined.slice(0, 10));
 		}
 	} else {
-		const groups = await fetchAllPages<AuthentikGroup>(
-			"/api/v3/core/groups/?include_users=true",
+		// Group `users_obj` omits attributes, so read the Mitglieder users directly.
+		const users = await fetchAllPages<AuthentikUser>(
+			`/api/v3/core/users/?groups_by_name=${encodeURIComponent(serverConfig.groups.mitglieder.trim())}&page_size=100`,
 		);
-		for (const group of groups) {
-			for (const user of group.users_obj ?? []) {
-				if (user.pk != null && user.email) {
-					emailsByPk.set(String(user.pk), user.email);
-				}
-			}
+		for (const user of users) {
+			if (user.pk == null) continue;
+			const pk = String(user.pk);
+			if (user.email) emailsByPk.set(pk, user.email);
+			if (user.date_joined) createdByPk.set(pk, user.date_joined.slice(0, 10));
+			stagesByPk.set(
+				pk,
+				parseOnboardingStage(user.attributes?.[ATTR.onboardingStage]),
+			);
 		}
 	}
 
@@ -261,6 +274,8 @@ export async function exportMembersFromAuthentik(
 		rows.push({
 			name: member.name,
 			email: emailsByPk.get(id) ?? "",
+			createdAt: createdByPk.get(id) ?? "",
+			onboardingStage: stagesByPk.get(id) ?? 0,
 			groups: member.groups.filter(
 				(group) => group.trim().toLowerCase() !== mitgliederName,
 			),

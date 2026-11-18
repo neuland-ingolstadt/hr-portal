@@ -277,11 +277,7 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 			const exported = await exportMembersFn({ data: { ids } });
 			downloadCsv(
 				`mitglieder-${new Date().toISOString().slice(0, 10)}.csv`,
-				buildMembersCsv(exported, {
-					name: t("members.colName"),
-					email: t("members.colEmail"),
-					groups: t("members.colGroups"),
-				}),
+				buildMembersCsv(exported),
 			);
 		} catch {
 			setExportFailed(true);
