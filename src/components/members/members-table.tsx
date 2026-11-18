@@ -1,3 +1,4 @@
+import { getRouteApi } from "@tanstack/react-router";
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -18,6 +19,7 @@ import {
 	ArrowDown,
 	ArrowUp,
 	ArrowUpDown,
+	Download,
 	Filter,
 	Search,
 	X,
@@ -27,6 +29,7 @@ import { MemberProfileSheet } from "#/components/members/member-profile-sheet";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
+import { hasElevatedAccess } from "#/lib/auth";
 import {
 	groupBadgeVariant,
 	isRessortGroup,
@@ -36,7 +39,11 @@ import {
 } from "#/lib/groups";
 import { useI18n } from "#/lib/i18n/locale-context";
 import type { Member } from "#/lib/members";
+import { exportMembersFn } from "#/lib/members.functions";
+import { buildMembersCsv, downloadCsv } from "#/lib/members-csv";
 import { cn } from "#/lib/utils";
+
+const appRouteApi = getRouteApi("/_app");
 
 const features = tableFeatures({
 	rowSortingFeature,
@@ -88,6 +95,10 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 	const [groupQuery, setGroupQuery] = useState("");
 	const [profileId, setProfileId] = useState<string | null>(null);
 	const [profileOpen, setProfileOpen] = useState(false);
+	const [exporting, setExporting] = useState(false);
+	const [exportFailed, setExportFailed] = useState(false);
+	const { user } = appRouteApi.useRouteContext();
+	const canExport = hasElevatedAccess(user.roles);
 
 	useEffect(() => {
 		setRows(members);
@@ -255,6 +266,24 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 		setSelectedGroups([]);
 		setGroupQuery("");
 		table.resetColumnFilters();
+	}
+
+	async function exportCsv() {
+		setExporting(true);
+		setExportFailed(false);
+		try {
+			// Current filter + sort order, as shown in the table.
+			const ids = table.getRowModel().rows.map((row) => row.original.id);
+			const exported = await exportMembersFn({ data: { ids } });
+			downloadCsv(
+				`mitglieder-${new Date().toISOString().slice(0, 10)}.csv`,
+				buildMembersCsv(exported),
+			);
+		} catch {
+			setExportFailed(true);
+		} finally {
+			setExporting(false);
+		}
 	}
 
 	const filteredCount = table.getFilteredRowModel().rows.length;
@@ -425,28 +454,49 @@ export function MembersTable({ members, availableGroups }: MembersTableProps) {
 
 				<section className="surface-panel min-w-0 overflow-hidden">
 					<div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:px-5">
-						<p className="text-sm text-muted-foreground tabular-nums">
-							{t("members.showing", {
-								filtered: String(filteredCount),
-								total: String(members.length),
-							})}
-						</p>
-						{selectedGroups.length > 0 ? (
-							<div className="flex max-w-full flex-wrap gap-1.5">
-								{selectedGroups.map((group) => {
-									const labelKey = ressortLabelKey(group);
-									return (
-										<button
-											key={group}
-											type="button"
-											onClick={() => toggleGroup(group)}
-											className="inline-flex items-center gap-1 border border-primary/30 bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary transition-colors hover:bg-primary/15"
-										>
-											{labelKey ? t(labelKey) : group}
-											<X className="size-3" aria-hidden />
-										</button>
-									);
+						<div className="flex min-w-0 flex-wrap items-center gap-3">
+							<p className="text-sm text-muted-foreground tabular-nums">
+								{t("members.showing", {
+									filtered: String(filteredCount),
+									total: String(members.length),
 								})}
+							</p>
+							{selectedGroups.length > 0 ? (
+								<div className="flex max-w-full flex-wrap gap-1.5">
+									{selectedGroups.map((group) => {
+										const labelKey = ressortLabelKey(group);
+										return (
+											<button
+												key={group}
+												type="button"
+												onClick={() => toggleGroup(group)}
+												className="inline-flex items-center gap-1 border border-primary/30 bg-primary/10 px-2 py-0.5 text-[0.7rem] font-medium text-primary transition-colors hover:bg-primary/15"
+											>
+												{labelKey ? t(labelKey) : group}
+												<X className="size-3" aria-hidden />
+											</button>
+										);
+									})}
+								</div>
+							) : null}
+						</div>
+						{canExport ? (
+							<div className="ml-auto flex items-center gap-3">
+								{exportFailed ? (
+									<p className="m-0 text-xs text-destructive" role="alert">
+										{t("members.exportError")}
+									</p>
+								) : null}
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									disabled={exporting || filteredCount === 0}
+									onClick={exportCsv}
+								>
+									<Download className="size-3.5" aria-hidden />
+									{t("members.exportCsv")}
+								</Button>
 							</div>
 						) : null}
 					</div>
