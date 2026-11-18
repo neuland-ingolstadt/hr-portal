@@ -4,7 +4,10 @@ import {
 	isAuthentikApiConfigured,
 } from "#/lib/authentik-api.server";
 import { onDirectoryInvalidate } from "#/lib/authentik-members/invalidation.server";
-import { activeMockMembers } from "#/lib/authentik-members/mock.server";
+import {
+	activeMockMembers,
+	MOCK_PROFILES,
+} from "#/lib/authentik-members/mock.server";
 import {
 	buildGroupNameIndex,
 	displayName,
@@ -23,6 +26,7 @@ import {
 	isEasyVereinConfigured,
 } from "#/lib/easyverein.server";
 import type { Member, MembersResult } from "#/lib/members";
+import type { MemberExportRow } from "#/lib/members-csv";
 import type {
 	OffboardingCandidate,
 	OffboardingCandidatesResult,
@@ -217,6 +221,52 @@ export async function listMembersFromAuthentik(): Promise<MembersResult> {
 	}));
 
 	return toMembersResult(mitglieder, source);
+}
+
+/**
+ * Name + email + groups for the given Mitglieder ids, in the requested order.
+ * Includes email (PII): callers must be Vorstand/Admin. Uncached on purpose so
+ * emails never sit in the shared directory cache.
+ */
+export async function exportMembersFromAuthentik(
+	ids: string[],
+): Promise<MemberExportRow[]> {
+	const { members } = await loadMitgliederDirectoryMembers();
+	const byId = new Map(members.map((member) => [member.id, member]));
+	const mitgliederName = serverConfig.groups.mitglieder.trim().toLowerCase();
+
+	const emailsByPk = new Map<string, string>();
+	if (!isAuthentikApiConfigured()) {
+		if (!serverConfig.authMock) throw new Error("authentik_api_missing");
+		for (const [id, profile] of Object.entries(MOCK_PROFILES)) {
+			emailsByPk.set(id, profile.email);
+		}
+	} else {
+		const groups = await fetchAllPages<AuthentikGroup>(
+			"/api/v3/core/groups/?include_users=true",
+		);
+		for (const group of groups) {
+			for (const user of group.users_obj ?? []) {
+				if (user.pk != null && user.email) {
+					emailsByPk.set(String(user.pk), user.email);
+				}
+			}
+		}
+	}
+
+	const rows: MemberExportRow[] = [];
+	for (const id of new Set(ids)) {
+		const member = byId.get(id);
+		if (!member) continue;
+		rows.push({
+			name: member.name,
+			email: emailsByPk.get(id) ?? "",
+			groups: member.groups.filter(
+				(group) => group.trim().toLowerCase() !== mitgliederName,
+			),
+		});
+	}
+	return rows;
 }
 
 function toOffboardingCandidatesResult(

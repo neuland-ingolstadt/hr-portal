@@ -4,6 +4,7 @@
  */
 
 export {
+	exportMembersFromAuthentik,
 	listMembersFromAuthentik,
 	listNonMitgliederAccountsFromAuthentik,
 	warmActiveDirectoryForOffboarding,

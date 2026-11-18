@@ -7,6 +7,7 @@ export const AUDIT_ACTIONS = [
 	"application.decline_failed",
 	"member.create",
 	"member.groups.update",
+	"members.export",
 	"member.onboarding_stage.update",
 	"member.onboarding_contact.update",
 	"offboarding.revoke_mitglieder",
@@ -49,6 +50,7 @@ export const AUDIT_ACTION_LABEL_KEYS = {
 	"application.decline_failed": "audit.action.application.decline_failed",
 	"member.create": "audit.action.member.create",
 	"member.groups.update": "audit.action.member.groups.update",
+	"members.export": "audit.action.members.export",
 	"member.onboarding_stage.update":
 		"audit.action.member.onboarding_stage.update",
 	"member.onboarding_contact.update":
