@@ -40,13 +40,13 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "jsqr": "1.4.0",
-    "lucide-react": "1.75.0",
+    "lucide-react": "1.77.0",
     "nitro": "3.0.260610-beta",
-    "openid-client": "6.9.0",
+    "openid-client": "6.9.1",
     "pako": "3.0.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "tailwind-merge": "3.7.0",
+    "tailwind-merge": "3.7.1",
     "tailwindcss": "4.3.5"
   },
   "devDependencies": {
